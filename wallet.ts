@@ -19,8 +19,6 @@ export async function getBalanceChangesFromBlock(
   if (!BLOCK || !BLOCK.transactions) return;
 
   const ALLTXNS = BLOCK.transactions.map((txn, i) => {
-    const FEE = txn.meta.fee;
-
     const obj = txn.transaction.message.accountKeys.map((pk, i) => ({
       publicKey: pk,
       postBalance: txn.meta.postBalances[i],
@@ -36,9 +34,7 @@ export async function getBalanceChangesFromBlock(
       reciever,
     };
 
-
   });
-
 
   return ALLTXNS
 }
