@@ -17,51 +17,39 @@ const redis = new Redis({
 
 // https://api.mainnet-beta.solana.com
 // https://api.devnet.solana.com
-const conn = new Connection("https://solana-api.projectserum.com");
+const conn = new Connection("https://api.devnet.solana.com");
 
 (async () => {
-  await redis.setnx("last", await conn.getSlot("root"));
+  await redis.setnx("last-block", await conn.getSlot("root"));
 })();
 
 conn.onRootChange(async (root) => {
-  await redis.set("latest-fetched-block", root);
-});
-
-async function processBehindBlocks() {
-  const last = Number(await redis.get("last"));
-  const latest = Number(await redis.get("latest-fetched-block"));
-
-  const BLOCKS = await conn.getBlocks(last, latest);
-  console.log(BLOCKS);
-  for (const BLOCK of BLOCKS) {
-    try {
-      console.log(`Proccesing ${BLOCK}`);
-      const a = await getBalanceChangesFromBlock(conn, BLOCK);
-
-      for (const addr of a) {
-        if (
-          addr.sender.publicKey.toBase58() !=
-          PRIMARY_WALLET.publicKey.toBase58()
-        )
-          continue;
-
-        console.log(addr);
-      }
-      redis.set("last", BLOCK);
-      console.log(`Proccessed! ${BLOCK}`);
-    } catch (err: any) {
-      console.log(`Failed to proccess ${BLOCK}: Err: ${err.message}`);
-    }
+  if ((await redis.hget("processed", root.toString())) == "1") {
+    console.log(`Already processed: ${root}`);
+    return;
   }
-}
 
-processBehindBlocks();
+  const all = await getBalanceChangesFromBlock(conn, root);
 
-app.get("/request_deposit_address", async (req, res) => {
-  const DEPOSIT = new Keypair();
-  res.json({
-    address: DEPOSIT.publicKey.toBase58(),
-  });
+  const TXN = all.find(
+    (a) => a.sender.publicKey.toBase58() == PRIMARY_WALLET.publicKey.toBase58()
+  );
+
+  if (TXN != null) {
+    console.log(root);
+    const senderChange = TXN.sender.postBalance! - TXN.sender.preBalance!;
+    const recieverChange = TXN.reciever.postBalance! - TXN.reciever.preBalance!;
+    console.log(
+      `${TXN.sender.publicKey.toBase58()}: ${senderChange / LAMPORTS_PER_SOL}`
+    );
+    console.log(
+      `${TXN.reciever.publicKey.toBase58()}: ${
+        recieverChange / LAMPORTS_PER_SOL
+      }`
+    );
+  }
+  console.log(`Processed! ${root}`);
+  await redis.hset("processed", root, 1);
 });
 
 app.listen(4000, () => console.log(`Listening on http://localhost:4000/`));
