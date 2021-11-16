@@ -13,14 +13,36 @@ interface ISubTransaction {
   change: number;
 }
 
-const createPoller = (
-  conn: Connection,
-  interval = 2000,
-  onTransaction: (transaction: ITransaction) => void
-) => {
-  let latestBlock: number | null = null;
-  let lastProcessedBlock = latestBlock;
+interface IPoller {
+  conn: Connection;
+  pollInterval?: number;
+  maxRetries?: number;
+  maxPollsPerInterval?: number;
+  /**
+   * Don't set too high, it will block the
+   * polling for that amount so you might
+   * get too behind the blockchain
+   * ! This is Synchronous !
+   * TODO Make this Asynchronous
+   */
+  retryDelay?: number;
+  startBlock?: number | "latest";
+  onTransaction: (transaction: ITransaction) => void;
+  onBlockMaxRetriesExceeded: (badBlock: number) => void;
+}
 
+export const createPoller = ({
+  conn,
+  maxRetries = 5,
+  retryDelay = 1500,
+  pollInterval = 2500,
+  startBlock = "latest",
+  maxPollsPerInterval = 10,
+  onBlockMaxRetriesExceeded,
+  onTransaction,
+}: IPoller) => {
+  let latestBlock: number | null = null;
+  let lastProcessedBlock = startBlock != "latest" ? startBlock : null;
   let isActive = false;
 
   async function parseBlockTransactions(BLOCK: BlockResponse) {
@@ -47,12 +69,26 @@ const createPoller = (
     return ALLTXNS;
   }
 
-  async function repeatBlock(slot: number): Promise<BlockResponse> {
+  async function repeatBlock(
+    slot: number,
+    retries = 0
+  ): Promise<BlockResponse | null> {
     try {
       return await conn.getBlock(slot, { commitment: "finalized" });
     } catch (err: any) {
-      console.log(`Failled to fetch block ${slot}, err: ${err.message}`);
-      return repeatBlock(slot);
+      if (retries >= maxRetries) {
+        onBlockMaxRetriesExceeded(slot);
+        return null;
+      }
+
+      retries++;
+      console.log(
+        `[${retries}]Failled to fetch block ${slot}, err: ${err.message}`
+      );
+
+      return new Promise((res) =>
+        setTimeout(() => res(repeatBlock(slot, retries)), retryDelay)
+      );
     }
   }
 
@@ -60,21 +96,39 @@ const createPoller = (
     console.log(`CALL ${slot}`);
 
     const block = await repeatBlock(slot);
+
+    if (!block) return;
+
     const TXNS = await parseBlockTransactions(block);
     console.log(`Processed ${slot}!`);
 
-    TXNS.forEach((txn)=> onTransaction(txn));
+    TXNS.forEach((txn) => onTransaction(txn));
   }
 
   async function poll() {
     if (!isActive) return;
 
     latestBlock = await conn.getSlot("finalized");
+
     lastProcessedBlock = lastProcessedBlock || latestBlock;
 
     console.log(`Latest block ${latestBlock} last block ${lastProcessedBlock}`);
 
-    const blocks_list = await conn.getBlocks(lastProcessedBlock, latestBlock);
+    const adder = lastProcessedBlock + 1 < latestBlock ? 1 : 0;
+
+    if (latestBlock - (lastProcessedBlock + adder) > maxPollsPerInterval) {
+      console.log(
+        `Poll limit exceeded by ${
+          latestBlock - lastProcessedBlock - maxPollsPerInterval
+        } blocks`
+      );
+      latestBlock = lastProcessedBlock + maxPollsPerInterval;
+    }
+
+    const blocks_list = await conn.getBlocks(
+      lastProcessedBlock + adder,
+      latestBlock
+    );
 
     const promises = blocks_list.map((block) => handleBlock(block));
 
@@ -84,16 +138,18 @@ const createPoller = (
 
     console.log(`Finished Poll`);
 
-    setTimeout(poll, interval);
+    setTimeout(poll, pollInterval);
   }
 
   return {
     start() {
       isActive = true;
       poll();
+      return this;
     },
     stop() {
       isActive = false;
+      return this;
     },
   };
 };
