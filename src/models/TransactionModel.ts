@@ -6,6 +6,7 @@ export interface ITransaction {
   publicKey: string;
   privateKey: string;
   createdAt: Date;
+  signature: string;
   processedAt: Date;
   payload: string;
   IsProcessed: boolean;
@@ -19,6 +20,7 @@ export const TransactionSchema = new Schema<ITransaction>({
   createdAt: { type: Date, default: new Date() },
   processedAt: Date,
   IsProcessed: Boolean,
+  signature: String,
   lamports: Number,
   payload: String,
 });

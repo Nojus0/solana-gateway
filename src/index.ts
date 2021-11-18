@@ -1,6 +1,15 @@
 import "dotenv/config";
 import express from "express";
-import { Connection, Keypair, LAMPORTS_PER_SOL } from "@solana/web3.js";
+import {
+  Connection,
+  Keypair,
+  LAMPORTS_PER_SOL,
+  PublicKey,
+  sendAndConfirmRawTransaction,
+  sendAndConfirmTransaction,
+  SystemProgram,
+  Transaction,
+} from "@solana/web3.js";
 import Redis from "ioredis";
 import base58 from "bs58";
 import _ from "lodash";
@@ -14,6 +23,10 @@ import resolvers from "./graphql/resolvers";
 import { makeExecutableSchema } from "@graphql-tools/schema";
 import { applyMiddleware } from "graphql-middleware";
 import middlewares from "./graphql/middleware";
+import axios from "axios";
+import { UserModel } from "./models/UserModel";
+import { IPublicKeyData } from "./resolvers.ts/DepositResolver";
+import { TransactionModel } from "./models/TransactionModel";
 
 (async () => {
   if (!process.env.MONGO_URI || !process.env.REDIS_URI)
@@ -60,7 +73,71 @@ import middlewares from "./graphql/middleware";
     maxPollsPerInterval: 25,
     startBlock: "latest",
     retryDelay: 1000,
-    onTransaction: async ({ reciever }) => {},
+    onTransaction: async ({ reciever }) => {
+      const publicKeyStr = await redis.hget(
+        "deposits",
+        reciever.publicKey.toBase58()
+      );
+
+      if (!publicKeyStr) return;
+
+      const recieverData: IPublicKeyData = JSON.parse(publicKeyStr);
+
+      const recieverKeyPair = new Keypair({
+        publicKey: reciever.publicKey.toBytes(),
+        secretKey: base58.decode(recieverData.secret),
+      });
+
+      const owner = await UserModel.findById(recieverData.uid);
+
+      const TRANSACTION = new Transaction().add(
+        SystemProgram.transfer({
+          fromPubkey: reciever.publicKey,
+          toPubkey: new PublicKey(owner.publicKey),
+          lamports: reciever.change,
+        })
+      );
+
+      try {
+        const SIGNATURE = await sendAndConfirmTransaction(conn, TRANSACTION, [
+          recieverKeyPair,
+        ]);
+
+        const DB_TRANSACTION = await TransactionModel.create({
+          IsProcessed: false,
+          createdAt: Date.now(),
+          lamports: reciever.change,
+          madeBy: owner,
+          payload: recieverData.data,
+          privateKey: base58.encode(recieverKeyPair.secretKey),
+          processedAt: null,
+          publicKey: recieverKeyPair.publicKey.toBase58(),
+          signature: SIGNATURE,
+        });
+
+        await DB_TRANSACTION.save();
+
+        const { data, status, headers } = await axios({
+          url: owner.webhook,
+          method: "POST",
+          data: {
+            lamports: reciever.change,
+            data: recieverData.data,
+          },
+          timeout: 5000,
+        });
+
+        if (
+          status == 200 &&
+          headers["Content-Type"] == "application/json" &&
+          data?.processed == true
+        ) {
+          DB_TRANSACTION.processedAt = new Date();
+          DB_TRANSACTION.IsProcessed = true;
+          DB_TRANSACTION.save();
+        }
+      } catch (err) {}
+    },
     onBlockMaxRetriesExceeded: (badBlock) => {
       NetworkModel.findOneAndUpdate(
         { network: process.env.NETWORK },
@@ -79,7 +156,7 @@ import middlewares from "./graphql/middleware";
         { $push: { blocks: block } }
       ).exec();
     },
-  })
+  });
 
   app.listen(4000, () => console.log(`Listening on http://localhost:4000/`));
 })();

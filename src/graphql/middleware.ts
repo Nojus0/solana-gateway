@@ -2,9 +2,11 @@ import { IMiddlewareFunction } from "graphql-middleware";
 import { IContext } from "../interfaces";
 
 export interface IApiRedisObject {
-  uid?: string;
-  requested?: number;
+  uid: string;
+  requested: number;
 }
+
+export type IApiMiddlewareContext = IApiRedisObject & IContext;
 
 const apiMiddleware: IMiddlewareFunction = async (
   resolve,
@@ -30,7 +32,7 @@ const apiMiddleware: IMiddlewareFunction = async (
 
   await ctx.redis.hset("api_keys", token, JSON.stringify(obj));
 
-  return await resolve(root, args, ctx, info);
+  return await resolve(root, args, { ...ctx, ...obj }, info);
 };
 
 const root = {
