@@ -3,6 +3,8 @@ import { BlockResponse, Connection, PublicKey } from "@solana/web3.js";
 export interface ITransaction {
   sender: ISubTransaction;
   reciever: ISubTransaction;
+  fee: number;
+  signatures: string;
 }
 
 interface ISubTransaction {
@@ -29,8 +31,8 @@ interface IPoller {
   startBlock?: number | "latest";
   onTransaction: (transaction: ITransaction) => void;
   onBlockMaxRetriesExceeded: (badBlock: number) => void;
-  onPollFinished?: (lastBlock: number) => void
-  onHandleBlock?: (asyncCurrentBlock: number)=> void
+  onPollFinished?: (lastBlock: number) => void;
+  onHandleBlock?: (asyncCurrentBlock: number) => void;
 }
 
 export const createPoller = ({
@@ -43,7 +45,7 @@ export const createPoller = ({
   onBlockMaxRetriesExceeded,
   onTransaction,
   onPollFinished,
-  onHandleBlock
+  onHandleBlock,
 }: IPoller) => {
   let latestBlock: number | null = null;
   let lastProcessedBlock = startBlock != "latest" ? startBlock : null;
@@ -65,6 +67,10 @@ export const createPoller = ({
       const reciever: ISubTransaction = obj[1];
 
       return {
+        fee: txn.meta.fee,
+        signatures: Array.isArray(txn.transaction.signatures)
+          ? txn.transaction.signatures[0]
+          : txn.transaction.signatures,
         sender,
         reciever,
       };
@@ -97,18 +103,24 @@ export const createPoller = ({
   }
 
   async function handleBlock(slot: number) {
-    console.log(`CALL ${slot}`);
+    // console.log(`CALL ${slot}`);
 
     const block = await repeatBlock(slot);
 
     if (!block) return;
-    
-    onHandleBlock && onHandleBlock(slot);
+
+    onHandleBlock(slot);
 
     const TXNS = await parseBlockTransactions(block);
     console.log(`Processed ${slot}`);
 
-    TXNS.forEach((txn) => onTransaction(txn));
+    TXNS.forEach((txn) => {
+      txn.reciever &&
+        txn.sender &&
+        txn.signatures &&
+        txn.fee &&
+        onTransaction(txn);
+    });
   }
 
   async function poll() {

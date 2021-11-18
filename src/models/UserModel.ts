@@ -9,6 +9,7 @@ export interface IUser extends Document {
   api_key: string;
   publicKey: string;
   transactions: ITransaction[] | [Schema.Types.ObjectId];
+  lamports_recieved: number
 }
 
 export const UserSchema = new Schema<IUser>({
@@ -18,7 +19,7 @@ export const UserSchema = new Schema<IUser>({
   api_key: { type: String, required: true },
   publicKey: { type: String },
   transactions: { type: [Schema.Types.ObjectId], ref: "transaction" },
+  lamports_recieved: { type: Number, default: 0.0 },
 });
-
 
 export const UserModel = model<IUser>("User", UserSchema);

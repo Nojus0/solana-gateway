@@ -65,17 +65,14 @@ import { TransactionModel } from "./models/TransactionModel";
   // https://api.devnet.solana.com // Doesn't hit rate limit very fast proccesing time
 
   const conn = new Connection(NETWORK.network_url);
-
   const poller = createPoller({
     conn,
     maxRetries: 5,
     pollInterval: 2500,
-    maxPollsPerInterval: 25,
-    startBlock: "latest",
+    maxPollsPerInterval: 45,
+    startBlock: NETWORK.lastProcessedBlock || "latest",
     retryDelay: 1000,
-    onTransaction: async ({ reciever }) => {
-      if (!reciever?.publicKey) return;
-
+    onTransaction: async ({ reciever, signatures }) => {
       const publicKeyStr = await redis.hget(
         "deposits",
         reciever.publicKey.toBase58()
@@ -85,6 +82,8 @@ import { TransactionModel } from "./models/TransactionModel";
 
       if (reciever.change <= 0) return;
 
+      const LAMPORTS_RECIEVED = reciever.change - 5000;
+
       const recieverData: IPublicKeyData = JSON.parse(publicKeyStr);
 
       const recieverKeyPair = new Keypair({
@@ -92,55 +91,66 @@ import { TransactionModel } from "./models/TransactionModel";
         secretKey: base58.decode(recieverData.secret),
       });
 
-      const owner = await UserModel.findById(recieverData.uid);
+      const owner = await UserModel.findById(recieverData.uid).select(
+        "-transactions"
+      );
 
       const TRANSACTION = new Transaction().add(
         SystemProgram.transfer({
           fromPubkey: reciever.publicKey,
           toPubkey: new PublicKey(owner.publicKey),
-          lamports: reciever.change - 5000,
+          lamports: LAMPORTS_RECIEVED,
         })
       );
 
+      const SIGNATURE = await sendAndConfirmTransaction(conn, TRANSACTION, [
+        recieverKeyPair,
+      ]);
+
+      const DB_TRANSACTION = await TransactionModel.create({
+        IsProcessed: false,
+        createdAt: Date.now(),
+        lamports: LAMPORTS_RECIEVED,
+        madeBy: owner,
+        payload: recieverData.data,
+        privateKey: base58.encode(recieverKeyPair.secretKey),
+        processedAt: null,
+        publicKey: recieverKeyPair.publicKey.toBase58(),
+        resendSignature: SIGNATURE,
+        transferSignature: signatures,
+      });
+
+      await DB_TRANSACTION.save();
+
+      await UserModel.updateOne(
+        { id: owner.id },
+        {
+          $push: { transactions: DB_TRANSACTION },
+          $inc: { lamports_recieved: LAMPORTS_RECIEVED },
+        }
+      ).exec();
+
       try {
-        const SIGNATURE = await sendAndConfirmTransaction(conn, TRANSACTION, [
-          recieverKeyPair,
-        ]);
-
-        const DB_TRANSACTION = await TransactionModel.create({
-          IsProcessed: false,
-          createdAt: Date.now(),
-          lamports: reciever.change - 5000,
-          madeBy: owner,
-          payload: recieverData.data,
-          privateKey: base58.encode(recieverKeyPair.secretKey),
-          processedAt: null,
-          publicKey: recieverKeyPair.publicKey.toBase58(),
-          signature: SIGNATURE,
-        });
-
-        await DB_TRANSACTION.save();
-
-        const { data, status, headers } = await axios({
+        const { data } = await axios({
           url: owner.webhook,
           method: "POST",
           data: {
-            // * 5000 Lamport Fee *
-            lamports: reciever.change - 5000,
+            lamports: LAMPORTS_RECIEVED,
             data: recieverData.data,
           },
-          timeout: 5000,
+          timeout: 2000,
         });
-        if (
-          status == 200 &&
-          headers["Content-Type"] == "application/json" &&
-          data?.processed == true
-        ) {
+
+        if (data?.processed == true) {
           DB_TRANSACTION.processedAt = new Date();
           DB_TRANSACTION.IsProcessed = true;
           DB_TRANSACTION.save();
         }
-      } catch (err) {}
+      } catch (err: any) {
+        console.log(
+          `Unable to reach webhook ${owner.webhook}: err: ${err?.message}`
+        );
+      }
     },
     onBlockMaxRetriesExceeded: (badBlock) => {
       NetworkModel.findOneAndUpdate(

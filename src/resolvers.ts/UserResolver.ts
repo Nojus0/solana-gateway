@@ -46,7 +46,12 @@ const UserResolver = {
       const HASH = await argon2.hash(password, { type: argon2id });
       const api_key = base58.encode(crypto.randomBytes(24));
 
-      const usr = await UserModel.create({ ...rest, argon2: HASH, api_key });
+      const usr = await UserModel.create({
+        ...rest,
+        argon2: HASH,
+        api_key,
+        lamports_recieved: 0,
+      });
 
       const redis_object: IApiRedisObject = {
         requested: 0,
