@@ -79,7 +79,7 @@ import { TransactionModel } from "./models/TransactionModel";
         reciever.publicKey.toBase58()
       );
 
-      if (!publicKeyStr) return;
+      if (!publicKeyStr && reciever.change > 0) return;
 
       const recieverData: IPublicKeyData = JSON.parse(publicKeyStr);
 
@@ -94,7 +94,7 @@ import { TransactionModel } from "./models/TransactionModel";
         SystemProgram.transfer({
           fromPubkey: reciever.publicKey,
           toPubkey: new PublicKey(owner.publicKey),
-          lamports: reciever.change,
+          lamports: reciever.change - 5000,
         })
       );
 
@@ -106,7 +106,7 @@ import { TransactionModel } from "./models/TransactionModel";
         const DB_TRANSACTION = await TransactionModel.create({
           IsProcessed: false,
           createdAt: Date.now(),
-          lamports: reciever.change,
+          lamports: reciever.change - 5000,
           madeBy: owner,
           payload: recieverData.data,
           privateKey: base58.encode(recieverKeyPair.secretKey),
@@ -121,7 +121,8 @@ import { TransactionModel } from "./models/TransactionModel";
           url: owner.webhook,
           method: "POST",
           data: {
-            lamports: reciever.change,
+            // * 5000 Lamport Fee *
+            lamports: reciever.change - 5000,
             data: recieverData.data,
           },
           timeout: 5000,
@@ -156,7 +157,7 @@ import { TransactionModel } from "./models/TransactionModel";
         { $push: { blocks: block } }
       ).exec();
     },
-  });
+  }).start();
 
   app.listen(4000, () => console.log(`Listening on http://localhost:4000/`));
 })();
