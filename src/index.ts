@@ -74,12 +74,16 @@ import { TransactionModel } from "./models/TransactionModel";
     startBlock: "latest",
     retryDelay: 1000,
     onTransaction: async ({ reciever }) => {
+      if (!reciever?.publicKey) return;
+
       const publicKeyStr = await redis.hget(
         "deposits",
         reciever.publicKey.toBase58()
       );
 
-      if (!publicKeyStr && reciever.change > 0) return;
+      if (!publicKeyStr) return;
+
+      if (reciever.change <= 0) return;
 
       const recieverData: IPublicKeyData = JSON.parse(publicKeyStr);
 
@@ -127,7 +131,6 @@ import { TransactionModel } from "./models/TransactionModel";
           },
           timeout: 5000,
         });
-
         if (
           status == 200 &&
           headers["Content-Type"] == "application/json" &&
