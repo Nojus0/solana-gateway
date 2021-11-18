@@ -29,6 +29,8 @@ interface IPoller {
   startBlock?: number | "latest";
   onTransaction: (transaction: ITransaction) => void;
   onBlockMaxRetriesExceeded: (badBlock: number) => void;
+  onPollFinished?: (lastBlock: number) => void
+  onHandleBlock?: (asyncCurrentBlock: number)=> void
 }
 
 export const createPoller = ({
@@ -37,9 +39,11 @@ export const createPoller = ({
   retryDelay = 1500,
   pollInterval = 2500,
   startBlock = "latest",
-  maxPollsPerInterval = 10,
+  maxPollsPerInterval = 25,
   onBlockMaxRetriesExceeded,
   onTransaction,
+  onPollFinished,
+  onHandleBlock
 }: IPoller) => {
   let latestBlock: number | null = null;
   let lastProcessedBlock = startBlock != "latest" ? startBlock : null;
@@ -98,9 +102,11 @@ export const createPoller = ({
     const block = await repeatBlock(slot);
 
     if (!block) return;
+    
+    onHandleBlock && onHandleBlock(slot);
 
     const TXNS = await parseBlockTransactions(block);
-    console.log(`Processed ${slot}!`);
+    console.log(`Processed ${slot}`);
 
     TXNS.forEach((txn) => onTransaction(txn));
   }
@@ -135,6 +141,8 @@ export const createPoller = ({
     await Promise.all(promises);
 
     lastProcessedBlock = latestBlock;
+
+    onPollFinished && onPollFinished(lastProcessedBlock);
 
     console.log(`Finished Poll`);
 
