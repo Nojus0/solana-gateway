@@ -177,8 +177,11 @@ export const createHandler = (
     );
 
     for (const transaction of TXNS) {
-      const createdAt = addMinutes(new Date(transaction.createdAt), 2);
-      if (createdAt > new Date()) continue;
+      const createdAt = addMinutes(new Date(transaction.createdAt), 5);
+
+      if (createdAt.getTime() > Date.now()) {
+        continue;
+      }
 
       const data: IPublicKeyData = JSON.parse(
         await redis.hget("deposits", transaction.publicKey)
@@ -193,6 +196,7 @@ export const createHandler = (
         transaction
       );
     }
+
     setTimeout(sendWebhookToAllUnprocessed, webhookInterval);
   }
 

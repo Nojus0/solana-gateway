@@ -41,6 +41,7 @@ const root = {
   },
   Mutation: {
     createDepositAddress: apiMiddleware,
+    setAsProcessed: apiMiddleware
   },
 };
 

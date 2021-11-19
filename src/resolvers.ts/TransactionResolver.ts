@@ -1,10 +1,11 @@
 import { gql } from "apollo-server-core";
 import { IApiRedisObject } from "../graphql/middleware";
+import { TransactionModel } from "../models/TransactionModel";
 import { UserModel } from "../models/UserModel";
 
 export const transactionDefs = gql`
-
   type Transaction {
+    id: String!
     transferSignature: String!
     resendSignature: String!
     lamports: String!
@@ -27,6 +28,10 @@ export const transactionDefs = gql`
       skip: Int!
       limit: Int!
     ): [Transaction!]
+  }
+
+  extend type Mutation {
+    setAsProcessed(transactionId: String!): Transaction
   }
 `;
 
@@ -55,6 +60,22 @@ export const transactionResolver = {
       });
 
       return User.transactions;
+    },
+  },
+  Mutation: {
+    setAsProcessed: async (_, params) => {
+      try {
+        const transaction = await TransactionModel.findById(params.id);
+
+        if (transaction.IsProcessed)
+          throw new Error("Transaction already processed");
+
+        transaction.IsProcessed = true;
+        transaction.processedAt = new Date();
+        await transaction.save();
+      } catch (err) {
+        throw new Error("Transaction does not exist");
+      }
     },
   },
 };
