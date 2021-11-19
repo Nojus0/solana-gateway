@@ -31,8 +31,8 @@ interface IPoller {
   startBlock?: number | "latest";
   onTransaction: (transaction: ITransaction) => void;
   onBlockMaxRetriesExceeded: (badBlock: number) => void;
-  onPollFinished?: (lastBlock: number) => void;
-  onHandleBlock?: (asyncCurrentBlock: number) => void;
+  onPollFinished: (lastBlock: number) => void;
+  onHandleBlock: (asyncCurrentBlock: number) => void;
 }
 
 export const createPoller = ({
@@ -55,16 +55,14 @@ export const createPoller = ({
     if (!BLOCK || !BLOCK.transactions) return;
 
     const ALLTXNS: ITransaction[] = BLOCK.transactions.map((txn, i) => {
-      const obj = txn.transaction.message.accountKeys.map((pk, i) => ({
+      
+      const [sender, reciever] = txn.transaction.message.accountKeys.map((pk, i) => ({
         publicKey: pk,
         postBalance: txn.meta.postBalances[i],
         preBalance: txn.meta.preBalances[i],
         feePayer: txn.transaction.message.isAccountSigner(i),
         change: txn.meta.postBalances[i] - txn.meta.preBalances[i],
       }));
-
-      const sender: ISubTransaction = obj[0];
-      const reciever: ISubTransaction = obj[1];
 
       return {
         fee: txn.meta.fee,
@@ -112,7 +110,7 @@ export const createPoller = ({
     onHandleBlock(slot);
 
     const TXNS = await parseBlockTransactions(block);
-    console.log(`Processed ${slot}`);
+    // console.log(`Processed ${slot}`);
 
     TXNS.forEach((txn) => {
       txn.reciever &&

@@ -7,22 +7,15 @@ import { IContext } from "../interfaces";
 import { IApiRedisObject } from "../graphql/middleware";
 export const userTypeDefs = gql`
   type User {
-    id: String!
     webhook: String!
     email: String!
     api_key: String!
     publicKey: String!
   }
 
-  type BasicUser {
-    id: String!
-  }
-
   type Transaction {
     id: String!
-    madeBy: BasicUser!
     publicKey: String!
-    privateKey: String!
     createdAt: Date!
     processedAt: Date
     payload: String!

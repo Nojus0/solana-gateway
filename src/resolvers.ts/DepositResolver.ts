@@ -7,7 +7,7 @@ import { UserModel } from "../models/UserModel";
 
 export const depositTypeDefs = gql`
   extend type Mutation {
-    createDepositAddress(data: String!): DepositAddress
+    createDepositAddress(data: String!, expiresIn: Int!): DepositAddress
   }
 
   type DepositAddress {
@@ -21,6 +21,8 @@ export interface IPublicKeyData {
   data: string;
 }
 
+const max_ms_expires = 86400000;
+
 const DepositResolver = {
   Query: {},
   Mutation: {
@@ -31,6 +33,11 @@ const DepositResolver = {
     ) => {
       const Account = new Keypair();
 
+      if (params.expiresIn > max_ms_expires)
+        throw new Error(
+          "Expiry time too big, The maximum deposit wallet/address lifetime is 24 hours."
+        );
+
       const publicKeyData: IPublicKeyData = {
         uid,
         secret: base58.encode(Account.secretKey),
@@ -40,7 +47,7 @@ const DepositResolver = {
       redis.hset(
         "deposits",
         Account.publicKey.toBase58(),
-        JSON.stringify(publicKeyData)
+        JSON.stringify(publicKeyData),
       );
 
       return {

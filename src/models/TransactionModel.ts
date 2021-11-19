@@ -24,7 +24,7 @@ export const TransactionSchema = new Schema<ITransaction>({
   transferSignature: String,
   resendSignature: String,
   lamports: Number,
-  payload: String,
+  payload: { type: String, maxlength: 4096 },
 });
 
 export const TransactionModel = model("transaction", TransactionSchema);
