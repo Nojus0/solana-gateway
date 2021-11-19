@@ -16,11 +16,13 @@ import { UserModel } from "./models/UserModel";
 import { IPublicKeyData } from "./resolvers.ts/DepositResolver";
 import mongoose from "mongoose";
 import axios from "axios";
+import { addMinutes } from "date-fns";
 export const createHandler = (
   NETWORK: INetwork & {
     _id: any;
   },
-  redis: Redis
+  redis: Redis,
+  webhookInterval: number = 1000 * 60 * 5
 ) => {
   const conn = new Connection(NETWORK.network_url);
 
@@ -168,11 +170,42 @@ export const createHandler = (
     }
   }
 
+  async function sendWebhookToAllUnprocessed() {
+    if (!poller.isRunning()) return;
+    const TXNS = await TransactionModel.find({ IsProcessed: false }).populate(
+      "madeBy"
+    );
+
+    for (const transaction of TXNS) {
+      const createdAt = addMinutes(new Date(transaction.createdAt), 2);
+      if (createdAt > new Date()) continue;
+
+      const data: IPublicKeyData = JSON.parse(
+        await redis.hget("deposits", transaction.publicKey)
+      );
+      console.log(
+        `Sending webhook to unprocessed transaction: ${transaction.lamports} url = ${transaction.madeBy.webhook}`
+      );
+      await sendWebhook(
+        transaction.madeBy.webhook,
+        transaction.lamports,
+        data,
+        transaction
+      );
+    }
+    setTimeout(sendWebhookToAllUnprocessed, webhookInterval);
+  }
+
   return {
     poller,
     conn,
     start() {
       poller.start();
+      sendWebhookToAllUnprocessed();
+      return this;
+    },
+    stop() {
+      poller.stop();
       return this;
     },
   };

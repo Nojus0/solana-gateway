@@ -55,14 +55,15 @@ export const createPoller = ({
     if (!BLOCK || !BLOCK.transactions) return;
 
     const ALLTXNS: ITransaction[] = BLOCK.transactions.map((txn, i) => {
-      
-      const [sender, reciever] = txn.transaction.message.accountKeys.map((pk, i) => ({
-        publicKey: pk,
-        postBalance: txn.meta.postBalances[i],
-        preBalance: txn.meta.preBalances[i],
-        feePayer: txn.transaction.message.isAccountSigner(i),
-        change: txn.meta.postBalances[i] - txn.meta.preBalances[i],
-      }));
+      const [sender, reciever] = txn.transaction.message.accountKeys.map(
+        (pk, i) => ({
+          publicKey: pk,
+          postBalance: txn.meta.postBalances[i],
+          preBalance: txn.meta.preBalances[i],
+          feePayer: txn.transaction.message.isAccountSigner(i),
+          change: txn.meta.postBalances[i] - txn.meta.preBalances[i],
+        })
+      );
 
       return {
         fee: txn.meta.fee,
@@ -160,6 +161,9 @@ export const createPoller = ({
   }
 
   return {
+    isRunning() {
+      return isActive;
+    },
     start() {
       isActive = true;
       poll();

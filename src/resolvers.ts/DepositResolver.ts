@@ -2,12 +2,9 @@ import { Keypair } from "@solana/web3.js";
 import { gql } from "apollo-server-core";
 import base58 from "bs58";
 import { IApiMiddlewareContext } from "../graphql/middleware";
-import { IContext } from "../interfaces";
-import { UserModel } from "../models/UserModel";
-
 export const depositTypeDefs = gql`
   extend type Mutation {
-    createDepositAddress(data: String!, expiresIn: Int!): DepositAddress
+    createDepositAddress(data: String!): DepositAddress
   }
 
   type DepositAddress {
@@ -33,10 +30,10 @@ const DepositResolver = {
     ) => {
       const Account = new Keypair();
 
-      if (params.expiresIn > max_ms_expires)
-        throw new Error(
-          "Expiry time too big, The maximum deposit wallet/address lifetime is 24 hours."
-        );
+      // if (params.expiresIn > max_ms_expires)
+      //   throw new Error(
+      //     "Expiry time too big, The maximum deposit wallet/address lifetime is 24 hours."
+      //   );
 
       const publicKeyData: IPublicKeyData = {
         uid,

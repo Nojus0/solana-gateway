@@ -13,16 +13,6 @@ export const userTypeDefs = gql`
     publicKey: String!
   }
 
-  type Transaction {
-    id: String!
-    publicKey: String!
-    createdAt: Date!
-    processedAt: Date
-    payload: String!
-    IsProcessed: Boolean!
-    lamports: Int!
-  }
-
   extend type Mutation {
     createUser(
       email: String!

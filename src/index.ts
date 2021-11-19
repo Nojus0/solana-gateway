@@ -63,7 +63,7 @@ import { createHandler } from "./createHandler";
   // https://solana-api.projectserum.com - Doesn't hit rate limit, average processing time, have not checked the max limit.
   // https://api.devnet.solana.com // Doesn't hit rate limit very fast proccesing time
 
-  const handler = createHandler(NETWORK, redis).start();
+  const handler = createHandler(NETWORK, redis, 2000).start();
 
   app.listen(4000, () => console.log(`Listening on http://localhost:4000/`));
 })();
