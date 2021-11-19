@@ -1,5 +1,5 @@
 import { gql } from "apollo-server-core";
-import { UserModel } from "../models/UserModel";
+import { UserModel } from "shared";
 import crypto from "crypto";
 import argon2, { argon2id } from "argon2";
 import base58 from "bs58";

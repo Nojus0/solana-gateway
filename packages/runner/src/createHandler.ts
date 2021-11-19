@@ -9,14 +9,11 @@ import {
 import base58 from "bs58";
 import { Redis } from "ioredis";
 import { createPoller } from "./createPoller";
-import { ErrorModel } from "./models/ErrorModel";
-import { INetwork, NetworkModel } from "./models/NetworkModel";
-import { ITransaction, TransactionModel } from "./models/TransactionModel";
-import { UserModel } from "./models/UserModel";
-import { IPublicKeyData } from "./resolvers.ts/DepositResolver";
 import mongoose from "mongoose";
 import axios from "axios";
 import { addMinutes } from "date-fns";
+import { ErrorModel, INetwork, IPublicKeyData, ITransaction, NetworkModel, TransactionModel, UserModel } from "shared";
+
 export const createHandler = (
   NETWORK: INetwork & {
     _id: any;

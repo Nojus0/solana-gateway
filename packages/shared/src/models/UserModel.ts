@@ -1,5 +1,5 @@
 import { Schema, model, Document } from "mongoose";
-import { ITransaction } from "../createPoller";
+import { ITransaction } from "..";
 
 export interface IUser extends Document {
   id: string;

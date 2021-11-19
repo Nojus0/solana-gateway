@@ -1,5 +1,6 @@
 import { model, Schema } from "mongoose";
 import { IUser } from "./UserModel";
+
 export interface ITransaction {
   id: string;
   madeBy: IUser;

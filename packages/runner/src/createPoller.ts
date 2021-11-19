@@ -1,19 +1,5 @@
 import { BlockResponse, Connection, PublicKey } from "@solana/web3.js";
-
-export interface ITransaction {
-  sender: ISubTransaction;
-  reciever: ISubTransaction;
-  fee: number;
-  signatures: string;
-}
-
-interface ISubTransaction {
-  publicKey: PublicKey;
-  postBalance: number;
-  preBalance: number;
-  feePayer: boolean;
-  change: number;
-}
+import { IBlockTransaction } from "./interfaces";
 
 interface IPoller {
   conn: Connection;
@@ -29,7 +15,7 @@ interface IPoller {
    */
   retryDelay?: number;
   startBlock?: number | "latest";
-  onTransaction: (transaction: ITransaction) => void;
+  onTransaction: (transaction: IBlockTransaction) => void;
   onBlockMaxRetriesExceeded: (badBlock: number) => void;
   onPollFinished: (lastBlock: number) => void;
   onHandleBlock: (asyncCurrentBlock: number) => void;
@@ -54,7 +40,7 @@ export const createPoller = ({
   async function parseBlockTransactions(BLOCK: BlockResponse) {
     if (!BLOCK || !BLOCK.transactions) return;
 
-    const ALLTXNS: ITransaction[] = BLOCK.transactions.map((txn, i) => {
+    const ALLTXNS: IBlockTransaction[] = BLOCK.transactions.map((txn, i) => {
       const [sender, reciever] = txn.transaction.message.accountKeys.map(
         (pk, i) => ({
           publicKey: pk,

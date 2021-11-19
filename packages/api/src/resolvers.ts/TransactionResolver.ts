@@ -1,7 +1,7 @@
 import { gql } from "apollo-server-core";
 import { IApiRedisObject } from "../graphql/middleware";
-import { TransactionModel } from "../models/TransactionModel";
-import { UserModel } from "../models/UserModel";
+import { TransactionModel } from "shared";
+import { UserModel } from "shared";
 
 export const transactionDefs = gql`
   type Transaction {
