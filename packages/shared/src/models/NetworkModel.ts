@@ -1,4 +1,5 @@
 import { Schema, model, Document } from "mongoose";
+import { IUser } from "..";
 
 export interface INetwork extends Document {
   network: string;
@@ -7,6 +8,7 @@ export interface INetwork extends Document {
   blocks: number[];
   badBlocks: number[];
   service_fee: number;
+  accounts: IUser[];
 }
 
 export const networkSchema = new Schema<INetwork>({
@@ -16,6 +18,7 @@ export const networkSchema = new Schema<INetwork>({
   blocks: { type: [Number], default: [] },
   badBlocks: { type: [Number], default: [] },
   service_fee: { type: Number, required: true, default: 2.0 },
+  accounts: { type: [Schema.Types.ObjectId], ref: "user", default: [] },
 });
 
-export const NetworkModel = model<INetwork>("Networks", networkSchema);
+export const NetworkModel = model<INetwork>("network", networkSchema);

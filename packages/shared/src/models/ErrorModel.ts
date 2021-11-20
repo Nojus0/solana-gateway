@@ -12,4 +12,4 @@ export const ErrorSchema = new Schema<IError>({
   message: String,
 });
 
-export const ErrorModel = model("Error", ErrorSchema);
+export const ErrorModel = model("error", ErrorSchema);

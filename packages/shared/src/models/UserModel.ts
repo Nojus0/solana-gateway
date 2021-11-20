@@ -1,5 +1,5 @@
 import { Schema, model, Document } from "mongoose";
-import { ITransaction } from "..";
+import { INetwork, ITransaction } from "..";
 
 export interface IUser extends Document {
   id: string;
@@ -11,6 +11,7 @@ export interface IUser extends Document {
   transactions: ITransaction[] | [Schema.Types.ObjectId];
   lamports_recieved: number;
   isFast: boolean;
+  network: INetwork | Schema.Types.ObjectId;
 }
 
 export const UserSchema = new Schema<IUser>({
@@ -21,7 +22,8 @@ export const UserSchema = new Schema<IUser>({
   publicKey: { type: String },
   transactions: { type: [Schema.Types.ObjectId], ref: "transaction" },
   lamports_recieved: { type: Number, default: 0.0 },
-  isFast: { type: Boolean, default: false }
+  isFast: { type: Boolean, default: false },
+  network: { type: Schema.Types.ObjectId, ref: "network", default: "main" },
 });
 
-export const UserModel = model<IUser>("User", UserSchema);
+export const UserModel = model<IUser>("user", UserSchema);

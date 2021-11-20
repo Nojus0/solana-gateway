@@ -16,7 +16,7 @@ import { createHandler } from "./createHandler";
     network: process.env.NETWORK,
   });
 
-  if (!NetworkModel.exists({ network: process.env.NETWORK })) {
+  if (!NETWORK) {
     throw new Error("Network does not exist");
   }
 

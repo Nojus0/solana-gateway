@@ -1,5 +1,5 @@
 import { gql } from "apollo-server-core";
-import { UserModel } from "shared";
+import { NetworkModel, UserModel } from "shared";
 import crypto from "crypto";
 import argon2, { argon2id } from "argon2";
 import base58 from "bs58";
@@ -19,6 +19,7 @@ export const userTypeDefs = gql`
       password: String!
       webhook: String!
       publicKey: String!
+      network: String!
     ): User
     changeWebhook(newUrl: String!): String
     regenerateApiKey: String
@@ -38,7 +39,11 @@ function webhookUrlValid(web: string) {
 
 const UserResolver = {
   Mutation: {
-    createUser: async (_, { password, ...rest }, ctx: IContext) => {
+    createUser: async (_, { password, network, ...rest }, ctx: IContext) => {
+      const NETWORK = await NetworkModel.findOne({ network });
+
+      if (!NETWORK) throw new Error("Network does not exists");
+
       const HASH = await argon2.hash(password, { type: argon2id });
       const api_key = base58.encode(crypto.randomBytes(24));
 
@@ -49,6 +54,7 @@ const UserResolver = {
           ...rest,
           argon2: HASH,
           api_key,
+          network: NETWORK,
           lamports_recieved: 0,
         });
         const redis_object: IApiRedisObject = {
@@ -57,6 +63,12 @@ const UserResolver = {
         };
         await ctx.redis.hset("api_keys", api_key, JSON.stringify(redis_object));
         await usr.save();
+
+        await NetworkModel.findOneAndUpdate(
+          { id: NETWORK.id },
+          { $push: { accounts: usr } }
+        ).exec();
+
         return usr;
       } catch (err: any) {
         if (err.code == 11000) {
@@ -88,10 +100,10 @@ const UserResolver = {
 
       const user = await UserModel.findById(redisData.uid);
       user.api_key = new_api_key;
-      user.save();      
-      
+      user.save();
+
       await primitive.redis.hdel("api_keys", api_key);
-      
+
       redisData.requested += 1;
 
       await primitive.redis.hset(
