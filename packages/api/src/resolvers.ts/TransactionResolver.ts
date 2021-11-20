@@ -1,5 +1,5 @@
 import { gql } from "apollo-server-core";
-import { IApiRedisObject } from "../graphql/middleware";
+import { IApiMiddlewareContext, IApiRedisObject } from "../graphql/middleware";
 import { TransactionModel } from "shared";
 import { UserModel } from "shared";
 
@@ -37,8 +37,12 @@ export const transactionDefs = gql`
 
 export const transactionResolver = {
   Query: {
-    getTransactions: async (_, params, { requested, uid }: IApiRedisObject) => {
-      const User = await UserModel.findById(uid);
+    getTransactions: async (
+      _,
+      params,
+      { redisData }: IApiMiddlewareContext
+    ) => {
+      const User = await UserModel.findById(redisData.uid);
 
       const Limit = Math.min(50, Math.max(params.limit, 1));
 

@@ -88,8 +88,6 @@ export const createPoller = ({
   }
 
   async function handleBlock(slot: number) {
-    // console.log(`CALL ${slot}`);
-
     const block = await repeatBlock(slot);
 
     if (!block) return;
@@ -97,7 +95,6 @@ export const createPoller = ({
     onHandleBlock(slot);
 
     const TXNS = await parseBlockTransactions(block);
-    // console.log(`Processed ${slot}`);
 
     TXNS.forEach((txn) => {
       txn.reciever &&

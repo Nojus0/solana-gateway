@@ -22,12 +22,12 @@ const DepositResolver = {
     createDepositAddress: async (
       _,
       params,
-      { redis, uid }: IApiMiddlewareContext
+      { primitive: { redis }, redisData }: IApiMiddlewareContext
     ) => {
       const Account = new Keypair();
 
       const publicKeyData: IPublicKeyData = {
-        uid,
+        uid: redisData.uid,
         secret: base58.encode(Account.secretKey),
         data: params.data,
       };

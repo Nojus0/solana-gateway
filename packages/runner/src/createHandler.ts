@@ -11,8 +11,17 @@ import { Redis } from "ioredis";
 import { createPoller } from "./createPoller";
 import mongoose from "mongoose";
 import axios from "axios";
+import crypto from "crypto";
 import { addMinutes } from "date-fns";
-import { ErrorModel, INetwork, IPublicKeyData, ITransaction, NetworkModel, TransactionModel, UserModel } from "shared";
+import {
+  ErrorModel,
+  INetwork,
+  IPublicKeyData,
+  ITransaction,
+  NetworkModel,
+  TransactionModel,
+  UserModel,
+} from "shared";
 
 export const createHandler = (
   NETWORK: INetwork & {
@@ -147,12 +156,26 @@ export const createHandler = (
       }
   ) {
     try {
+      const payload = JSON.stringify({
+        lamports: LAMPORTS,
+        data: recieverData.data,
+      });
+
+      const sig = base58.encode(
+        crypto
+          .createHash("sha256")
+          .update(payload + transaction.madeBy.api_key)
+          .digest()
+      );
+
       const { data } = await axios({
         url: url,
         method: "POST",
-        data: {
-          lamports: LAMPORTS,
-          data: recieverData.data,
+        data: payload,
+        headers: {
+          "x-api-key": transaction.madeBy.api_key,
+          "Content-Type": "application/json",
+          "x-signature": sig,
         },
         timeout: 2000,
       });

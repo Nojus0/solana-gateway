@@ -6,7 +6,14 @@ export interface IApiRedisObject {
   requested: number;
 }
 
-export type IApiMiddlewareContext = IApiRedisObject & IContext;
+// export type IApiMiddlewareContext = IApiRedisObject &
+//   IContext & { api_key: string };
+
+export type IApiMiddlewareContext = {
+  primitive: IContext;
+  redisData: IApiRedisObject;
+  api_key: string;
+};
 
 const apiMiddleware: IMiddlewareFunction = async (
   resolve,
@@ -32,7 +39,13 @@ const apiMiddleware: IMiddlewareFunction = async (
 
   await ctx.redis.hset("api_keys", token, JSON.stringify(obj));
 
-  return await resolve(root, args, { ...ctx, ...obj }, info);
+  const Context: IApiMiddlewareContext = {
+    api_key: token,
+    primitive: ctx,
+    redisData: obj,
+  };
+
+  return await resolve(root, args, Context, info);
 };
 
 const root = {
@@ -41,7 +54,9 @@ const root = {
   },
   Mutation: {
     createDepositAddress: apiMiddleware,
-    setAsProcessed: apiMiddleware
+    setAsProcessed: apiMiddleware,
+    regenerateApiKey: apiMiddleware,
+    changeWebhook: apiMiddleware,
   },
 };
 
