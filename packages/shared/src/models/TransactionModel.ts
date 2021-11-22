@@ -1,7 +1,7 @@
-import { model, Schema } from "mongoose";
+import { Document, model, Schema } from "mongoose";
 import { IUser } from "./UserModel";
 
-export interface ITransaction {
+export interface ITransaction extends Document {
   id: string;
   madeBy: IUser;
   publicKey: string;
@@ -16,7 +16,7 @@ export interface ITransaction {
 }
 
 export const TransactionSchema = new Schema<ITransaction>({
-  madeBy: { type: Schema.Types.ObjectId, ref: "User" },
+  madeBy: { type: Schema.Types.ObjectId, ref: "user" },
   publicKey: String,
   privateKey: String,
   createdAt: { type: Date, default: new Date() },

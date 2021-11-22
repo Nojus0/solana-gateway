@@ -40,12 +40,12 @@ function webhookUrlValid(web: string) {
 const UserResolver = {
   Mutation: {
     createUser: async (_, { password, network, ...rest }, ctx: IContext) => {
-      const NETWORK = await NetworkModel.findOne({ network });
+      const NETWORK = await NetworkModel.findOne({ name: network });
 
       if (!NETWORK) throw new Error("Network does not exists");
 
       const HASH = await argon2.hash(password, { type: argon2id });
-      const api_key = base58.encode(crypto.randomBytes(24))
+      const api_key = base58.encode(crypto.randomBytes(24));
 
       if (webhookUrlValid(rest.webhook)) throw new Error("Invalid host");
 
@@ -60,8 +60,11 @@ const UserResolver = {
 
         await usr.save();
 
-        const binary = createKeyData({ uid: usr.id, requested: 0 });
-        await ctx.redis.hset("api_keys", api_key, binary);
+        await ctx.redis.hset(
+          "api_keys",
+          api_key,
+          createKeyData({ uid: usr.id, requested: 0 })
+        );
 
         await NetworkModel.findOneAndUpdate(
           { id: NETWORK.id },
@@ -79,14 +82,14 @@ const UserResolver = {
         );
       }
     },
-    changeWebhook: async (_, params, { uid, requested }: APIContext) => {
+    changeWebhook: async (_, params, { uid }: APIContext) => {
       if (webhookUrlValid(params.newUrl)) throw new Error("Invalid host");
-
-      const user = await UserModel.findById(uid);
-
-      user.webhook = params.newUrl;
-
-      await user.save();
+      const USER = await UserModel.updateOne(
+        { id: uid },
+        {
+          webhook: params.newUrl,
+        }
+      );
 
       return params.newUrl;
     },
@@ -97,9 +100,10 @@ const UserResolver = {
     ) => {
       const new_api_key = base58.encode(crypto.randomBytes(24));
 
-      const user = await UserModel.findById(uid);
-      user.api_key = new_api_key;
-      user.save();
+      const user = await UserModel.updateOne({
+        id: uid,
+        api_key: new_api_key,
+      });
 
       await redis.hdel("api_keys", api_key);
 
@@ -118,5 +122,3 @@ const UserResolver = {
 };
 
 export default UserResolver;
-
-const schema = new Map([]);

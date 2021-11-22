@@ -1,6 +1,6 @@
-import { model, Schema } from "mongoose";
+import { Document, model, Schema } from "mongoose";
 
-export interface IError {
+export interface IError extends Document {
   publicKey: string;
   privateKey: string;
   message: string;

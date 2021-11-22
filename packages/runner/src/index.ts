@@ -12,14 +12,19 @@ import { createHandler } from "./createHandler";
   const mongo = await mongoose.connect(process.env.MONGO_URI);
   const redis = new Redis(process.env.REDIS_URI);
 
-  const NETWORK = await NetworkModel.findOne({
-    network: process.env.NETWORK,
+  const network = await NetworkModel.findOne({
+    name: process.env.NETWORK,
   });
 
-  if (!NETWORK) {
+  if (!network) {
     throw new Error("Network does not exist");
   }
 
-  const handler = createHandler(NETWORK, redis, 2000);
+  const handler = createHandler({
+    network,
+    redis,
+    webhook_interval: 2000,
+  });
+
   handler.start();
 })();

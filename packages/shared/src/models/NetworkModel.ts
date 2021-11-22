@@ -2,8 +2,8 @@ import { Schema, model, Document } from "mongoose";
 import { IUser } from "..";
 
 export interface INetwork extends Document {
-  network: string;
-  network_url: string;
+  name: string;
+  url: string;
   lastProcessedBlock: number;
   blocks: number[];
   badBlocks: number[];
@@ -12,8 +12,8 @@ export interface INetwork extends Document {
 }
 
 export const networkSchema = new Schema<INetwork>({
-  network: { type: String, required: true },
-  network_url: String,
+  name: { type: String, required: true },
+  url: String,
   lastProcessedBlock: { type: Number },
   blocks: { type: [Number], default: [] },
   badBlocks: { type: [Number], default: [] },

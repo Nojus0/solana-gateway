@@ -18,27 +18,33 @@ import {
   IDepositData,
   INetwork,
   ITransaction,
+  IUser,
   NetworkModel,
   readDepositData,
   TransactionModel,
   UserModel,
 } from "shared";
 
-export const createHandler = (
-  NETWORK: INetwork & {
-    _id: any;
-  },
-  redis: Redis,
-  webhookInterval: number = 1000 * 60 * 5
-) => {
-  const conn = new Connection(NETWORK.network_url);
+interface IHandler {
+  network: INetwork;
+  redis: Redis;
+  webhook_interval?: number;
+}
+
+export const createHandler = ({
+  redis,
+  network,
+  webhook_interval = 1000,
+}: IHandler) => {
+  const conn = new Connection(network.url);
+  const webhook = createWebhookConfirmer({ redis, interval: webhook_interval });
 
   const poller = createPoller({
     conn,
     maxRetries: 5,
     pollInterval: 2500,
     maxPollsPerInterval: 45,
-    startBlock: NETWORK.lastProcessedBlock || "latest",
+    startBlock: network.lastProcessedBlock || "latest",
     retryDelay: 1000,
     onTransaction: async ({ reciever, signatures, fee }) => {
       const KEY_DATA = await redis.getBuffer(reciever.publicKey.toBase58());
@@ -50,25 +56,23 @@ export const createHandler = (
       // * And when sending back to main wallet *
 
       const LAMPORTS_RECIEVED = reciever.change - fee;
-      const SERVICE_FEE = (LAMPORTS_RECIEVED / 100) * NETWORK.service_fee;
+      const SERVICE_FEE = (LAMPORTS_RECIEVED / 100) * network.service_fee;
       const LAMPORTS = LAMPORTS_RECIEVED - SERVICE_FEE;
 
-      const recieverData = readDepositData(KEY_DATA);
+      const { data, secret, uid } = readDepositData(KEY_DATA);
 
       const recieverKeyPair = new Keypair({
         publicKey: reciever.publicKey.toBytes(),
-        secretKey: recieverData.secret,
+        secretKey: secret,
       });
 
       try {
-        const owner = await UserModel.findById(recieverData.uid).select(
-          "-transactions"
-        );
+        const owner = await UserModel.findById(uid).select("-transactions");
         console.log(`${reciever.publicKey.toBase58()}`);
         console.log(
           `recieved minus incoming fee = ${LAMPORTS_RECIEVED} fee = ${SERVICE_FEE} user gets = ${LAMPORTS}`
         );
-        const TRANSACTION = new Transaction().add(
+        const TXN = new Transaction().add(
           SystemProgram.transfer({
             fromPubkey: reciever.publicKey,
             toPubkey: new PublicKey(owner.publicKey),
@@ -80,46 +84,40 @@ export const createHandler = (
             lamports: SERVICE_FEE,
           })
         );
-
         const SIGNATURE = await sendAndConfirmTransaction(
           conn,
-          TRANSACTION,
+          TXN,
           [recieverKeyPair],
           { commitment: owner.isFast ? "confirmed" : "max" }
         );
 
-        const DB_TRANSACTION = await TransactionModel.create({
+        const transaction = await TransactionModel.create({
           IsProcessed: false,
           createdAt: Date.now(),
           lamports: LAMPORTS,
           madeBy: owner,
-          payload: recieverData.data,
+          payload: data,
           privateKey: base58.encode(recieverKeyPair.secretKey),
           processedAt: null,
           publicKey: recieverKeyPair.publicKey.toBase58(),
           resendSignature: SIGNATURE,
           transferSignature: signatures,
         });
-        await DB_TRANSACTION.save();
-
-        await sendWebhook(
-          owner.webhook,
-          LAMPORTS,
-          recieverData,
-          DB_TRANSACTION
-        );
+        await transaction.save();
 
         await UserModel.updateOne(
           { id: owner.id },
           {
-            $push: { transactions: DB_TRANSACTION },
+            $push: { transactions: transaction },
             $inc: { lamports_recieved: LAMPORTS },
           }
         ).exec();
+
+        webhook.sendWebhook({ user: owner, transaction });
       } catch (err: any) {
         const error = await ErrorModel.create({
           publicKey: reciever.publicKey.toBase58(),
-          privateKey: recieverData.secret,
+          privateKey: secret,
           message: err.message,
         });
         await error.save();
@@ -127,71 +125,56 @@ export const createHandler = (
     },
     onBlockMaxRetriesExceeded: (badBlock) => {
       NetworkModel.findOneAndUpdate(
-        { network: process.env.NETWORK },
+        { name: process.env.NETWORK },
         { $push: { badBlocks: badBlock } }
       ).exec();
     },
     onPollFinished: (last) => {
       NetworkModel.findOneAndUpdate(
-        { network: process.env.NETWORK },
+        { name: process.env.NETWORK },
         { lastProcessedBlock: last }
       ).exec();
     },
     onHandleBlock: (block) => {
       NetworkModel.findOneAndUpdate(
-        { network: process.env.NETWORK },
+        { name: process.env.NETWORK },
         { $push: { blocks: block } }
       ).exec();
     },
   });
 
-  async function sendWebhook(
-    url: string,
-    LAMPORTS: number,
-    recieverData: IDepositData,
-    transaction: mongoose.Document<any, any, ITransaction> &
-      ITransaction & {
-        _id: mongoose.Types.ObjectId;
-      }
-  ) {
-    try {
-      // ! SENDING RAW BUFFER ? CHECK IF WORKS ELSE SEND BASE64 ENCODED !
-      const payload = JSON.stringify({
-        lamports: LAMPORTS,
-        data: recieverData.data,
-      });
+  return {
+    poller,
+    conn,
+    start() {
+      poller.start();
+      webhook.start();
+      return this;
+    },
+    stop() {
+      poller.stop();
+      webhook.stop();
+      return this;
+    },
+  };
+};
 
-      const sig = base58.encode(
-        crypto
-          .createHash("sha256")
-          .update(payload + transaction.madeBy.api_key)
-          .digest()
-      );
+interface IConfimer {
+  redis: Redis;
+  interval: number;
+}
 
-      const { data } = await axios({
-        url: url,
-        method: "POST",
-        data: payload,
-        headers: {
-          "x-api-key": transaction.madeBy.api_key,
-          "Content-Type": "application/json",
-          "x-signature": sig,
-        },
-        timeout: 2000,
-      });
+interface ISendWebhook {
+  user: IUser;
+  transaction: ITransaction;
+}
 
-      if (data?.processed == true) {
-        transaction.processedAt = new Date();
-        transaction.IsProcessed = true;
-        await transaction.save();
-      }
-    } catch (err: any) {
-      console.log(`Unable to reach webhook ${url}: err: ${err?.message}`);
-    }
-  }
+function createWebhookConfirmer({ redis, interval }: IConfimer) {
+  let isRunning = false;
 
   async function sendWebhookToAllUnprocessed() {
-    if (!poller.isRunning()) return;
+    if (!isRunning) return;
+    // * Get All unprocessed transactions, this can pile up maybe discard if time exceeds *?* ?
     const TXNS = await TransactionModel.find({ IsProcessed: false }).populate(
       "madeBy"
     );
@@ -199,42 +182,75 @@ export const createHandler = (
     for (const transaction of TXNS) {
       const createdAt = addMinutes(new Date(transaction.createdAt), 5);
 
-      if (createdAt.getTime() > Date.now()) {
+      if (createdAt.getTime() < Date.now()) {
+        console.log(`not yet ${createdAt.getTime()} < ${Date.now()}`);
         continue;
       }
-
-      const data_bfr = await redis.hgetBuffer(
-        "deposits",
-        transaction.publicKey
-      );
-
-      const decoded = readDepositData(data_bfr);
 
       console.log(
         `Sending webhook to unprocessed transaction: ${transaction.lamports} url = ${transaction.madeBy.webhook}`
       );
-      await sendWebhook(
-        transaction.madeBy.webhook,
-        transaction.lamports,
-        decoded,
-        transaction
-      );
+      await send({ user: transaction.madeBy, transaction });
     }
 
-    setTimeout(sendWebhookToAllUnprocessed, webhookInterval);
+    setTimeout(sendWebhookToAllUnprocessed, interval);
+  }
+
+  async function send({ transaction, user }: ISendWebhook) {
+    try {
+      const PAYLOAD = JSON.stringify({
+        lamports: transaction.lamports,
+        data: transaction.payload,
+      });
+
+      const sig = base58.encode(
+        crypto
+          .createHash("sha256")
+          .update(PAYLOAD + user.api_key)
+          .digest()
+      );
+      console.log(`Sending webhook to ${user.webhook}`);
+      const { data } = await axios({
+        url: user.webhook,
+        method: "POST",
+        data: PAYLOAD,
+        headers: {
+          "x-api-key": user.api_key,
+          "Content-Type": "application/json",
+          "x-signature": sig,
+        },
+        timeout: 2000,
+      });
+
+      if (data?.processed) {
+        transaction.processedAt = new Date();
+        transaction.IsProcessed = true;
+      }
+      
+      if(data?.delete) {
+        redis.del(transaction.publicKey);
+      }
+
+
+      await transaction.save();
+    } catch (err: any) {
+      console.log(
+        `Unable to reach webhook ${user.webhook}: err: ${err?.message}`
+      );
+    }
   }
 
   return {
-    poller,
-    conn,
+    sendWebhook: send,
+    getRunning() {
+      return isRunning;
+    },
     start() {
-      poller.start();
+      isRunning = true;
       sendWebhookToAllUnprocessed();
-      return this;
     },
     stop() {
-      poller.stop();
-      return this;
+      isRunning = false;
     },
   };
-};
+}

@@ -6,7 +6,7 @@ import { APIContext } from "../graphql/middleware";
 
 export const depositTypeDefs = gql`
   extend type Mutation {
-    createDepositAddress(base64data: String!): DepositAddress
+    createDepositAddress(data: String!): DepositAddress
   }
 
   type DepositAddress {
@@ -26,7 +26,7 @@ const DepositResolver = {
       // * If problems arrise prefix it with some bytes or encoded string
       const binary = createDepositData({
         uid,
-        data: Buffer.from(params.base64data, "base64"),
+        data: params.data,
         secret: Buffer.from(Account.secretKey),
       });
 
