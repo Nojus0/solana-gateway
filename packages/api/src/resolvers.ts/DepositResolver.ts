@@ -1,12 +1,12 @@
 import { Keypair } from "@solana/web3.js";
 import { gql } from "apollo-server-core";
 import base58 from "bs58";
-import { IApiMiddlewareContext } from "../graphql/middleware";
-import { IPublicKeyData } from "shared";
+import { createDepositData } from "shared";
+import { APIContext } from "../graphql/middleware";
 
 export const depositTypeDefs = gql`
   extend type Mutation {
-    createDepositAddress(data: String!): DepositAddress
+    createDepositAddress(base64data: String!): DepositAddress
   }
 
   type DepositAddress {
@@ -19,24 +19,18 @@ const max_ms_expires = 86400000;
 const DepositResolver = {
   Query: {},
   Mutation: {
-    createDepositAddress: async (
-      _,
-      params,
-      { primitive: { redis }, redisData }: IApiMiddlewareContext
-    ) => {
+    createDepositAddress: async (_, params, { redis, uid }: APIContext) => {
       const Account = new Keypair();
 
-      const publicKeyData: IPublicKeyData = {
-        uid: redisData.uid,
-        secret: base58.encode(Account.secretKey),
-        data: params.data,
-      };
+      // * Cant do account:*publickey* because of buffer, possible but dirty *
+      // * If problems arrise prefix it with some bytes or encoded string
+      const binary = createDepositData({
+        uid,
+        data: Buffer.from(params.base64data, "base64"),
+        secret: Buffer.from(Account.secretKey),
+      });
 
-      redis.hset(
-        "deposits",
-        Account.publicKey.toBase58(),
-        JSON.stringify(publicKeyData)
-      );
+      redis.set(Account.publicKey.toBase58(), binary);
 
       return {
         publicKey: Account.publicKey.toBase58(),

@@ -1,19 +1,12 @@
+import base58, { decode } from "bs58";
 import { IMiddlewareFunction } from "graphql-middleware";
+import { createKeyData, IKeyData, readKeyData } from "shared";
 import { IContext } from "../interfaces";
-
-export interface IApiRedisObject {
-  uid: string;
-  requested: number;
-}
 
 // export type IApiMiddlewareContext = IApiRedisObject &
 //   IContext & { api_key: string };
 
-export type IApiMiddlewareContext = {
-  primitive: IContext;
-  redisData: IApiRedisObject;
-  api_key: string;
-};
+export type APIContext = IContext & IKeyData & { api_key: string };
 
 const apiMiddleware: IMiddlewareFunction = async (
   resolve,
@@ -24,28 +17,29 @@ const apiMiddleware: IMiddlewareFunction = async (
 ) => {
   if (!ctx.req.headers.authorization)
     throw new Error("Api key was not provided.");
+
   const [authType, token] = ctx.req.headers.authorization.split(" ");
 
   if (authType !== "Bearer") throw new Error("Invalid authorization type");
 
   if (token == null) throw new Error("No token was provided");
 
-  const data_str = await ctx.redis.hget("api_keys", token);
+  const binary = await ctx.redis.hgetBuffer("api_keys", token);
 
-  if (!data_str) throw new Error("Invalid API Key");
+  if (!binary) throw new Error("Invalid API Key");
 
-  const obj: IApiRedisObject = JSON.parse(data_str);
-  obj.requested += 1;
+  const decoded = readKeyData(binary);
+  decoded.requested += 1;
 
-  await ctx.redis.hset("api_keys", token, JSON.stringify(obj));
+  await ctx.redis.hset("api_keys", token, createKeyData(decoded));
 
-  const Context: IApiMiddlewareContext = {
+  const context: APIContext = {
+    ...ctx,
+    ...decoded,
     api_key: token,
-    primitive: ctx,
-    redisData: obj,
   };
 
-  return await resolve(root, args, Context, info);
+  return await resolve(root, args, context, info);
 };
 
 const root = {

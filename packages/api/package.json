@@ -25,7 +25,8 @@
     "graphql-middleware": "^6.1.12",
     "ioredis": "^4.28.0",
     "lodash": "^4.17.21",
-    "mongoose": "^6.0.13"
+    "mongoose": "^6.0.13",
+    "smart-buffer": "^4.2.0"
   },
   "devDependencies": {
     "@types/bs58": "^4.0.1",

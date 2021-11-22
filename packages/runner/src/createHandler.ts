@@ -15,10 +15,11 @@ import crypto from "crypto";
 import { addMinutes } from "date-fns";
 import {
   ErrorModel,
+  IDepositData,
   INetwork,
-  IPublicKeyData,
   ITransaction,
   NetworkModel,
+  readDepositData,
   TransactionModel,
   UserModel,
 } from "shared";
@@ -40,12 +41,9 @@ export const createHandler = (
     startBlock: NETWORK.lastProcessedBlock || "latest",
     retryDelay: 1000,
     onTransaction: async ({ reciever, signatures, fee }) => {
-      const publicKeyStr = await redis.hget(
-        "deposits",
-        reciever.publicKey.toBase58()
-      );
+      const KEY_DATA = await redis.getBuffer(reciever.publicKey.toBase58());
 
-      if (!publicKeyStr || reciever.change <= 0) return;
+      if (!KEY_DATA || reciever.change <= 0) return;
 
       // * -5000 lamports because of send back fee *
       // * So the user pays the fee when sending to the deposit address *
@@ -55,12 +53,13 @@ export const createHandler = (
       const SERVICE_FEE = (LAMPORTS_RECIEVED / 100) * NETWORK.service_fee;
       const LAMPORTS = LAMPORTS_RECIEVED - SERVICE_FEE;
 
-      const recieverData: IPublicKeyData = JSON.parse(publicKeyStr);
+      const recieverData = readDepositData(KEY_DATA);
 
       const recieverKeyPair = new Keypair({
         publicKey: reciever.publicKey.toBytes(),
-        secretKey: base58.decode(recieverData.secret),
+        secretKey: recieverData.secret,
       });
+
       try {
         const owner = await UserModel.findById(recieverData.uid).select(
           "-transactions"
@@ -149,13 +148,14 @@ export const createHandler = (
   async function sendWebhook(
     url: string,
     LAMPORTS: number,
-    recieverData: IPublicKeyData,
+    recieverData: IDepositData,
     transaction: mongoose.Document<any, any, ITransaction> &
       ITransaction & {
         _id: mongoose.Types.ObjectId;
       }
   ) {
     try {
+      // ! SENDING RAW BUFFER ? CHECK IF WORKS ELSE SEND BASE64 ENCODED !
       const payload = JSON.stringify({
         lamports: LAMPORTS,
         data: recieverData.data,
@@ -203,16 +203,20 @@ export const createHandler = (
         continue;
       }
 
-      const data: IPublicKeyData = JSON.parse(
-        await redis.hget("deposits", transaction.publicKey)
+      const data_bfr = await redis.hgetBuffer(
+        "deposits",
+        transaction.publicKey
       );
+
+      const decoded = readDepositData(data_bfr);
+
       console.log(
         `Sending webhook to unprocessed transaction: ${transaction.lamports} url = ${transaction.madeBy.webhook}`
       );
       await sendWebhook(
         transaction.madeBy.webhook,
         transaction.lamports,
-        data,
+        decoded,
         transaction
       );
     }

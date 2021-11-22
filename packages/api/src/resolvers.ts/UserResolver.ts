@@ -1,10 +1,10 @@
 import { gql } from "apollo-server-core";
-import { NetworkModel, UserModel } from "shared";
+import { createKeyData, NetworkModel, readKeyData, UserModel } from "shared";
 import crypto from "crypto";
 import argon2, { argon2id } from "argon2";
 import base58 from "bs58";
 import { IContext } from "../interfaces";
-import { IApiMiddlewareContext, IApiRedisObject } from "../graphql/middleware";
+import { APIContext } from "../graphql/middleware";
 export const userTypeDefs = gql`
   type User {
     webhook: String!
@@ -45,24 +45,23 @@ const UserResolver = {
       if (!NETWORK) throw new Error("Network does not exists");
 
       const HASH = await argon2.hash(password, { type: argon2id });
-      const api_key = base58.encode(crypto.randomBytes(24));
+      const api_key = base58.encode(crypto.randomBytes(24))
 
       if (webhookUrlValid(rest.webhook)) throw new Error("Invalid host");
 
       try {
         const usr = await UserModel.create({
           ...rest,
-          argon2: HASH,
           api_key,
+          argon2: HASH,
           network: NETWORK,
           lamports_recieved: 0,
         });
-        const redis_object: IApiRedisObject = {
-          requested: 0,
-          uid: usr.id,
-        };
-        await ctx.redis.hset("api_keys", api_key, JSON.stringify(redis_object));
+
         await usr.save();
+
+        const binary = createKeyData({ uid: usr.id, requested: 0 });
+        await ctx.redis.hset("api_keys", api_key, binary);
 
         await NetworkModel.findOneAndUpdate(
           { id: NETWORK.id },
@@ -80,10 +79,10 @@ const UserResolver = {
         );
       }
     },
-    changeWebhook: async (_, params, { redisData }: IApiMiddlewareContext) => {
+    changeWebhook: async (_, params, { uid, requested }: APIContext) => {
       if (webhookUrlValid(params.newUrl)) throw new Error("Invalid host");
 
-      const user = await UserModel.findById(redisData.uid);
+      const user = await UserModel.findById(uid);
 
       user.webhook = params.newUrl;
 
@@ -94,22 +93,23 @@ const UserResolver = {
     regenerateApiKey: async (
       _,
       params,
-      { primitive, api_key, redisData }: IApiMiddlewareContext
+      { redis, uid, api_key, requested }: APIContext
     ) => {
       const new_api_key = base58.encode(crypto.randomBytes(24));
 
-      const user = await UserModel.findById(redisData.uid);
+      const user = await UserModel.findById(uid);
       user.api_key = new_api_key;
       user.save();
 
-      await primitive.redis.hdel("api_keys", api_key);
+      await redis.hdel("api_keys", api_key);
 
-      redisData.requested += 1;
+      // ! !
+      requested++;
 
-      await primitive.redis.hset(
+      await redis.hset(
         "api_keys",
         new_api_key,
-        JSON.stringify(redisData)
+        createKeyData({ requested, uid })
       );
 
       return new_api_key;
@@ -118,3 +118,5 @@ const UserResolver = {
 };
 
 export default UserResolver;
+
+const schema = new Map([]);
