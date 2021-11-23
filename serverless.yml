@@ -11,7 +11,7 @@ provider:
 
 functions:
   graphql:
-    handler: dist/index.handler
+    handler: packages/api/dist/index.handler
     events:
     - http:
         path: /
