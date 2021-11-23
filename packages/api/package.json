@@ -5,7 +5,7 @@
   "main": "src/index.ts",
   "scripts": {
     "dev": "concurrently \"tsc -w\" \"nodemon ./dist/index.js\"",
-    "test": "cd ../shared/ & tsc & cd ../api/ & tsc"
+    "test": "cd ../shared/ && tsc && cd ../api/ && tsc && echo Done building"
   },
   "keywords": [],
   "author": "",
