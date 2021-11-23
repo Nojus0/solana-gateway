@@ -5,7 +5,7 @@
   "main": "src/index.ts",
   "scripts": {
     "dev": "concurrently \"tsc -w\" \"nodemon ./dist/index.js\"",
-    "test": "cd ../shared/ && tsc && cd ../api/ && tsc && echo Done building"
+    "test": "yarn install && cd ../shared/ && tsc && cd ../api/ && tsc && echo Done building"
   },
   "keywords": [],
   "author": "",
@@ -13,7 +13,6 @@
   "dependencies": {
     "@graphql-tools/schema": "^8.3.1",
     "@solana/web3.js": "^1.30.2",
-    "apollo-server-express": "^3.5.0",
     "apollo-server-lambda": "^3.5.0",
     "argon2": "^0.28.2",
     "axios": "^0.24.0",
@@ -22,13 +21,11 @@
     "cors": "^2.8.5",
     "date-fns": "^2.26.0",
     "dotenv": "^10.0.0",
-    "express": "^4.17.1",
     "graphql": "^16.0.1",
     "graphql-middleware": "^6.1.12",
     "ioredis": "^4.28.0",
     "lodash": "^4.17.21",
     "mongoose": "^6.0.13",
-    "shared": "1.0.0",
     "smart-buffer": "^4.2.0"
   },
   "devDependencies": {
