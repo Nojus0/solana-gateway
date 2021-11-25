@@ -4,26 +4,30 @@ import { INetwork, ITransaction } from "..";
 export interface IUser extends Document {
   id: string;
   email: string;
-  argon2: string;
+  password: string;
   webhook: string;
   api_key: string;
   publicKey: string;
   transactions: ITransaction[] | [Schema.Types.ObjectId];
   lamports_recieved: number;
+  isFeeExempt: boolean;
   isFast: boolean;
+  createdAt: Date;
   network: INetwork | Schema.Types.ObjectId;
 }
 
 export const UserSchema = new Schema<IUser>({
-  argon2: { type: String },
+  password: { type: String },
   webhook: { type: String, maxlength: 1024 },
   email: { type: String, maxlength: 128, unique: true },
   api_key: { type: String, required: true },
   publicKey: { type: String },
+  isFeeExempt: { type: Boolean, default: false },
+  createdAt: { type: Date, default: new Date() },
   transactions: { type: [Schema.Types.ObjectId], ref: "transaction" },
   lamports_recieved: { type: Number, default: 0.0 },
   isFast: { type: Boolean, default: false },
-  network: { type: Schema.Types.ObjectId, ref: "network", default: "main" },
+  network: { type: Schema.Types.ObjectId, ref: "network" },
 });
 
 export const UserModel = model<IUser>("user", UserSchema);

@@ -1,10 +1,13 @@
 {
-    "private": true,
-    "workspaces": [
-        "packages/*"
-    ],
-    "scripts": {
-        "install": "yarn build",
-        "build": "cd ./packages/shared && tsc && cd ../api && tsc && cd ../runner && tsc"
-    }
+  "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
+  "nohoist": [
+    "api"
+  ],
+  "scripts": {
+    "build": "cd ./packages/shared && tsc && cd ../api && tsc && cd ../runner && tsc"
+  },
+  "dependencies": {}
 }

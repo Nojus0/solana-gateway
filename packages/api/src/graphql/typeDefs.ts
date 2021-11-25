@@ -1,4 +1,4 @@
-import { gql } from "apollo-server-core";
+import { gql } from "apollo-server-lambda";
 import { depositTypeDefs } from "../resolvers.ts/DepositResolver";
 import { transactionDefs } from "../resolvers.ts/TransactionResolver";
 import { userTypeDefs } from "../resolvers.ts/UserResolver";

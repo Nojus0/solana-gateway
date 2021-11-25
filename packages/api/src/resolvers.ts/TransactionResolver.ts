@@ -1,4 +1,4 @@
-import { gql } from "apollo-server-core";
+import { gql } from "apollo-server-lambda";
 import { APIContext } from "../graphql/middleware";
 import { TransactionModel } from "shared";
 import { UserModel } from "shared";
@@ -8,7 +8,7 @@ export const transactionDefs = gql`
     id: String!
     transferSignature: String!
     resendSignature: String!
-    lamports: String!
+    lamports: Int!
     payload: String!
     IsProcessed: Boolean
     processedAt: Date

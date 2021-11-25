@@ -4,7 +4,8 @@
   "description": "",
   "main": "src/index.ts",
   "scripts": {
-    "dev": "concurrently \"tsc -w\" \"nodemon ./dist/index.js\"",
+    "dev": "concurrently \"tsc -w\" \"nodemon ./dist/index_server.js\"",
+    "build": "tsc",
     "test": "yarn install && cd ../shared/ && tsc && cd ../api/ && tsc && echo Done building"
   },
   "keywords": [],
@@ -13,26 +14,38 @@
   "dependencies": {
     "@graphql-tools/schema": "^8.3.1",
     "@solana/web3.js": "^1.30.2",
+    "@types/aws-lambda": "^8.10.85",
+    "apollo-server": "^3.5.0",
     "apollo-server-lambda": "^3.5.0",
-    "argon2": "^0.28.2",
+    "aws4": "^1.11.0",
     "axios": "^0.24.0",
+    "bcryptjs": "^2.4.3",
     "bs58": "^4.0.1",
-    "cookie-parser": "^1.4.6",
+    "bson-ext": "^4.0.2",
     "cors": "^2.8.5",
     "date-fns": "^2.26.0",
     "dotenv": "^10.0.0",
-    "graphql": "^16.0.1",
+    "express": "^4.17.1",
+    "graphql": "^15.5.0",
     "graphql-middleware": "^6.1.12",
     "ioredis": "^4.28.0",
+    "kerberos": "^1.1.7",
     "lodash": "^4.17.21",
+    "mongodb-client-encryption": "^1.2.7",
     "mongoose": "^6.0.13",
-    "smart-buffer": "^4.2.0"
+    "shared": "1.0.0",
+    "smart-buffer": "^4.2.0",
+    "snappy": "^7.0.5",
+    "webpack-node-externals": "^3.0.0"
   },
   "devDependencies": {
+    "@types/bcryptjs": "^2.4.2",
     "@types/bs58": "^4.0.1",
     "@types/express": "^4.17.13",
     "@types/ioredis": "^4.28.1",
     "@types/node": "^16.11.7",
-    "typescript": "^4.4.4"
+    "typescript": "^4.4.4",
+    "webpack": "^5.64.2",
+    "webpack-cli": "^4.9.1"
   }
 }

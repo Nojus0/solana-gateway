@@ -1,10 +1,16 @@
-import { gql } from "apollo-server-core";
-import { createKeyData, NetworkModel, readKeyData, UserModel } from "shared";
+import { gql } from "apollo-server-lambda";
+import {
+  createKeyData,
+  NetworkModel,
+  UserModel,
+  isUrlValid,
+} from "shared";
 import crypto from "crypto";
-import argon2, { argon2id } from "argon2";
 import base58 from "bs58";
 import { IContext } from "../interfaces";
 import { APIContext } from "../graphql/middleware";
+import bcrypt from "bcryptjs";
+
 export const userTypeDefs = gql`
   type User {
     webhook: String!
@@ -23,44 +29,51 @@ export const userTypeDefs = gql`
     ): User
     changeWebhook(newUrl: String!): String
     regenerateApiKey: String
+    setFast(newFast: Boolean!): Boolean
   }
 `;
 
-function webhookUrlValid(web: string) {
-  const url = new URL(web);
-
-  return (
-    process.env.NODE_ENV != "development" &&
-    (url.hostname == "localhost" ||
-      url.hostname == "127.0.0.1" ||
-      url.protocol != "https:")
-  );
+interface ICreateUser {
+  email: string;
+  password: string;
+  webhook: string;
+  publicKey: string;
+  network: string;
 }
 
 const UserResolver = {
   Mutation: {
-    createUser: async (_, { password, network, ...rest }, ctx: IContext) => {
+    createUser: async (
+      _,
+      { password, network, ...rest }: ICreateUser,
+      ctx: IContext
+    ) => {
+      if (rest.publicKey.includes(process.env.FEE_RECIEVER_WALLET))
+        throw new Error("Invalid public key");
       const NETWORK = await NetworkModel.findOne({ name: network });
 
       if (!NETWORK) throw new Error("Network does not exists");
 
-      const HASH = await argon2.hash(password, { type: argon2id });
+      if (!isUrlValid(rest.webhook))
+        throw new Error("Invalid webhook host, are you using https?");
+
       const api_key = base58.encode(crypto.randomBytes(24));
 
-      if (webhookUrlValid(rest.webhook)) throw new Error("Invalid host");
+      const SALT = await bcrypt.genSalt(5);
+      const HASH = await bcrypt.hash(password, SALT);
 
       try {
         const usr = await UserModel.create({
           ...rest,
+          password: HASH,
           api_key,
-          argon2: HASH,
           network: NETWORK,
           lamports_recieved: 0,
         });
 
         await usr.save();
 
-        await ctx.redis.hset(
+        await ctx.redis.hsetBuffer(
           "api_keys",
           api_key,
           createKeyData({ uid: usr.id, requested: 0 })
@@ -83,7 +96,7 @@ const UserResolver = {
       }
     },
     changeWebhook: async (_, params, { uid }: APIContext) => {
-      if (webhookUrlValid(params.newUrl)) throw new Error("Invalid host");
+      if (!isUrlValid(params.newUrl)) throw new Error("Invalid host");
       const USER = await UserModel.updateOne(
         { id: uid },
         {
@@ -117,6 +130,19 @@ const UserResolver = {
       );
 
       return new_api_key;
+    },
+
+    setFast: async (_, params, ctx: APIContext) => {
+      const User = await UserModel.findById(ctx.uid);
+
+      // * Will hit if api key in redis references to a non existing uid/user in mongo*
+      if (!User) throw new Error("User does not exist");
+
+      User.isFast = params.newFast;
+
+      await User.save();
+
+      return User.isFast;
     },
   },
 };

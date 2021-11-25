@@ -1,10 +1,6 @@
-import base58, { decode } from "bs58";
 import { IMiddlewareFunction } from "graphql-middleware";
-import { createKeyData, IKeyData, readKeyData } from "shared";
+import { createKeyData, IKeyData, readKeyData, UserModel } from "shared";
 import { IContext } from "../interfaces";
-
-// export type IApiMiddlewareContext = IApiRedisObject &
-//   IContext & { api_key: string };
 
 export type APIContext = IContext & IKeyData & { api_key: string };
 
@@ -19,7 +15,6 @@ const apiMiddleware: IMiddlewareFunction = async (
     throw new Error("Api key was not provided.");
 
   const [authType, token] = ctx.req.headers.authorization.split(" ");
-
   if (authType !== "Bearer") throw new Error("Invalid authorization type");
 
   if (token == null) throw new Error("No token was provided");
@@ -31,7 +26,7 @@ const apiMiddleware: IMiddlewareFunction = async (
   const decoded = readKeyData(binary);
   decoded.requested += 1;
 
-  await ctx.redis.hset("api_keys", token, createKeyData(decoded));
+  await ctx.redis.hsetBuffer("api_keys", token, createKeyData(decoded));
 
   const context: APIContext = {
     ...ctx,
@@ -42,7 +37,7 @@ const apiMiddleware: IMiddlewareFunction = async (
   return await resolve(root, args, context, info);
 };
 
-const root = {
+const rootApi = {
   Query: {
     getTransactions: apiMiddleware,
   },
@@ -51,9 +46,10 @@ const root = {
     setAsProcessed: apiMiddleware,
     regenerateApiKey: apiMiddleware,
     changeWebhook: apiMiddleware,
+    setFast: apiMiddleware,
   },
 };
 
-const middlewares = [root];
+const middlewares = [rootApi];
 
 export default middlewares;

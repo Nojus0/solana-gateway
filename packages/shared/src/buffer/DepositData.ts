@@ -4,7 +4,7 @@ export const DEPOSIT_DATA_MAX_SIZE = 256;
 
 export interface IDepositData {
   uid: string;
-  secret: Buffer;
+  secret: Uint8Array;
   data: string;
 }
 
@@ -17,7 +17,7 @@ export function createDepositData({ uid, data, secret }: IDepositData) {
     );
 
   b.writeBufferNT(Buffer.from(uid, "hex"));
-  b.writeBufferNT(secret);
+  b.writeBufferNT(Buffer.from(secret));
   b.writeStringNT(data);
 
   return b.toBuffer();
@@ -28,7 +28,7 @@ export function readDepositData(bfr: Buffer): IDepositData {
 
   return {
     uid: b.readBufferNT().toString("hex"),
-    secret: b.readBufferNT(),
+    secret: Uint8Array.from(b.readBufferNT()),
     data: b.readStringNT(),
   };
 }

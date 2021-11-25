@@ -12,7 +12,7 @@ export interface INetwork extends Document {
 }
 
 export const networkSchema = new Schema<INetwork>({
-  name: { type: String, required: true },
+  name: { type: String, required: true, unique: true },
   url: String,
   lastProcessedBlock: { type: Number },
   blocks: { type: [Number], default: [] },
