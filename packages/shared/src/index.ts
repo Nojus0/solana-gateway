@@ -5,3 +5,4 @@ export * from "./models/UserModel";
 export * from "./buffer/DepositData";
 export * from "./buffer/KeyData";
 export * from "./isUrlValid";
+export * from "./envProcessor";

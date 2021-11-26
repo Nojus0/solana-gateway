@@ -2,12 +2,25 @@ import "dotenv/config";
 import Redis from "ioredis";
 import _ from "lodash";
 import mongoose from "mongoose";
-import { createKeyData, NetworkModel, UserModel } from "shared";
+import { createKeyData, envProcessor, NetworkModel, UserModel } from "shared";
 import { createHandler } from "./createHandler";
 
 (async () => {
-  if (!process.env.MONGO_URI || !process.env.REDIS_URI)
-    throw new Error("Redis or Mongo server uri not found.");
+  const envs = [
+    "MONGO_URI",
+    "REDIS_URI",
+    "NETWORK",
+    "FEE_RECIEVER_WALLET",
+    "WEBHOOK_RESEND_MS",
+    "WEBHOOK_RETRY_EXIST_MIN",
+    "MAX_POLLS_PER_INTERVAL",
+    "MAX_RETRIES",
+    "POLL_INTERVAL",
+    "RETRY_DELAY",
+    "WEBHOOK_TIMEOUT",
+  ];
+
+  envProcessor(envs);
 
   const mongo = await mongoose.connect(process.env.MONGO_URI);
   const redis = new Redis(process.env.REDIS_URI);

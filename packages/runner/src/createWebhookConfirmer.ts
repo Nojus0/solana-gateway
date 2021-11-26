@@ -1,4 +1,3 @@
-import base58 from "bs58";
 import { addMinutes } from "date-fns";
 import { Redis } from "ioredis";
 import { ITransaction, IUser, TransactionModel } from "shared";
@@ -36,7 +35,6 @@ export function createWebhookConfirmer({
       );
 
       if (new Date() < createdAt) {
-        console.log(`not yet ${createdAt.getTime()} < ${Date.now()}`);
         continue;
       }
 
@@ -60,7 +58,7 @@ export function createWebhookConfirmer({
         .createHash("sha256")
         .update(PAYLOAD + user.api_key)
         .digest("base64");
-        
+
       console.log(`Sending webhook to ${user.webhook}`);
       const { data } = await axios({
         url: user.webhook,
@@ -71,7 +69,7 @@ export function createWebhookConfirmer({
           "Content-Type": "application/json",
           "x-signature": sig,
         },
-        timeout: 2000,
+        timeout: Number(process.env.WEBHOOK_TIMEOUT),
       });
 
       if (data?.processed) {
@@ -92,7 +90,7 @@ export function createWebhookConfirmer({
   }
 
   return {
-    sendWebhook: send,
+    send,
     getRunning() {
       return isRunning;
     },

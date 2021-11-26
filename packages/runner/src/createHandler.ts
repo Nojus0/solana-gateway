@@ -9,10 +9,7 @@ import {
 import base58 from "bs58";
 import { Redis } from "ioredis";
 import { createPoller } from "./createPoller";
-import mongoose from "mongoose";
-import axios from "axios";
-import crypto from "crypto";
-import { addMinutes } from "date-fns";
+
 import {
   ErrorModel,
   IDepositData,
@@ -137,7 +134,7 @@ export const createHandler = ({
           }
         ).exec();
 
-        webhook.sendWebhook({ user: owner, transaction });
+        webhook.send({ user: owner, transaction });
       } catch (err: any) {
         console.log(err);
         const error = await ErrorModel.create({
