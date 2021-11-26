@@ -20,7 +20,7 @@ const DepositResolver = {
   Query: {},
   Mutation: {
     createDepositAddress: async (_, params, { redis, uid }: APIContext) => {
-      const Account = new Keypair();
+      const GEN_DEPOSIT_WALLET = new Keypair();
 
       // * Cant do account:*publickey* because of buffer, possible but dirty *
       // * If problems arrise prefix it with some bytes or encoded string
@@ -38,19 +38,19 @@ const DepositResolver = {
       }
       const binary = createDepositData({
         uid,
-        data: params.data,
-        secret: Account.secretKey,
+        data: params.data as string,
+        secret: GEN_DEPOSIT_WALLET.secretKey,
       });
 
       redis.setBuffer(
-        Account.publicKey.toBase58(),
+        GEN_DEPOSIT_WALLET.publicKey.toBase58(),
         binary,
         "PX",
         params.lifetime_ms as number
       );
 
       return {
-        publicKey: Account.publicKey.toBase58(),
+        publicKey: GEN_DEPOSIT_WALLET.publicKey.toBase58(),
       };
     },
   },

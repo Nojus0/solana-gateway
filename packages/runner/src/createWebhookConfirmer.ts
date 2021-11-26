@@ -56,12 +56,11 @@ export function createWebhookConfirmer({
         data: transaction.payload,
       });
 
-      const sig = base58.encode(
-        crypto
-          .createHash("sha256")
-          .update(PAYLOAD + user.api_key)
-          .digest()
-      );
+      const sig = crypto
+        .createHash("sha256")
+        .update(PAYLOAD + user.api_key)
+        .digest("base64");
+        
       console.log(`Sending webhook to ${user.webhook}`);
       const { data } = await axios({
         url: user.webhook,

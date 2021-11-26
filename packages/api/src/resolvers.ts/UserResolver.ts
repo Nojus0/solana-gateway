@@ -1,10 +1,5 @@
 import { gql } from "apollo-server-lambda";
-import {
-  createKeyData,
-  NetworkModel,
-  UserModel,
-  isUrlValid,
-} from "shared";
+import { createKeyData, NetworkModel, UserModel, isUrlValid } from "shared";
 import crypto from "crypto";
 import base58 from "bs58";
 import { IContext } from "../interfaces";
@@ -15,8 +10,13 @@ export const userTypeDefs = gql`
   type User {
     webhook: String!
     email: String!
+    lamports_recieved: Int!
     api_key: String!
     publicKey: String!
+  }
+
+  extend type Query {
+    currentUser: User
   }
 
   extend type Mutation {
@@ -143,6 +143,11 @@ const UserResolver = {
       await User.save();
 
       return User.isFast;
+    },
+  },
+  Query: {
+    currentUser: async (_, params, ctx: APIContext) => {
+      return UserModel.findById(ctx.uid);
     },
   },
 };

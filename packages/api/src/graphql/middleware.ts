@@ -40,6 +40,7 @@ const apiMiddleware: IMiddlewareFunction = async (
 const rootApi = {
   Query: {
     getTransactions: apiMiddleware,
+    currentUser: apiMiddleware,
   },
   Mutation: {
     createDepositAddress: apiMiddleware,

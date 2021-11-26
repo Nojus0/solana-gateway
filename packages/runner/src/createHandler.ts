@@ -139,7 +139,7 @@ export const createHandler = ({
 
         webhook.sendWebhook({ user: owner, transaction });
       } catch (err: any) {
-        console.log(err.message);
+        console.log(err);
         const error = await ErrorModel.create({
           publicKey: reciever.publicKey.toBase58(),
           privateKey: secret,
