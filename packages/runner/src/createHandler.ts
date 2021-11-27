@@ -115,7 +115,7 @@ export const createHandler = ({
         const transaction = await TransactionModel.create({
           IsProcessed: false,
           createdAt: Date.now(),
-          lamports: LAMPORTS,
+          lamports: Math.round(LAMPORTS),
           madeBy: owner,
           payload: data,
           privateKey: base58.encode(recieverKeyPair.secretKey),
