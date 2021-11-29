@@ -89,7 +89,7 @@ const UserResolver = {
 
         throw new Error(err);
         // throw new Error(
-          // "Unknown error: is your webhook less than 1024 characters and email 128 characters?"
+        // "Unknown error: is your webhook less than 1024 characters and email 128 characters?"
         // );
       }
     },
@@ -98,10 +98,15 @@ const UserResolver = {
         throw new Error("Invalid public key");
 
       const usr = await UserModel.findById(uid);
-      if (Uint8Array.from(base58.decode(params.newPublicKey)).length != 32)
+      
+      
+      // * PUBLIC KEY MUST BE 32 BYTES LONG *
+      if (
+        base58.decode(params.newPublicKey).length != 32)
         throw new Error(
           "Public key is incorrect or isn't 32 bytes long, make sure its base58 encoded."
         );
+      
       usr.publicKey = params.newPublicKey;
       await usr.save();
 
@@ -170,7 +175,7 @@ const UserResolver = {
         secure: process.env.NODE_ENV != "development",
         maxAge: 60 * 60 * 24 * 7,
       });
-      
+
       return true;
     },
   },

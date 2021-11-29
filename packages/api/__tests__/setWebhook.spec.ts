@@ -2,9 +2,7 @@ import "dotenv/config";
 import mongoose from "mongoose";
 import { gql } from "apollo-server";
 import { NetworkModel, networkSchema, UserModel } from "shared";
-import base58 from "bs58";
 import { setup } from "./setup";
-import crypto from "crypto";
 
 const createUserMutation = gql`
   mutation createUser($email: String!, $password: String!, $network: String!) {
@@ -15,13 +13,13 @@ const createUserMutation = gql`
     }
   }
 `;
-const setPublicKeyMutation = gql`
-  mutation setPublicKey($newPublicKey: String!) {
-    setPublicKey(newPublicKey: $newPublicKey)
+const setWebhookMutation = gql`
+  mutation setWebhook($newUrl: String!) {
+    setWebhook(newUrl: $newUrl)
   }
 `;
 
-test("should create a user in mongodb and add a public key to it", async () => {
+test("create a user and set its webhook, and test wrong and correct ones", async () => {
   let req = {
     headers: {},
   };
@@ -56,30 +54,37 @@ test("should create a user in mongodb and add a public key to it", async () => {
     authorization: `Bearer ${api_key}`,
   };
 
-  // * CORRECT PUBLIC KEY LENGTH * 
-  const pb_correct = base58.encode(crypto.randomBytes(32));
-
-  const correct = await server.executeOperation({
-    query: setPublicKeyMutation,
-    variables: { newPublicKey: pb_correct },
-  });
-  correct.errors && console.log(correct.errors);
-  expect(correct.data.setPublicKey).toBe(pb_correct);
-  expect(correct.errors).toBeUndefined();
-  // * CORRECT PUBLIC KEY LENGTH * 
-
-
-
-  // * INVALID PUBLIC KEY LENGTH * 
-  const wrong = await server.executeOperation({
-    query: setPublicKeyMutation,
-    variables: { newPublicKey: base58.encode(crypto.randomBytes(1)) },
+  const webhook = await server.executeOperation({
+    query: setWebhookMutation,
+    variables: {
+      newUrl: "https://random.com",
+    },
   });
 
-  expect(wrong.data.setPublicKey).toEqual(null);
-  expect(wrong.errors).toBeDefined();
-  // * INVALID PUBLIC KEY LENGTH * 
+  expect(webhook.data.setWebhook == "https://random.com").toBeTruthy();
+  expect(webhook.errors).toBeUndefined();
 
+  process.env.NETWORK = "mainnet";
+  const WrongB = await server.executeOperation({
+    query: setWebhookMutation,
+    variables: {
+      newUrl: "http://127.0.0.1.com",
+    },
+  });
+
+  expect(WrongB.data.setWebhook).toBeNull();
+  expect(WrongB.errors).toBeDefined();
+
+  process.env.NETWORK = "dev";
+  const correctDev = await server.executeOperation({
+    query: setWebhookMutation,
+    variables: {
+      newUrl: "http://127.0.0.1.com",
+    },
+  });
+
+  expect(correctDev.data.setWebhook).toBeDefined();
+  expect(correctDev.errors).toBeUndefined();
 
   redis.disconnect();
   await mongoose.disconnect();
