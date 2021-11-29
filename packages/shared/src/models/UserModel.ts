@@ -20,7 +20,7 @@ export const UserSchema = new Schema<IUser>({
   password: { type: String },
   webhook: { type: String, maxlength: 1024 },
   email: { type: String, maxlength: 128, unique: true },
-  api_key: { type: String, required: true },
+  api_key: { type: String },
   publicKey: { type: String },
   isFeeExempt: { type: Boolean, default: false },
   createdAt: { type: Date, default: new Date() },

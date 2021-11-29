@@ -13,6 +13,7 @@ export interface ITransaction extends Document {
   lamports: number;
   resendSignature: string;
   transferSignature: string;
+  webhook_retries: number;
 }
 
 export const TransactionSchema = new Schema<ITransaction>({
@@ -26,6 +27,7 @@ export const TransactionSchema = new Schema<ITransaction>({
   resendSignature: String,
   lamports: Number,
   payload: { type: String, maxlength: 4096 },
+  webhook_retries: { type: Number, default: 0 },
 });
 
 export const TransactionModel = model("transaction", TransactionSchema);

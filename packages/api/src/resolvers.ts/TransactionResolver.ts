@@ -31,7 +31,7 @@ export const transactionDefs = gql`
   }
 
   extend type Mutation {
-    setAsProcessed(transactionId: String!): Transaction
+    setAsProcessed(id: String!): Transaction
   }
 `;
 
@@ -39,6 +39,7 @@ export const transactionResolver = {
   Query: {
     getTransactions: async (_, params, { uid }: APIContext) => {
       const User = await UserModel.findById(uid);
+
       const Limit = Math.min(50, Math.max(params.limit, 1));
 
       const match = {
@@ -63,18 +64,17 @@ export const transactionResolver = {
   },
   Mutation: {
     setAsProcessed: async (_, params) => {
-      try {
-        const transaction = await TransactionModel.findById(params.id);
+      const transaction = await TransactionModel.findById(params.id);
 
-        if (transaction.IsProcessed)
-          throw new Error("Transaction already processed");
+      if (!transaction) throw new Error("Transaction doesn't exist");
 
-        transaction.IsProcessed = true;
-        transaction.processedAt = new Date();
-        await transaction.save();
-      } catch (err) {
-        throw new Error("Transaction does not exist");
-      }
+      if (transaction.IsProcessed)
+        throw new Error("Transaction already processed");
+
+      transaction.IsProcessed = true;
+      transaction.processedAt = new Date();
+      await transaction.save();
+      return transaction;
     },
   },
 };

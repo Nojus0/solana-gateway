@@ -8,6 +8,7 @@ import resolvers from "./graphql/resolvers";
 import { makeExecutableSchema } from "@graphql-tools/schema";
 import { applyMiddleware } from "graphql-middleware";
 import middlewares from "./graphql/middleware";
+import { envProcessor } from "shared";
 
 if (!process.env.MONGO_URI || !process.env.REDIS_URI)
   throw new Error("Redis or Mongo server uri not found.");
@@ -38,6 +39,16 @@ const GQL_SERVER = new ApolloServer({
     mongo,
   }),
 });
+
+envProcessor([
+  "MONGO_URI",
+  "REDIS_URI",
+  "NETWORK",
+  "FEE_RECIEVER_WALLET",
+  "NODE_ENV",
+  "ORIGIN",
+  "API_KEY_LENGTH"
+]);
 
 export const handler = async (event, context, callback) => {
   if (!mongo) {

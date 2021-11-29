@@ -7,36 +7,39 @@ import { APIContext } from "../graphql/middleware";
 import bcrypt from "bcryptjs";
 
 export const userTypeDefs = gql`
-  type User {
+  type CurrentUser {
     webhook: String!
     email: String!
     lamports_recieved: Int!
     api_key: String!
+    isFast: Boolean!
     publicKey: String!
   }
 
+  type BasicUser {
+    email: String!
+    lamports_recieved: Float!
+    api_key: String!
+  }
+
   extend type Query {
-    currentUser: User
+    currentUser: CurrentUser
   }
 
   extend type Mutation {
-    createUser(
-      email: String!
-      password: String!
-      webhook: String!
-      publicKey: String!
-      network: String!
-    ): User
+    createUser(email: String!, password: String!, network: String!): BasicUser
     changeWebhook(newUrl: String!): String
     regenerateApiKey: String
     setFast(newFast: Boolean!): Boolean
+    setPublicKey(newPublicKey: String!): String
+    setWebhook(newUrl: String!): String
+    login(email: String!, password: String!): Boolean
   }
 `;
 
 interface ICreateUser {
   email: string;
   password: string;
-  webhook: string;
   publicKey: string;
   network: string;
 }
@@ -45,38 +48,32 @@ const UserResolver = {
   Mutation: {
     createUser: async (
       _,
-      { password, network, ...rest }: ICreateUser,
-      ctx: IContext
+      { password, network, publicKey, email }: ICreateUser,
+      { redis }: IContext
     ) => {
-      if (rest.publicKey.includes(process.env.FEE_RECIEVER_WALLET))
-        throw new Error("Invalid public key");
       const NETWORK = await NetworkModel.findOne({ name: network });
-
       if (!NETWORK) throw new Error("Network does not exists");
-
-      if (!isUrlValid(rest.webhook))
-        throw new Error("Invalid webhook host, are you using https?");
-
-      const api_key = base58.encode(crypto.randomBytes(24));
 
       const SALT = await bcrypt.genSalt(5);
       const HASH = await bcrypt.hash(password, SALT);
-
       try {
+        const api_key = base58.encode(
+          crypto.randomBytes(parseInt(process.env.API_KEY_LENGTH))
+        );
         const usr = await UserModel.create({
-          ...rest,
-          password: HASH,
+          publicKey,
+          email,
           api_key,
+          password: HASH,
           network: NETWORK,
           lamports_recieved: 0,
         });
-
         await usr.save();
 
-        await ctx.redis.hsetBuffer(
+        await redis.hsetBuffer(
           "api_keys",
           api_key,
-          createKeyData({ uid: usr.id, requested: 0 })
+          createKeyData({ requested: 0, uid: usr.id })
         );
 
         await NetworkModel.findOneAndUpdate(
@@ -90,12 +87,27 @@ const UserResolver = {
           throw new Error(`The specified email is already registered.`);
         }
 
-        throw new Error(
-          "Unknown error: is your webhook less than 1024 characters and email 128 characters?"
-        );
+        throw new Error(err);
+        // throw new Error(
+          // "Unknown error: is your webhook less than 1024 characters and email 128 characters?"
+        // );
       }
     },
-    changeWebhook: async (_, params, { uid }: APIContext) => {
+    setPublicKey: async (_, params, { uid }: APIContext) => {
+      if (params.newPublicKey.includes(process.env.FEE_RECIEVER_WALLET))
+        throw new Error("Invalid public key");
+
+      const usr = await UserModel.findById(uid);
+      if (Uint8Array.from(base58.decode(params.newPublicKey)).length != 32)
+        throw new Error(
+          "Public key is incorrect or isn't 32 bytes long, make sure its base58 encoded."
+        );
+      usr.publicKey = params.newPublicKey;
+      await usr.save();
+
+      return params.newPublicKey;
+    },
+    setWebhook: async (_, params, { uid }: APIContext) => {
       if (!isUrlValid(params.newUrl)) throw new Error("Invalid host");
       const USER = await UserModel.updateOne(
         { id: uid },
@@ -111,9 +123,11 @@ const UserResolver = {
       params,
       { redis, uid, api_key, requested }: APIContext
     ) => {
-      const new_api_key = base58.encode(crypto.randomBytes(24));
+      const new_api_key = base58.encode(
+        crypto.randomBytes(parseInt(process.env.API_KEY_LENGTH))
+      );
 
-      const user = await UserModel.updateOne({
+      await UserModel.updateOne({
         id: uid,
         api_key: new_api_key,
       });
@@ -123,7 +137,7 @@ const UserResolver = {
       // ! !
       requested++;
 
-      await redis.hset(
+      await redis.hsetBuffer(
         "api_keys",
         new_api_key,
         createKeyData({ requested, uid })
@@ -131,7 +145,6 @@ const UserResolver = {
 
       return new_api_key;
     },
-
     setFast: async (_, params, ctx: APIContext) => {
       const User = await UserModel.findById(ctx.uid);
 
@@ -143,6 +156,22 @@ const UserResolver = {
       await User.save();
 
       return User.isFast;
+    },
+    login: async (_, params, ctx: IContext) => {
+      const USER = await UserModel.findOne({ email: params.email });
+
+      if (!USER) throw new Error("User not found");
+
+      if (!(await bcrypt.compare(params.password, USER.password)))
+        throw new Error("Incorrect password");
+
+      ctx.res.cookie("api_key", USER.api_key, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV != "development",
+        maxAge: 60 * 60 * 24 * 7,
+      });
+      
+      return true;
     },
   },
   Query: {

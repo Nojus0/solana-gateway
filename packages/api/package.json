@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "concurrently \"tsc -w\" \"nodemon ./dist/index_server.js\"",
     "build": "tsc",
-    "test": "yarn install && cd ../shared/ && tsc && cd ../api/ && tsc && echo Done building"
+    "test": "jest --runInBand"
   },
   "keywords": [],
   "author": "",
@@ -16,6 +16,7 @@
     "@solana/web3.js": "^1.30.2",
     "@types/aws-lambda": "^8.10.85",
     "apollo-server": "^3.5.0",
+    "apollo-server-env": "^4.2.0",
     "apollo-server-lambda": "^3.5.0",
     "aws4": "^1.11.0",
     "axios": "^0.24.0",
@@ -35,17 +36,21 @@
     "mongoose": "^6.0.13",
     "shared": "1.0.0",
     "smart-buffer": "^4.2.0",
-    "snappy": "^7.0.5",
-    "webpack-node-externals": "^3.0.0"
+    "snappy": "^7.0.5"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.2",
     "@types/bs58": "^4.0.1",
     "@types/express": "^4.17.13",
     "@types/ioredis": "^4.28.1",
+    "@types/jest": "^27.0.3",
     "@types/node": "^16.11.7",
-    "typescript": "^4.4.4",
+    "jest": "^27.3.1",
+    "ts-jest": "^27.0.7",
+    "ts-node": "^10.4.0",
+    "typescript": "^4.5.2",
     "webpack": "^5.64.2",
-    "webpack-cli": "^4.9.1"
+    "webpack-cli": "^4.9.1",
+    "webpack-node-externals": "^3.0.0"
   }
 }

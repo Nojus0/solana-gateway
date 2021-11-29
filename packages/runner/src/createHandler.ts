@@ -115,7 +115,7 @@ export const createHandler = ({
         const transaction = await TransactionModel.create({
           IsProcessed: false,
           createdAt: Date.now(),
-          lamports: Math.round(LAMPORTS),
+          lamports: LAMPORTS,
           madeBy: owner,
           payload: data,
           privateKey: base58.encode(recieverKeyPair.secretKey),
@@ -123,6 +123,7 @@ export const createHandler = ({
           publicKey: recieverKeyPair.publicKey.toBase58(),
           resendSignature: SIGNATURE,
           transferSignature: signatures,
+          webhook_retries: 0,
         });
         await transaction.save();
 
@@ -134,7 +135,8 @@ export const createHandler = ({
           }
         ).exec();
 
-        webhook.send({ user: owner, transaction });
+        webhook.send(transaction);
+      
       } catch (err: any) {
         console.log(err);
         const error = await ErrorModel.create({

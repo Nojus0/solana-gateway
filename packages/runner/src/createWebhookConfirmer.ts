@@ -1,17 +1,13 @@
 import { addMinutes } from "date-fns";
 import { Redis } from "ioredis";
-import { ITransaction, IUser, TransactionModel } from "shared";
+import { ITransaction, IUser, TransactionModel, UserModel } from "shared";
 import crypto from "crypto";
 import axios from "axios";
+
 interface IConfimer {
   redis: Redis;
   interval: number;
   requiredExistenceMinutes: number;
-}
-
-interface ISendWebhook {
-  user: IUser;
-  transaction: ITransaction;
 }
 
 export function createWebhookConfirmer({
@@ -24,9 +20,10 @@ export function createWebhookConfirmer({
   async function sendWebhookToAllUnprocessed() {
     if (!isRunning) return;
     // * Get All unprocessed transactions, this can pile up maybe discard if time exceeds *?* ?
-    const TXNS = await TransactionModel.find({ IsProcessed: false }).populate(
-      "madeBy"
-    );
+    const TXNS = await TransactionModel.find({
+      IsProcessed: false,
+      webhook_retries: { $lt: 10 },
+    }).populate("madeBy");
 
     for (const transaction of TXNS) {
       const createdAt = addMinutes(
@@ -41,13 +38,20 @@ export function createWebhookConfirmer({
       console.log(
         `Sending webhook to unprocessed transaction: ${transaction.lamports} url = ${transaction.madeBy.webhook}`
       );
-      await send({ user: transaction.madeBy, transaction });
+
+      transaction.webhook_retries += 1;
+
+      await transaction.populate("madeBy");
+      await send(transaction);
+      transaction.save();
     }
 
     setTimeout(sendWebhookToAllUnprocessed, interval);
   }
 
-  async function send({ transaction, user }: ISendWebhook) {
+  async function send(transaction: ITransaction) {
+    await transaction.populate("madeBy");
+
     try {
       const PAYLOAD = JSON.stringify({
         lamports: transaction.lamports,
@@ -56,16 +60,16 @@ export function createWebhookConfirmer({
 
       const sig = crypto
         .createHash("sha256")
-        .update(PAYLOAD + user.api_key)
+        .update(PAYLOAD + transaction.madeBy.api_key)
         .digest("base64");
 
-      console.log(`Sending webhook to ${user.webhook}`);
+      console.log(`Sending webhook to ${transaction.madeBy.webhook}`);
       const { data } = await axios({
-        url: user.webhook,
+        url: transaction.madeBy.webhook,
         method: "POST",
         data: PAYLOAD,
         headers: {
-          "x-api-key": user.api_key,
+          "x-api-key": transaction.madeBy.api_key,
           "Content-Type": "application/json",
           "x-signature": sig,
         },
@@ -84,7 +88,7 @@ export function createWebhookConfirmer({
       await transaction.save();
     } catch (err: any) {
       console.log(
-        `Unable to reach webhook ${user.webhook}: err: ${err?.message}`
+        `Unable to reach webhook ${transaction.madeBy.webhook}: err: ${err?.message}`
       );
     }
   }
