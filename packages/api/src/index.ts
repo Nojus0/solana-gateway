@@ -9,7 +9,8 @@ import { makeExecutableSchema } from "@graphql-tools/schema";
 import { applyMiddleware } from "graphql-middleware";
 import middlewares from "./graphql/middleware";
 import { envProcessor } from "shared";
-
+import cookieParser from "cookie-parser";
+import express from "express";
 if (!process.env.MONGO_URI || !process.env.REDIS_URI)
   throw new Error("Redis or Mongo server uri not found.");
 
@@ -37,6 +38,10 @@ const GQL_SERVER = new ApolloServer({
     res,
     redis,
     mongo,
+    isFrontend:
+      req.headers.origin == process.env.ORIGIN ||
+      (process.env.NODE_ENV == "development" &&
+        req.headers.origin == "http://localhost:4000"),
   }),
 });
 
@@ -47,7 +52,7 @@ envProcessor([
   "FEE_RECIEVER_WALLET",
   "NODE_ENV",
   "ORIGIN",
-  "API_KEY_LENGTH"
+  "API_KEY_LENGTH",
 ]);
 
 export const handler = async (event, context, callback) => {
@@ -56,5 +61,12 @@ export const handler = async (event, context, callback) => {
     console.log(`Connecting to mongo`);
   }
 
-  return GQL_SERVER.createHandler()(event, context, callback);
+  return GQL_SERVER.createHandler({
+    expressAppFromMiddleware: (middleware) => {
+      const app = express();
+      app.use(cookieParser());
+      app.use(middleware);
+      return app;
+    },
+  })(event, context, callback);
 };

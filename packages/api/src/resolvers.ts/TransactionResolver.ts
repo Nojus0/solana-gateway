@@ -7,7 +7,7 @@ export const transactionDefs = gql`
   type Transaction {
     id: String!
     transferSignature: String!
-    resendSignature: String!
+    sendbackSignature: String!
     lamports: Int!
     payload: String!
     IsProcessed: Boolean

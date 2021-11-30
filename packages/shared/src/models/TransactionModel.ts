@@ -2,7 +2,6 @@ import { Document, model, Schema } from "mongoose";
 import { IUser } from "./UserModel";
 
 export interface ITransaction extends Document {
-  id: string;
   madeBy: IUser;
   publicKey: string;
   privateKey: string;
@@ -11,7 +10,7 @@ export interface ITransaction extends Document {
   payload: string;
   IsProcessed: boolean;
   lamports: number;
-  resendSignature: string;
+  sendbackSignature: string;
   transferSignature: string;
   webhook_retries: number;
 }
@@ -24,7 +23,7 @@ export const TransactionSchema = new Schema<ITransaction>({
   processedAt: Date,
   IsProcessed: Boolean,
   transferSignature: String,
-  resendSignature: String,
+  sendbackSignature: String,
   lamports: Number,
   payload: { type: String, maxlength: 4096 },
   webhook_retries: { type: Number, default: 0 },

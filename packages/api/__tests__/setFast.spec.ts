@@ -1,7 +1,6 @@
 import "dotenv/config";
-import mongoose from "mongoose";
 import { gql } from "apollo-server";
-import { NetworkModel, networkSchema, UserModel } from "shared";
+import { UserModel } from "shared";
 import { setup } from "./setup";
 
 const setFastMutation = gql`
@@ -10,52 +9,15 @@ const setFastMutation = gql`
   }
 `;
 
-const createUserMutation = gql`
-  mutation createUser($email: String!, $password: String!, $network: String!) {
-    createUser(email: $email, password: $password, network: $network) {
-      email
-      lamports_recieved
-      api_key
-    }
-  }
-`;
-
 test("create a user and set it to fast mode", async () => {
-  let req = {
-    headers: {},
-  };
+  let { redis, server, network, cleanup, createUser, setHeaders } =
+    await setup();
 
-  const { redis, server } = await setup(req as any);
+  const user = await createUser();
 
-  await UserModel.deleteOne({ email: "test@test.com" });
-
-  await NetworkModel.updateOne({ name: "dev" }, [
-    {
-      $set: {
-        accounts: [],
-        name: "dev",
-      },
-    },
-  ]);
-
-  let network = await NetworkModel.findOne({ name: "dev" });
-
-  const variables = {
-    email: "test@test.com",
-    password: "testpassword",
-    network: network.name,
-  };
-
-  const createUserResponse = await server.executeOperation({
-    query: createUserMutation,
-    variables,
+  setHeaders({
+    authorization: `Bearer ${user.api_key}`,
   });
-
-  createUserResponse.errors && console.log(createUserResponse.errors);
-
-  req.headers = {
-    authorization: `Bearer ${createUserResponse.data.createUser.api_key}`,
-  };
 
   const fastResponse = await server.executeOperation({
     query: setFastMutation,
@@ -63,7 +25,8 @@ test("create a user and set it to fast mode", async () => {
       newFast: true,
     },
   });
-  fastResponse.errors && console.log(fastResponse.errors);
+
+  if (fastResponse.errors) console.log(fastResponse.errors);
 
   expect(fastResponse.data.setFast).toBeTruthy();
   expect(fastResponse.errors).toBeUndefined();
@@ -72,6 +35,5 @@ test("create a user and set it to fast mode", async () => {
 
   expect(usr.isFast).toBeTruthy();
 
-  redis.disconnect();
-  await mongoose.disconnect();
+  await cleanup();
 });

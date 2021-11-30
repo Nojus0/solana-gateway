@@ -1,7 +1,7 @@
 import { addMinutes } from "date-fns";
 import { Redis } from "ioredis";
 import { ITransaction, IUser, TransactionModel, UserModel } from "shared";
-import crypto from "crypto";
+import crypto, { createPrivateKey, KeyObject } from "crypto";
 import axios from "axios";
 
 interface IConfimer {
@@ -36,7 +36,7 @@ export function createWebhookConfirmer({
       }
 
       console.log(
-        `Sending webhook to unprocessed transaction: ${transaction.lamports} url = ${transaction.madeBy.webhook}`
+        `Found unprocessed transaction: ${transaction.lamports} url = ${transaction.madeBy.webhook}`
       );
 
       transaction.webhook_retries += 1;
@@ -56,12 +56,16 @@ export function createWebhookConfirmer({
       const PAYLOAD = JSON.stringify({
         lamports: transaction.lamports,
         data: transaction.payload,
+        transferSignature: transaction.transferSignature,
+        sendbackSignature: transaction.sendbackSignature,
       });
 
-      const sig = crypto
-        .createHash("sha256")
-        .update(PAYLOAD + transaction.madeBy.api_key)
-        .digest("base64");
+      const [, privateKey] = transaction.madeBy.verifyKeypair;
+
+      const signature = sign(
+        Buffer.from(PAYLOAD + transaction.madeBy.api_key),
+        privateKey
+      );
 
       console.log(`Sending webhook to ${transaction.madeBy.webhook}`);
       const { data } = await axios({
@@ -71,7 +75,7 @@ export function createWebhookConfirmer({
         headers: {
           "x-api-key": transaction.madeBy.api_key,
           "Content-Type": "application/json",
-          "x-signature": sig,
+          "x-signature": signature,
         },
         timeout: Number(process.env.WEBHOOK_TIMEOUT),
       });
@@ -106,4 +110,17 @@ export function createWebhookConfirmer({
       isRunning = false;
     },
   };
+}
+
+function sign(data: Buffer, privateKey: Buffer) {
+  return crypto
+    .sign("sha256", Buffer.from(data), {
+      padding: crypto.constants.RSA_PKCS1_PSS_PADDING,
+      key: createPrivateKey({
+        key: privateKey,
+        format: "der",
+        type: "pkcs1",
+      }),
+    })
+    .toString("base64");
 }

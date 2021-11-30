@@ -1,40 +1,21 @@
 import "dotenv/config";
-import mongoose from "mongoose";
-import Redis from "ioredis";
 import { gql } from "apollo-server";
-import { NetworkModel, networkSchema, UserModel } from "shared";
+import { NetworkModel, UserModel } from "shared";
 import base58 from "bs58";
 import { setup } from "./setup";
 
 const createUserMutation = gql`
-mutation createUser(
-  $email: String!
-  $password: String!
-  $network: String!
-) {
-  createUser(email: $email, password: $password, network: $network) {
-    email
-    lamports_recieved
-    api_key
+  mutation createUser($email: String!, $password: String!, $network: String!) {
+    createUser(email: $email, password: $password, network: $network) {
+      email
+      lamports_recieved
+      api_key
+    }
   }
-}
 `;
 
 test("should create a user in mongodb", async () => {
-  const { redis, server } = await setup();
-
-  await UserModel.deleteOne({ email: "test@test.com" });
-
-  await NetworkModel.updateOne({ name: "dev" }, [
-    {
-      $set: {
-        accounts: [],
-        name: "dev",
-      },
-    },
-  ]);
-
-  let network = await NetworkModel.findOne({ name: "dev" });
+  const { redis, server, network, cleanup } = await setup();
 
   const variables = {
     email: "test@test.com",
@@ -47,7 +28,7 @@ test("should create a user in mongodb", async () => {
     variables,
   });
 
-  errors && console.log(errors);
+  if (errors) console.log(errors);
 
   expect(data.createUser.email).toEqual(variables.email);
   expect(errors).toBeUndefined();
@@ -71,6 +52,5 @@ test("should create a user in mongodb", async () => {
   expect(db_user.transactions.length).toBe(0);
   expect(db_user.publicKey).toBeUndefined();
 
-  redis.disconnect();
-  await mongoose.disconnect();
+  await cleanup();
 });

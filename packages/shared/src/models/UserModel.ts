@@ -2,7 +2,6 @@ import { Schema, model, Document } from "mongoose";
 import { INetwork, ITransaction } from "..";
 
 export interface IUser extends Document {
-  id: string;
   email: string;
   password: string;
   webhook: string;
@@ -14,6 +13,7 @@ export interface IUser extends Document {
   isFast: boolean;
   createdAt: Date;
   network: INetwork | Schema.Types.ObjectId;
+  verifyKeypair: Buffer[];
 }
 
 export const UserSchema = new Schema<IUser>({
@@ -28,6 +28,7 @@ export const UserSchema = new Schema<IUser>({
   lamports_recieved: { type: Number, default: 0.0 },
   isFast: { type: Boolean, default: false },
   network: { type: Schema.Types.ObjectId, ref: "network" },
+  verifyKeypair: { type: [Buffer], required: true },
 });
 
 export const UserModel = model<IUser>("user", UserSchema);

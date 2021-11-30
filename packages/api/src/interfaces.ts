@@ -6,5 +6,6 @@ export interface IContext {
   redis: Redis;
   req: Request;
   res: Response;
+  isFrontend: boolean
   mongo: typeof mongoose;
 }

@@ -121,7 +121,7 @@ export const createHandler = ({
           privateKey: base58.encode(recieverKeyPair.secretKey),
           processedAt: null,
           publicKey: recieverKeyPair.publicKey.toBase58(),
-          resendSignature: SIGNATURE,
+          sendbackSignature: SIGNATURE,
           transferSignature: signatures,
           webhook_retries: 0,
         });

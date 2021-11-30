@@ -12,7 +12,11 @@ const apiMiddleware: IMiddlewareFunction = async (
   ctx: IContext,
   info
 ) => {
-  if (ctx.req.headers.origin == process.env.ORIGIN) {
+  if (
+    ctx.req.headers.origin == process.env.ORIGIN ||
+    (process.env.NODE_ENV == "development" &&
+      ctx.req.headers.origin == "http://localhost:4000")
+  ) {
     if (!ctx.req.cookies.api_key)
       throw new Error("API Key not found in cookies");
     if (
@@ -51,14 +55,14 @@ const apiMiddleware: IMiddlewareFunction = async (
 
   if (!binary) throw new Error("Invalid API Key");
 
-  const decoded = readKeyData(binary);
-  decoded.requested += 1;
+  const userdata = readKeyData(binary);
+  userdata.requested += 1;
 
-  await ctx.redis.hsetBuffer("api_keys", token, createKeyData(decoded));
+  await ctx.redis.hsetBuffer("api_keys", token, createKeyData(userdata));
 
   const context: APIContext = {
     ...ctx,
-    ...decoded,
+    ...userdata,
     api_key: token,
   };
 

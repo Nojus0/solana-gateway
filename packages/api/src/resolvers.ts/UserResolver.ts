@@ -5,15 +5,16 @@ import base58 from "bs58";
 import { IContext } from "../interfaces";
 import { APIContext } from "../graphql/middleware";
 import bcrypt from "bcryptjs";
-
+import util from "util";
 export const userTypeDefs = gql`
   type CurrentUser {
-    webhook: String!
     email: String!
     lamports_recieved: Int!
     api_key: String!
     isFast: Boolean!
-    publicKey: String!
+    secret: String!
+    webhook: String
+    publicKey: String
   }
 
   type BasicUser {
@@ -44,12 +45,14 @@ interface ICreateUser {
   network: string;
 }
 
+const generateKeyPair = util.promisify(crypto.generateKeyPair);
+
 const UserResolver = {
   Mutation: {
     createUser: async (
       _,
       { password, network, publicKey, email }: ICreateUser,
-      { redis }: IContext
+      { redis, res, isFrontend }: IContext
     ) => {
       const NETWORK = await NetworkModel.findOne({ name: network });
       if (!NETWORK) throw new Error("Network does not exists");
@@ -60,11 +63,20 @@ const UserResolver = {
         const api_key = base58.encode(
           crypto.randomBytes(parseInt(process.env.API_KEY_LENGTH))
         );
+
+        const keypair = await generateKeyPair("rsa", {
+          modulusLength: 2048,
+        });
+
         const usr = await UserModel.create({
           publicKey,
           email,
           api_key,
           password: HASH,
+          verifyKeypair: [
+            keypair.publicKey.export({ format: "der", type: "pkcs1" }),
+            keypair.privateKey.export({ format: "der", type: "pkcs1" }),
+          ],
           network: NETWORK,
           lamports_recieved: 0,
         });
@@ -80,6 +92,13 @@ const UserResolver = {
           { id: NETWORK.id },
           { $push: { accounts: usr } }
         ).exec();
+        console.log(``);
+        if (isFrontend)
+          res.cookie("api_key", usr.api_key, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV != "development",
+            maxAge: 1000 * 60 * 60 * 24 * 7,
+          });
 
         return usr;
       } catch (err: any) {
@@ -98,15 +117,13 @@ const UserResolver = {
         throw new Error("Invalid public key");
 
       const usr = await UserModel.findById(uid);
-      
-      
+
       // * PUBLIC KEY MUST BE 32 BYTES LONG *
-      if (
-        base58.decode(params.newPublicKey).length != 32)
+      if (base58.decode(params.newPublicKey).length != 32)
         throw new Error(
           "Public key is incorrect or isn't 32 bytes long, make sure its base58 encoded."
         );
-      
+
       usr.publicKey = params.newPublicKey;
       await usr.save();
 
@@ -114,7 +131,7 @@ const UserResolver = {
     },
     setWebhook: async (_, params, { uid }: APIContext) => {
       if (!isUrlValid(params.newUrl)) throw new Error("Invalid host");
-      const USER = await UserModel.updateOne(
+      await UserModel.updateOne(
         { id: uid },
         {
           webhook: params.newUrl,
@@ -132,10 +149,18 @@ const UserResolver = {
         crypto.randomBytes(parseInt(process.env.API_KEY_LENGTH))
       );
 
-      await UserModel.updateOne({
-        id: uid,
-        api_key: new_api_key,
-      });
+      await UserModel.updateOne(
+        {
+          id: uid,
+        },
+        {
+          api_key: new_api_key,
+        }
+      );
+
+      // const USER = await UserModel.findById(uid);
+      // USER.api_key = new_api_key;
+      // await USER.save();
 
       await redis.hdel("api_keys", api_key);
 
@@ -151,16 +176,16 @@ const UserResolver = {
       return new_api_key;
     },
     setFast: async (_, params, ctx: APIContext) => {
-      const User = await UserModel.findById(ctx.uid);
+      const result = await UserModel.updateOne(
+        {
+          id: ctx.uid,
+        },
+        {
+          isFast: params.newFast,
+        }
+      );
 
-      // * Will hit if api key in redis references to a non existing uid/user in mongo*
-      if (!User) throw new Error("User does not exist");
-
-      User.isFast = params.newFast;
-
-      await User.save();
-
-      return User.isFast;
+      return Boolean(result.matchedCount);
     },
     login: async (_, params, ctx: IContext) => {
       const USER = await UserModel.findOne({ email: params.email });
@@ -173,7 +198,7 @@ const UserResolver = {
       ctx.res.cookie("api_key", USER.api_key, {
         httpOnly: true,
         secure: process.env.NODE_ENV != "development",
-        maxAge: 60 * 60 * 24 * 7,
+        maxAge: 1000 * 60 * 60 * 24 * 7,
       });
 
       return true;
@@ -181,7 +206,12 @@ const UserResolver = {
   },
   Query: {
     currentUser: async (_, params, ctx: APIContext) => {
-      return UserModel.findById(ctx.uid);
+      const user = (await UserModel.findById(ctx.uid)).toObject();
+
+      return {
+        ...user,
+        secret: user.verifyKeypair[0].toString("base64"),
+      };
     },
   },
 };
