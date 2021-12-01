@@ -44,7 +44,7 @@ export async function setup() {
     }),
   });
 
-  await UserModel.deleteOne({ email: "test@test.com" });
+  await UserModel.deleteMany({});
   redis.flushdb();
   await NetworkModel.updateOne({ name: "dev" }, [
     {

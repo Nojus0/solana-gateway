@@ -4,7 +4,7 @@ import { NetworkModel, UserModel } from "shared";
 import base58 from "bs58";
 import { setup } from "./setup";
 
-const createUserMutation = gql`
+export const createUserMutation = gql`
   mutation createUser($email: String!, $password: String!, $network: String!) {
     createUser(email: $email, password: $password, network: $network) {
       email

@@ -28,6 +28,8 @@ export const transactionDefs = gql`
       skip: Int!
       limit: Int!
     ): [Transaction!]
+
+    getAdressTransactions(address: String!): [Transaction!]
   }
 
   extend type Mutation {
@@ -60,6 +62,11 @@ export const transactionResolver = {
       });
 
       return User.transactions;
+    },
+    getAdressTransactions: async (_, params, { uid }: APIContext) => {
+      const USER = await UserModel.findById(uid).populate("transactions");
+
+      return USER.transactions;
     },
   },
   Mutation: {

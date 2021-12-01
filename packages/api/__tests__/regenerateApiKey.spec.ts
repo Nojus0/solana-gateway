@@ -3,7 +3,7 @@ import { gql } from "apollo-server";
 import { UserModel } from "shared";
 import { setup } from "./setup";
 import base58 from "bs58";
-const regenerateApiKeyMutation = gql`
+export const regenerateApiKeyMutation = gql`
   mutation Mutation {
     regenerateApiKey
   }

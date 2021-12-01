@@ -99,7 +99,7 @@
     "skipLibCheck": true /* Skip type checking all .d.ts files. */
   },
   "exclude": [
-    "**/index_server.ts",
+    // "**/index_server.ts",
     "**/__tests__",
     "**/jest.config.ts"
   ]

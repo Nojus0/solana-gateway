@@ -125,6 +125,7 @@ export const createHandler = ({
           transferSignature: signatures,
           webhook_retries: 0,
         });
+        
         await transaction.save();
 
         await UserModel.updateOne(

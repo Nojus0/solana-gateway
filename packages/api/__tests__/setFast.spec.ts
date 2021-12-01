@@ -3,7 +3,7 @@ import { gql } from "apollo-server";
 import { UserModel } from "shared";
 import { setup } from "./setup";
 
-const setFastMutation = gql`
+export const setFastMutation = gql`
   mutation SetFast($newFast: Boolean!) {
     setFast(newFast: $newFast)
   }

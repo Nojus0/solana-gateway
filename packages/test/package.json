@@ -1,9 +1,21 @@
 {
-  "name": "test",
+  "name": "reciever",
   "version": "1.0.0",
+  "description": "",
   "main": "index.js",
-  "license": "MIT",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
   "dependencies": {
-    "@solana/web3.js": "^1.31.0"
+    "@types/express": "^4.17.13",
+    "bs58": "^4.0.1",
+    "express": "^4.17.1",
+    "typescript": "^4.4.4"
+  },
+  "devDependencies": {
+    "@types/bs58": "^4.0.1"
   }
 }

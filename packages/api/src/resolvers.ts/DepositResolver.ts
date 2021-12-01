@@ -13,8 +13,8 @@ export const depositTypeDefs = gql`
   }
 `;
 
-const max_ms_expires = 3600000;
-const min_ms_expires = 300000;
+export const max_ms_expires = 3600000;
+export const min_ms_expires = 300000;
 
 const DepositResolver = {
   Query: {},

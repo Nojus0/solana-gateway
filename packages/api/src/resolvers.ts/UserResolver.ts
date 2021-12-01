@@ -93,6 +93,7 @@ const UserResolver = {
           { $push: { accounts: usr } }
         ).exec();
         console.log(``);
+
         if (isFrontend)
           res.cookie("api_key", usr.api_key, {
             httpOnly: true,
@@ -106,10 +107,9 @@ const UserResolver = {
           throw new Error(`The specified email is already registered.`);
         }
 
-        throw new Error(err);
-        // throw new Error(
-        // "Unknown error: is your webhook less than 1024 characters and email 128 characters?"
-        // );
+        throw new Error(
+        "Unknown error: is your webhook less than 1024 characters and email 128 characters?"
+        );
       }
     },
     setPublicKey: async (_, params, { uid }: APIContext) => {

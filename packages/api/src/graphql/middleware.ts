@@ -12,6 +12,7 @@ const apiMiddleware: IMiddlewareFunction = async (
   ctx: IContext,
   info
 ) => {
+  // * Check if calling from frontend *
   if (
     ctx.req.headers.origin == process.env.ORIGIN ||
     (process.env.NODE_ENV == "development" &&
@@ -43,6 +44,7 @@ const apiMiddleware: IMiddlewareFunction = async (
     return await resolve(root, args, context, info);
   }
 
+  // * Calling from backend *
   if (!ctx.req.headers.authorization)
     throw new Error("Api key was not provided.");
 
@@ -100,6 +102,7 @@ const apiMiddlewareConsumers = {
   Query: {
     getTransactions: apiMiddleware,
     currentUser: apiMiddleware,
+    getAdressTransactions: apiMiddleware,
   },
   Mutation: {
     createDepositAddress: apiMiddleware,
