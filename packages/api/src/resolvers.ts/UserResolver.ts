@@ -28,13 +28,13 @@ export const userTypeDefs = gql`
   }
 
   extend type Mutation {
-    createUser(email: String!, password: String!, network: String!): BasicUser
+    createUser(email: String!, password: String!, network: String!): CurrentUser
     changeWebhook(newUrl: String!): String
     regenerateApiKey: String
     setFast(newFast: Boolean!): Boolean
     setPublicKey(newPublicKey: String!): String
     setWebhook(newUrl: String!): String
-    login(email: String!, password: String!): Boolean
+    login(email: String!, password: String!): CurrentUser
   }
 `;
 
@@ -101,14 +101,17 @@ const UserResolver = {
             maxAge: 1000 * 60 * 60 * 24 * 7,
           });
 
-        return usr;
+        return {
+          ...usr.toObject(),
+          secret: usr.verifyKeypair[0].toString("base64"),
+        };
       } catch (err: any) {
         if (err.code == 11000) {
           throw new Error(`The specified email is already registered.`);
         }
 
         throw new Error(
-        "Unknown error: is your webhook less than 1024 characters and email 128 characters?"
+          "Unknown error: is your webhook less than 1024 characters and email 128 characters?"
         );
       }
     },
@@ -131,13 +134,13 @@ const UserResolver = {
     },
     setWebhook: async (_, params, { uid }: APIContext) => {
       if (!isUrlValid(params.newUrl)) throw new Error("Invalid host");
-      await UserModel.updateOne(
+      const a = await UserModel.updateOne(
         { id: uid },
         {
           webhook: params.newUrl,
         }
       );
-
+      console.log(a);
       return params.newUrl;
     },
     regenerateApiKey: async (
@@ -201,7 +204,7 @@ const UserResolver = {
         maxAge: 1000 * 60 * 60 * 24 * 7,
       });
 
-      return true;
+      return USER;
     },
   },
   Query: {

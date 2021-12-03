@@ -1,7 +1,7 @@
 import { Schema, model, Document } from "mongoose";
 import { IUser } from "..";
 
-export interface INetwork extends Document {
+export interface Network {
   name: string;
   url: string;
   lastProcessedBlock: number;
@@ -10,6 +10,8 @@ export interface INetwork extends Document {
   service_fee: number;
   accounts: IUser[];
 }
+
+export type INetwork = Network & Document;
 
 export const networkSchema = new Schema<INetwork>({
   name: { type: String, required: true, unique: true },

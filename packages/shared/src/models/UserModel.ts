@@ -1,7 +1,8 @@
 import { Schema, model, Document } from "mongoose";
+import { type } from "os";
 import { INetwork, ITransaction } from "..";
 
-export interface IUser extends Document {
+export interface User {
   email: string;
   password: string;
   webhook: string;
@@ -15,6 +16,8 @@ export interface IUser extends Document {
   network: INetwork | Schema.Types.ObjectId;
   verifyKeypair: Buffer[];
 }
+
+export type IUser = User & Document;
 
 export const UserSchema = new Schema<IUser>({
   password: { type: String },

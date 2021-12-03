@@ -58,6 +58,7 @@ export function createWebhookConfirmer({
         data: transaction.payload,
         transferSignature: transaction.transferSignature,
         sendbackSignature: transaction.sendbackSignature,
+        publicKey: transaction.publicKey,
       });
 
       const [, privateKey] = transaction.madeBy.verifyKeypair;
@@ -73,7 +74,6 @@ export function createWebhookConfirmer({
         method: "POST",
         data: PAYLOAD,
         headers: {
-          "x-api-key": transaction.madeBy.api_key,
           "Content-Type": "application/json",
           "x-signature": signature,
         },

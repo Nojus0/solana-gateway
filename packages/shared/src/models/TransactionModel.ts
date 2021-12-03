@@ -1,7 +1,21 @@
 import { Document, model, Schema } from "mongoose";
 import { IUser } from "./UserModel";
 
-export interface ITransaction extends Document {
+export type ITransaction = Transaction & Document;
+
+export interface TransactionBasic {
+  id: string;
+  transferSignature: string;
+  sendbackSignature: string;
+  lamports: number;
+  payload: string;
+  IsProcessed: boolean;
+  processedAt: Date;
+  createdAt: Date;
+  publicKey: string;
+}
+
+export interface Transaction {
   madeBy: IUser;
   publicKey: string;
   privateKey: string;

@@ -16,7 +16,7 @@ const apiMiddleware: IMiddlewareFunction = async (
   if (
     ctx.req.headers.origin == process.env.ORIGIN ||
     (process.env.NODE_ENV == "development" &&
-      ctx.req.headers.origin == "http://localhost:4000")
+      ctx.req.headers.origin == "http://localhost:3000")
   ) {
     if (!ctx.req.cookies.api_key)
       throw new Error("API Key not found in cookies");
