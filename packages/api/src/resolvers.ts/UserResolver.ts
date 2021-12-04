@@ -89,7 +89,7 @@ const UserResolver = {
         );
 
         await NetworkModel.findOneAndUpdate(
-          { id: NETWORK.id },
+          { _id: NETWORK.id },
           { $push: { accounts: usr } }
         ).exec();
         console.log(``);
@@ -134,14 +134,17 @@ const UserResolver = {
     },
     setWebhook: async (_, params, { uid }: APIContext) => {
       if (!isUrlValid(params.newUrl)) throw new Error("Invalid host");
-      const a = await UserModel.updateOne(
-        { id: uid },
-        {
-          webhook: params.newUrl,
-        }
-      );
-      console.log(a);
-      return params.newUrl;
+
+      try {
+        const usr = await UserModel.findById(uid);
+
+        usr.webhook = params.newUrl;
+
+        await usr.save();
+        return usr.webhook;
+      } catch (err) {
+        throw new Error("Error occurred when setting the new webhook.");
+      }
     },
     regenerateApiKey: async (
       _,
@@ -152,43 +155,33 @@ const UserResolver = {
         crypto.randomBytes(parseInt(process.env.API_KEY_LENGTH))
       );
 
-      await UserModel.updateOne(
-        {
-          id: uid,
-        },
-        {
-          api_key: new_api_key,
-        }
-      );
+      try {
+        const USR = await UserModel.findById(uid);
+        USR.api_key = new_api_key;
+        await USR.save();
 
-      // const USER = await UserModel.findById(uid);
-      // USER.api_key = new_api_key;
-      // await USER.save();
+        await redis.hdel("api_keys", api_key);
+        requested++;
+        await redis.hsetBuffer(
+          "api_keys",
+          new_api_key,
+          createKeyData({ requested, uid })
+        );
 
-      await redis.hdel("api_keys", api_key);
-
-      // ! !
-      requested++;
-
-      await redis.hsetBuffer(
-        "api_keys",
-        new_api_key,
-        createKeyData({ requested, uid })
-      );
-
-      return new_api_key;
+        return USR.api_key;
+      } catch (err) {
+        throw new Error("Error occurred while regenerating the API Key.");
+      }
     },
     setFast: async (_, params, ctx: APIContext) => {
-      const result = await UserModel.updateOne(
-        {
-          id: ctx.uid,
-        },
-        {
-          isFast: params.newFast,
-        }
-      );
-
-      return Boolean(result.matchedCount);
+      try {
+        const USR = await UserModel.findById(ctx.uid);
+        USR.isFast = params.newFast;
+        await USR.save();
+        return USR.isFast;
+      } catch (err) {
+        throw new Error("Error occurred while setting new Fast Mode.");
+      }
     },
     login: async (_, params, ctx: IContext) => {
       const USER = await UserModel.findOne({ email: params.email });
@@ -204,7 +197,10 @@ const UserResolver = {
         maxAge: 1000 * 60 * 60 * 24 * 7,
       });
 
-      return USER;
+      return {
+        ...USER.toObject(),
+        secret: USER.verifyKeypair[0].toString("base64"),
+      };
     },
   },
   Query: {

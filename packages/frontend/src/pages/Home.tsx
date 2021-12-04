@@ -36,7 +36,6 @@ const Home: Component = () => {
           </ButtonContainer>
         </MainContainer>
       </ClampContainer>
-      <Background />
     </>
   );
 };

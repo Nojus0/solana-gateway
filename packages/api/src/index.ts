@@ -33,6 +33,7 @@ const schemaWithMiddleware = applyMiddleware(schema, ...middlewares);
 const GQL_SERVER = new ApolloServer({
   schema: schemaWithMiddleware,
   introspection: true,
+
   context: ({ express: { req, res } }) => ({
     req,
     res,
@@ -62,6 +63,12 @@ export const handler = async (event, context, callback) => {
   }
 
   return GQL_SERVER.createHandler({
+    expressGetMiddlewareOptions: {
+      cors: {
+        credentials: true,
+        origin: process.env.ORIGIN,
+      },
+    },
     expressAppFromMiddleware: (middleware) => {
       const app = express();
       app.use(cookieParser());

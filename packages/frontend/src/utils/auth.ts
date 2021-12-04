@@ -1,17 +1,21 @@
 import { useNavigate } from "solid-app-router";
+import { createEffect } from "solid-js";
 import { createStore } from "solid-js/store";
 import { createUserVars, createUser } from "../graphql/createUser";
 import { currentUser } from "../graphql/currentUser";
 import { login } from "../graphql/login";
+import { setFast } from "../graphql/setFast";
 import { setPublicKey } from "../graphql/setPublicKey";
 import { setWebhook } from "../graphql/setWebhook";
 
 export const useAuth = () => {
   const navigate = useNavigate();
 
-  if (!auth.loggedIn && !auth.loading) {
-    navigate("/login");
-  }
+  createEffect(() => {
+    if (!auth.loggedIn && !auth.loading) {
+      navigate("/login");
+    }
+  });
 };
 
 export const useIfAuthTransactions = () => {
@@ -51,6 +55,17 @@ export const [auth, setAuth] = createStore({
     const resp = await setWebhook({ newUrl });
     if (!resp.errors && resp.setWebhook.length) {
       setAuth("currentUser", "webhook", resp.setWebhook);
+    }
+  },
+  async setFast(newFast: boolean) {
+    if (this.currentUser.isFast == newFast) {
+      return;
+    }
+
+    const resp = await setFast({ newFast });
+
+    if (!resp.errors) {
+      setAuth("currentUser", "isFast", newFast);
     }
   },
   async setPublicKey(newPublicKey: string) {

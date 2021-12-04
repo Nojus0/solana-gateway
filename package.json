@@ -7,7 +7,6 @@
     "api"
   ],
   "scripts": {
-    "build": "cd ./packages/shared && tsc && cd ../api && tsc && cd ../runner && tsc"
   },
   "dependencies": {}
 }

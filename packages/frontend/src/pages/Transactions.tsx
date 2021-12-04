@@ -1,135 +1,47 @@
-import { Component, For } from "solid-js";
+import { Component, createSignal, For, onMount } from "solid-js";
 import { styled } from "solid-styled-components";
 import Background from "../components/Background";
 import { MainText } from "../components/Both";
 import { Button } from "../components/Button";
 import ClampContainer from "../components/ClampContainer";
-import { TransactionBasic } from "shared";
+import { Transaction, TransactionBasic } from "shared";
 import { format } from "date-fns";
 import { Link } from "solid-app-router";
 import { useAuth } from "../utils/auth";
+import { getTransactions } from "../graphql/getTransactions";
+import Modal from "../components/Modal";
+import fade from "../utils/fade";
+import { Transition } from "solid-transition-group";
 const SOL_LAMPORTS = 0.000000001;
 
+const [modal, setModal] = createSignal({ show: false, body: "" });
+
 const Transactions: Component = () => {
-
   useAuth();
+  const [skip, setSkip] = createSignal(0);
+  const [limit, setLimit] = createSignal(50);
+  const [transactions, setTransactions] = createSignal<Transaction[]>([]);
 
-  const T: TransactionBasic[] = [
-    {
-      id: "da1231dsad",
-      IsProcessed: false,
-      createdAt: new Date(),
-      lamports: 100000,
-      payload: "data=231",
-      processedAt: new Date(),
-      publicKey: "DSADADAEQWEPUBLIC",
-      sendbackSignature: "DSADASDQ£!$£",
-      transferSignature: "dsadasdasd",
-    },
-    {
-      id: "d23123123a1231dsad",
-      IsProcessed: false,
-      createdAt: new Date(),
-      lamports: 103120000,
-      payload: "data=231",
-      processedAt: new Date(),
-      publicKey: "DSADADAEQWEPUBLIC",
-      sendbackSignature: "DSADASDQ£!$£",
-      transferSignature: "dsadasdasd",
-    },
-    {
-      id: "d23123123a1231dsad",
-      IsProcessed: false,
-      createdAt: new Date(),
-      lamports: 103120000,
-      payload: "data=231",
-      processedAt: new Date(),
-      publicKey: "DSADADAEQWEPUBLIC",
-      sendbackSignature: "DSADASDQ£!$£",
-      transferSignature: "dsadasdasd",
-    },
-    {
-      id: "d23123123a1231dsad",
-      IsProcessed: false,
-      createdAt: new Date(),
-      lamports: 103120000,
-      payload: "data=231",
-      processedAt: new Date(),
-      publicKey: "DSADADAEQWEPUBLIC",
-      sendbackSignature: "DSADASDQ£!$£",
-      transferSignature: "dsadasdasd",
-    },
-    {
-      id: "d23123123a1231dsad",
-      IsProcessed: false,
-      createdAt: new Date(),
-      lamports: 103120000,
-      payload: "data=231",
-      processedAt: new Date(),
-      publicKey: "DSADADAEQWEPUBLIC",
-      sendbackSignature: "DSADASDQ£!$£",
-      transferSignature: "dsadasdasd",
-    },
-    {
-      id: "d23123123a1231dsad",
-      IsProcessed: false,
-      createdAt: new Date(),
-      lamports: 103120000,
-      payload: "data=231",
-      processedAt: new Date(),
-      publicKey: "DSADADAEQWEPUBLIC",
-      sendbackSignature: "DSADASDQ£!$£",
-      transferSignature: "dsadasdasd",
-    },
-    {
-      id: "d23123123a1231dsad",
-      IsProcessed: false,
-      createdAt: new Date(),
-      lamports: 103120000,
-      payload: "data=231",
-      processedAt: new Date(),
-      publicKey: "DSADADAEQWEPUBLIC",
-      sendbackSignature: "DSADASDQ£!$£",
-      transferSignature: "dsadasdasd",
-    },
-    {
-      id: "d23123123a1231dsad",
-      IsProcessed: false,
-      createdAt: new Date(),
-      lamports: 103120000,
-      payload: "data=231",
-      processedAt: new Date(),
-      publicKey: "DSADADAEQWEPUBLIC",
-      sendbackSignature: "DSADASDQ£!$£",
-      transferSignature: "dsadasdasd",
-    },
-    {
-      id: "d23123123a1231dsad",
-      IsProcessed: false,
-      createdAt: new Date(),
-      lamports: 103120000,
-      payload: "data=231",
-      processedAt: new Date(),
-      publicKey: "DSADADAEQWEPUBLIC",
-      sendbackSignature: "DSADASDQ£!$£",
-      transferSignature: "dsadasdasd",
-    },
-    {
-      id: "d23123123a1231dsad",
-      IsProcessed: false,
-      createdAt: new Date(),
-      lamports: 103120000,
-      payload: "data=231",
-      processedAt: new Date(),
-      publicKey: "DSADADAEQWEPUBLIC",
-      sendbackSignature: "DSADASDQ£!$£",
-      transferSignature: "dsadasdasd",
-    },
-  ];
+  onMount(async () => {
+    const txns = await getTransactions({
+      filter: "All",
+      limit: limit(),
+      skip: skip(),
+    });
+    setTransactions((p) => [...p, ...txns.getTransactions]);
+  });
 
   return (
     <>
-      <Background />
+      <Modal when={modal().show} setWhen={setModal}>
+        <ModalContainer>
+          <RawText>{modal().body}</RawText>
+          <Button onClick={() => setModal({ show: false, body: "" })}>
+            Ok
+          </Button>
+        </ModalContainer>
+      </Modal>
+
       <ClampContainer max="65rem">
         <Box>
           <TopBar>
@@ -142,7 +54,7 @@ const Transactions: Component = () => {
             </Link>
           </TopBar>
           <Browser>
-            <For each={T}>{(item) => <Card {...item} />}</For>
+            <For each={transactions()}>{(item) => <Card {...item} />}</For>
           </Browser>
         </Box>
       </ClampContainer>
@@ -150,19 +62,41 @@ const Transactions: Component = () => {
   );
 };
 
-const Card: Component<TransactionBasic> = (props) => {
-  const time_formated = format(props.createdAt, "h:m aaa MMM d");
+const RawText = styled("pre")({
+  color: "white",
+  wordBreak: "break-all",
+});
+
+const Card: Component<Transaction> = (props) => {
+  const time_formated = format(new Date(props.createdAt), "h:m aaa MMM d");
+
+  function onRaw() {
+    setModal({ show: true, body: JSON.stringify(props, null, 2) });
+  }
 
   return (
-    <Wrap>
-      <ColumnContainer>
-        <SOLText>{props.lamports * SOL_LAMPORTS} SOL</SOLText>
-        <Time>{time_formated}</Time>
-      </ColumnContainer>
-      <Button margin="0">Raw</Button>
-    </Wrap>
+    <Transition {...fade(250, "ease")}>
+      <Wrap>
+        <ColumnContainer>
+          <SOLText>{props.lamports * SOL_LAMPORTS} SOL</SOLText>
+          <Time>{time_formated}</Time>
+        </ColumnContainer>
+        <Button margin="0" onClick={onRaw}>
+          Raw
+        </Button>
+      </Wrap>
+    </Transition>
   );
 };
+
+const ModalContainer = styled("div")({
+  display: "flex",
+  flexDirection: "column",
+  wordBreak: "break-all",
+  background: "#2D2D2D",
+  padding: "2rem",
+  borderRadius: "2rem",
+});
 
 const DocsButton = styled(Button)({
   "@media (max-width: 30rem)": {
@@ -238,7 +172,6 @@ const Box = styled("div")({
   width: "100%",
   height: "90%",
   borderRadius: "2rem",
-  zIndex: 2,
   display: "flex",
   padding: "1.5rem",
   flexDirection: "column",

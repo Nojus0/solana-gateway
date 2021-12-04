@@ -25,22 +25,27 @@ const Login: Component = () => {
   useIfAuthTransactions();
 
   async function login(e: MouseEvent) {
-    const a = await auth.login(email(), pass());  
+    await auth.login(email(), pass());
+    if (auth.loggedIn) {
+      navigate("/transactions");
+    }
   }
 
   return (
     <>
-      <Background />
       <ClampedCustom>
         <Box>
           <MainText>Welcome to Solana Gateway</MainText>
           <TextBox
+            label="Email address"
             value={email()}
             onInput={(e) => setEmail(e.currentTarget.value)}
             placeholder="Email"
           />
           <TextBox
+            label="Password"
             value={pass()}
+            type="password"
             onInput={(e) => setPass(e.currentTarget.value)}
             placeholder="Password"
           />

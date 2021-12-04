@@ -6,7 +6,8 @@
     "start": "vite",
     "dev": "vite",
     "build": "vite build",
-    "serve": "vite preview"
+    "serve": "vite preview",
+    "deploy": "vite build && aws s3 rm s3://solanagateway/ --recursive && aws s3 cp ./dist s3://solanagateway/ --recursive"
   },
   "license": "MIT",
   "devDependencies": {

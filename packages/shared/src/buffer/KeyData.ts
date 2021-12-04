@@ -9,7 +9,7 @@ export function createKeyData({ requested, uid }: IKeyData) {
   const b = new SmartBuffer();
 
   b.writeUInt32LE(requested);
-  b.writeBufferNT(Buffer.from(uid, "hex"));
+  b.writeBuffer(Buffer.from(uid, "hex"));
 
   return b.toBuffer();
 }
@@ -19,6 +19,6 @@ export function readKeyData(bfr: Buffer): IKeyData {
 
   return {
     requested: b.readUInt32LE(),
-    uid: b.readBufferNT().toString("hex"),
+    uid: b.readBuffer(12).toString("hex"),
   };
 }

@@ -29,7 +29,6 @@ export const RememberText = styled("h4")({
 });
 
 export const ClampedCustom = styled(ClampContainer)({
-  zIndex: 2,
   height: "100%",
 });
 
@@ -54,7 +53,6 @@ export const MainText = styled("h1")({
 export const Box = styled("div")({
   width: "100%",
   borderRadius: "2rem",
-  zIndex: 2,
   height: "auto",
   overflowY: "auto",
   padding: "1.5rem 2.5rem",

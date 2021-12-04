@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "concurrently \"tsc -w\" \"nodemon ./dist/index_server.js\"",
     "build": "tsc",
-    "test": "jest --runInBand"
+    "test": "jest --runInBand",
+    "deploy": "tsc && webpack && powershell.exe Compress-Archive -Path .\\.webpack\\index.js -DestinationPath .\\.webpack\\bundle.zip && aws lambda update-function-code --function-name graphql-payments --zip-file fileb://.webpack/bundle.zip --region eu-west-2 && echo Done"
   },
   "keywords": [],
   "author": "",

@@ -56,17 +56,18 @@ const Register: Component = () => {
 
   return (
     <>
-      <Background />
       <ClampedCustom horizontal="center" vertical="center">
         <Box>
           <MainText>Welcome to Solana Gateway</MainText>
           <TextBox
+            label="Email"
             variant={valid.email ? "normal" : "error"}
             value={email()}
             onInput={(e) => setEmail(e.currentTarget.value)}
             placeholder="Email"
           />
           <TextBox
+            label="Password"
             variant={valid.password ? "normal" : "error"}
             value={password()}
             onInput={(e) => setPassword(e.currentTarget.value)}
@@ -74,6 +75,7 @@ const Register: Component = () => {
             placeholder="Password"
           />
           <TextBox
+            label="Wallet address"
             variant={valid.wallet ? "normal" : "error"}
             value={wallet()}
             onInput={(e) => setWallet(e.currentTarget.value)}

@@ -33,6 +33,7 @@ const Inner = styled("div")(
     display: "flex",
     flexDirection: "column",
     alignItems: horizontal,
+    zIndex: 3,
     justifyContent: vertical,
     position: "relative",
     padding,

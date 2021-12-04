@@ -1,6 +1,7 @@
 import { Route, Router, Routes } from "solid-app-router";
 import { Component, lazy, onMount, Suspense } from "solid-js";
 import { render } from "solid-js/web";
+import Background from "./components/Background";
 import "./index.css";
 import { auth } from "./utils/auth";
 
@@ -15,15 +16,18 @@ const App: Component = () => {
     auth.fetchUser();
   });
   return (
-    <Suspense>
-      <Routes>
-        <Route path="/" component={Home} />
-        <Route path="/login" component={Login} />
-        <Route path="/register" component={Register} />
-        <Route path="/settings" component={Settings} />
-        <Route path="/transactions" component={Transactions} />
-      </Routes>
-    </Suspense>
+    <>
+      <Suspense>
+        <Routes>
+          <Route path="/" component={Home} />
+          <Route path="/login" component={Login} />
+          <Route path="/register" component={Register} />
+          <Route path="/settings" component={Settings} />
+          <Route path="/transactions" component={Transactions} />
+        </Routes>
+      </Suspense>
+      <Background />
+    </>
   );
 };
 
