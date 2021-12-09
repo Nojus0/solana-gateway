@@ -8,38 +8,24 @@ import { setFast } from "../graphql/setFast";
 import { setPublicKey } from "../graphql/setPublicKey";
 import { setWebhook } from "../graphql/setWebhook";
 
-export const useAuth = () => {
+export const useAuth = (forwardTo?: string) => {
   const navigate = useNavigate();
 
-  createEffect(() => {
-    if (!auth.loggedIn && !auth.loading) {
-      navigate("/login");
-    }
-  });
-};
+  if (!auth.loggedIn && !auth.loading) {
+    return navigate("/login");
+  }
 
-export const useIfAuthTransactions = () => {
-  const navigate = useNavigate();
-
-  if (auth.loggedIn && !auth.loading) {
-    navigate("/transactions");
+  if (auth.loggedIn && !auth.loading && forwardTo) {
+    return navigate(forwardTo);
   }
 };
 
 export const [auth, setAuth] = createStore({
   loading: true,
   loggedIn: false,
-  currentUser: {
-    api_key: "None",
-    email: "None",
-    isFast: false,
-    lamports_recieved: 0,
-    publicKey: "None",
-    secret: "None",
-    webhook: "None",
-  } as currentUser,
-  async login(email: string, password: string) {
-    const resp = await login({ password, email });
+  currentUser: {} as currentUser,
+  async login(email: string, password: string, remember: boolean) {
+    const resp = await login({ password, email, remember });
     if (resp.errors || !resp.login.api_key) {
       this.invalidAttempt();
     }
@@ -81,6 +67,7 @@ export const [auth, setAuth] = createStore({
   },
   async fetchUser() {
     const resp = await currentUser();
+
     if (!resp.errors && resp.currentUser.api_key) {
       this.setCurrent(resp.currentUser);
     } else {

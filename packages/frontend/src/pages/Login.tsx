@@ -15,17 +15,17 @@ import { Button } from "../components/Button";
 import Checkbox from "../components/Checkbox";
 import ClampContainer from "../components/ClampContainer";
 import TextBox from "../components/TextBox";
-import { auth, useIfAuthTransactions } from "../utils/auth";
+import { auth, useAuth } from "../utils/auth";
 
 const Login: Component = () => {
   const [remember, setRemember] = createSignal(true);
   const navigate = useNavigate();
   const [email, setEmail] = createSignal("");
   const [pass, setPass] = createSignal("");
-  useIfAuthTransactions();
+  useAuth("/transactions");
 
   async function login(e: MouseEvent) {
-    await auth.login(email(), pass());
+    await auth.login(email(), pass(), remember());
     if (auth.loggedIn) {
       navigate("/transactions");
     }

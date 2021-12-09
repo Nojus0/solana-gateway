@@ -15,7 +15,7 @@ import Checkbox from "../components/Checkbox";
 import TextBox from "../components/TextBox";
 import { setPublicKey } from "../graphql/setPublicKey";
 import { createStore } from "solid-js/store";
-import { auth, useIfAuthTransactions } from "../utils/auth";
+import { auth, useAuth} from "../utils/auth";
 
 const [valid, setValid] = createStore({
   email: true,
@@ -27,7 +27,6 @@ const [valid, setValid] = createStore({
 const email_regex = /^\S+@\S+\.\S+$/;
 
 const Register: Component = () => {
-  useIfAuthTransactions();
   const [agreed, setAgreed] = createSignal(false);
   const [email, setEmail] = createSignal("");
   const [password, setPassword] = createSignal("");

@@ -1,24 +1,25 @@
-import { Component, Show } from "solid-js";
+import { Component, Show, splitProps } from "solid-js";
 import { styled } from "solid-styled-components";
 import { JSX } from "solid-js";
 import { Button } from "./Button";
+import { IMargin, IVariant } from "./interfaces";
 
-interface IMargin {
-  margin?: string;
+interface ITextbox {
+  variant?: "normal" | "error";
+  label: string;
 }
 
-const TextBox: Component<
-  ITextbox & IMargin & JSX.InputHTMLAttributes<HTMLInputElement>
-> = ({ margin = "1.25rem 0", ...props }) => {
-  return (
-    <BoxWrapper margin={margin}>
-      <Label>{props.label}</Label>
-      <InputWrap>
-        <TextBoxStyled {...props}></TextBoxStyled>
-      </InputWrap>
-    </BoxWrapper>
-  );
-};
+const TextBox: Component<JSX.InputHTMLAttributes<HTMLInputElement> & ITextbox> =
+  (props) => {
+    return (
+      <BoxWrapper margin="1.25rem 0">
+        <Label>{props.label}</Label>
+        <InputWrap>
+          <TextBoxStyled {...props}></TextBoxStyled>
+        </InputWrap>
+      </BoxWrapper>
+    );
+  };
 
 const InputWrap = styled("div")({
   position: "relative",
@@ -44,12 +45,7 @@ const Label = styled("p")({
   color: "#FFFFFF",
 });
 
-interface ITextbox {
-  variant?: "normal" | "error";
-  label: string;
-}
-
-const TextBoxStyled = styled("input")(({ variant = "normal" }: ITextbox) => ({
+const TextBoxStyled = styled("input")(({ variant = "normal" }: IVariant) => ({
   background: variant == "normal" ? "#252525" : "#4D1414",
   borderRadius: ".85rem",
   fontWeight: 500,

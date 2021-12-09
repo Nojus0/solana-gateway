@@ -24,5 +24,5 @@ export function login(vars: createUserVars) {
 export interface createUserVars {
   email: string;
   password: string;
+  remember: boolean;
 }
-

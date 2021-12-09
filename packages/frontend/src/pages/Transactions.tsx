@@ -16,6 +16,11 @@ const SOL_LAMPORTS = 0.000000001;
 
 const [modal, setModal] = createSignal({ show: false, body: "" });
 
+// create a function that clamps numbers maximum to 8 decimal places
+const clamp = (num: number) => {
+  return Math.round(num * 100000000) / 100000000;
+};
+
 const Transactions: Component = () => {
   useAuth();
   const [skip, setSkip] = createSignal(0);
@@ -35,7 +40,10 @@ const Transactions: Component = () => {
     <>
       <Modal when={modal().show} setWhen={setModal}>
         <ModalContainer>
+          <pre>
+
           <RawText>{modal().body}</RawText>
+          </pre>
           <Button onClick={() => setModal({ show: false, body: "" })}>
             Ok
           </Button>
@@ -62,8 +70,9 @@ const Transactions: Component = () => {
   );
 };
 
-const RawText = styled("pre")({
+const RawText = styled("p")({
   color: "white",
+  whiteSpace: "pre-wrap",
   wordBreak: "break-all",
 });
 
@@ -71,17 +80,17 @@ const Card: Component<Transaction> = (props) => {
   const time_formated = format(new Date(props.createdAt), "h:m aaa MMM d");
 
   function onRaw() {
-    setModal({ show: true, body: JSON.stringify(props, null, 2) });
+    setModal({ show: true, body: JSON.stringify(props, null, 4) });
   }
 
   return (
     <Transition {...fade(250, "ease")}>
       <Wrap>
         <ColumnContainer>
-          <SOLText>{props.lamports * SOL_LAMPORTS} SOL</SOLText>
+          <SOLText>{clamp(props.lamports * SOL_LAMPORTS)} SOL</SOLText>
           <Time>{time_formated}</Time>
         </ColumnContainer>
-        <Button margin="0" onClick={onRaw}>
+        <Button margin="1rem" onClick={onRaw}>
           Raw
         </Button>
       </Wrap>
@@ -93,6 +102,7 @@ const ModalContainer = styled("div")({
   display: "flex",
   flexDirection: "column",
   wordBreak: "break-all",
+  alignItems: "center",
   background: "#2D2D2D",
   padding: "2rem",
   borderRadius: "2rem",
@@ -132,9 +142,11 @@ const Wrap = styled("div")({
   background: "#232323",
   borderRadius: "2rem",
   alignItems: "center",
+  flexWrap: "wrap",
   margin: "1rem 0",
   padding: "2rem",
   width: "98.5%",
+  justifyContent: "center",
   display: "flex",
 });
 

@@ -6,6 +6,7 @@ import { IContext } from "../interfaces";
 import { APIContext } from "../graphql/middleware";
 import bcrypt from "bcryptjs";
 import util from "util";
+import { CookieOptions } from "express";
 export const userTypeDefs = gql`
   type CurrentUser {
     email: String!
@@ -34,7 +35,7 @@ export const userTypeDefs = gql`
     setFast(newFast: Boolean!): Boolean
     setPublicKey(newPublicKey: String!): String
     setWebhook(newUrl: String!): String
-    login(email: String!, password: String!): CurrentUser
+    login(email: String!, password: String!, remember: Boolean!): CurrentUser
   }
 `;
 
@@ -191,11 +192,15 @@ const UserResolver = {
       if (!(await bcrypt.compare(params.password, USER.password)))
         throw new Error("Incorrect password");
 
-      ctx.res.cookie("api_key", USER.api_key, {
+      const cookie: CookieOptions = {
         httpOnly: true,
         secure: process.env.NODE_ENV != "development",
         maxAge: 1000 * 60 * 60 * 24 * 7,
-      });
+      };
+
+      if (!params.remember) delete cookie.maxAge;
+
+      ctx.res.cookie("api_key", USER.api_key, cookie);
 
       return {
         ...USER.toObject(),

@@ -3,11 +3,9 @@
   "version": "0.0.0",
   "description": "",
   "scripts": {
-    "start": "vite",
-    "dev": "vite",
-    "build": "vite build",
-    "serve": "vite preview",
-    "deploy": "vite build && aws s3 rm s3://solanagateway/ --recursive && aws s3 cp ./dist s3://solanagateway/ --recursive"
+    "dev": "vite --mode development",
+    "build": "vite build --mode production",
+    "deploy": "npm run build && aws s3 rm s3://www.solanagateway.com/ --recursive && aws s3 cp ./dist s3://www.solanagateway.com/ --recursive && aws cloudfront create-invalidation --distribution-id EU9T8S2HTIFNQ --paths \"/*\""
   },
   "license": "MIT",
   "devDependencies": {
