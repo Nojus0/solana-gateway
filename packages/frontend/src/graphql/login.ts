@@ -1,8 +1,8 @@
 import { currentUser } from "./currentUser";
 import gqlRequest from "./gql";
 export const createUserMutation = `
-    mutation login($email: String!, $password: String!) {
-        login(email: $email, password: $password) {
+    mutation login($email: String!, $password: String!, $remember: Boolean!) {
+        login(email: $email, password: $password, remember: $remember) {
             email
             lamports_recieved
             api_key

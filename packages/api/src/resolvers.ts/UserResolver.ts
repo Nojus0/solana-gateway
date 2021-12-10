@@ -36,6 +36,7 @@ export const userTypeDefs = gql`
     setPublicKey(newPublicKey: String!): String
     setWebhook(newUrl: String!): String
     login(email: String!, password: String!, remember: Boolean!): CurrentUser
+    signOut: Boolean
   }
 `;
 
@@ -55,6 +56,7 @@ const UserResolver = {
       { password, network, publicKey, email }: ICreateUser,
       { redis, res, isFrontend }: IContext
     ) => {
+      
       const NETWORK = await NetworkModel.findOne({ name: network });
       if (!NETWORK) throw new Error("Network does not exists");
 
@@ -93,7 +95,6 @@ const UserResolver = {
           { _id: NETWORK.id },
           { $push: { accounts: usr } }
         ).exec();
-        console.log(``);
 
         if (isFrontend)
           res.cookie("api_key", usr.api_key, {
@@ -207,6 +208,10 @@ const UserResolver = {
         secret: USER.verifyKeypair[0].toString("base64"),
       };
     },
+    signOut: async (_, params, ctx: IContext) => {
+      ctx.res.clearCookie("api_key");
+      return true;
+    }
   },
   Query: {
     currentUser: async (_, params, ctx: APIContext) => {

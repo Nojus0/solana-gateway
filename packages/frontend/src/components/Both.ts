@@ -11,6 +11,7 @@ export const RightButton = styled(Button)({
     display: "none",
   },
 });
+export const email_regex = /^\S+@\S+\.\S+$/;
 
 export const FlexBox = styled("div")({
   display: "flex",
@@ -30,6 +31,17 @@ export const RememberText = styled("h4")({
 
 export const ClampedCustom = styled(ClampContainer)({
   height: "100%",
+});
+
+
+export const ErrorText = styled("h4")({
+  fontWeight: 500,
+  userSelect: "none",
+  fontSize: "1rem",
+  lineHeight: "93.5%",
+  letterSpacing: "-0.015em",
+  color: "#FF4D00",
+  margin: ".35rem 0",
 });
 
 export const BottomWrapper = styled("div")({

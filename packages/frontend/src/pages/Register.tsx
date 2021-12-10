@@ -5,6 +5,7 @@ import {
   BottomWrapper,
   Box,
   ClampedCustom,
+  email_regex,
   FlexBox,
   MainText,
   RememberText,
@@ -15,7 +16,7 @@ import Checkbox from "../components/Checkbox";
 import TextBox from "../components/TextBox";
 import { setPublicKey } from "../graphql/setPublicKey";
 import { createStore } from "solid-js/store";
-import { auth, useAuth} from "../utils/auth";
+import { auth, useAuth } from "../utils/auth";
 
 const [valid, setValid] = createStore({
   email: true,
@@ -23,8 +24,6 @@ const [valid, setValid] = createStore({
   wallet: true,
   agreed: true,
 });
-
-const email_regex = /^\S+@\S+\.\S+$/;
 
 const Register: Component = () => {
   const [agreed, setAgreed] = createSignal(false);
@@ -38,17 +37,15 @@ const Register: Component = () => {
     setValid("wallet", wallet().trim().length > 30);
     setValid("agreed", agreed());
 
-    if (!valid.email) return;
-    if (!valid.password) return;
-    if (!valid.wallet) return;
-    if (!valid.agreed) return;
+    if (!valid.email || !valid.password || !valid.wallet || !valid.agreed)
+      return;
 
     if (password().length < 3) return setValid("password", false);
 
     const { createUser } = await auth.register(email(), password());
 
     if (createUser.api_key) {
-      const pb = await setPublicKey({ newPublicKey: wallet() });
+      const pb = await auth.setPublicKey(wallet());
       navigate("/transactions");
     }
   }

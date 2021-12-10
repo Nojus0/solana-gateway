@@ -21,6 +21,11 @@ const Settings: Component = () => {
     setFast(auth.currentUser.isFast);
   });
 
+  // Create a function log out the user using the gqlRequest function
+  const signOut = () => {
+    auth.signOut();
+  };
+
   async function save() {
     await auth.setPublicKey(publicKey());
     await auth.setWebhook(webhook());
@@ -58,6 +63,9 @@ const Settings: Component = () => {
           <CheckBoxText>Fast Mode</CheckBoxText>
         </FlexBox>
         <ButtonContainer>
+          <Button onClick={signOut} margin="1.25rem 0 1.25rem 0">
+            Sign Out
+          </Button>
           <Button onClick={() => history.back()} margin="1.25rem">
             Back
           </Button>
@@ -81,6 +89,7 @@ const CheckBoxText = styled("p")({
 
 const ButtonContainer = styled("div")({
   display: "flex",
+  marginTop: "1rem",
   justifyContent: "flex-end",
 });
 

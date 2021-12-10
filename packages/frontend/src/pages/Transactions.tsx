@@ -1,4 +1,4 @@
-import { Component, createSignal, For, onMount } from "solid-js";
+import { Component, createSignal, For, onMount, Show } from "solid-js";
 import { styled } from "solid-styled-components";
 import Background from "../components/Background";
 import { MainText } from "../components/Both";
@@ -41,8 +41,7 @@ const Transactions: Component = () => {
       <Modal when={modal().show} setWhen={setModal}>
         <ModalContainer>
           <pre>
-
-          <RawText>{modal().body}</RawText>
+            <RawText>{modal().body}</RawText>
           </pre>
           <Button onClick={() => setModal({ show: false, body: "" })}>
             Ok
@@ -62,6 +61,11 @@ const Transactions: Component = () => {
             </Link>
           </TopBar>
           <Browser>
+            <Show when={transactions().length < 1}>
+              <NoTransferText>
+                No transfers found setup your details in settings
+              </NoTransferText>
+            </Show>
             <For each={transactions()}>{(item) => <Card {...item} />}</For>
           </Browser>
         </Box>
@@ -97,6 +101,12 @@ const Card: Component<Transaction> = (props) => {
     </Transition>
   );
 };
+
+const NoTransferText = styled("p")({
+  color: "white",
+  fontSize: "1.5rem",
+  textAlign: "center",
+});
 
 const ModalContainer = styled("div")({
   display: "flex",

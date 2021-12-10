@@ -7,17 +7,24 @@ import { login } from "../graphql/login";
 import { setFast } from "../graphql/setFast";
 import { setPublicKey } from "../graphql/setPublicKey";
 import { setWebhook } from "../graphql/setWebhook";
+import { signOut } from "../graphql/signOut";
 
 export const useAuth = (forwardTo?: string) => {
   const navigate = useNavigate();
 
-  if (!auth.loggedIn && !auth.loading) {
-    return navigate("/login");
-  }
+  createEffect(() => {
+    if (!auth.loggedIn && !auth.loading) {
+      return navigate("/login");
+    }
 
-  if (auth.loggedIn && !auth.loading && forwardTo) {
-    return navigate(forwardTo);
-  }
+    if (auth.loading) {
+      return null;
+    }
+
+    if (auth.loggedIn && !auth.loading && forwardTo) {
+      return navigate(forwardTo);
+    }
+  });
 };
 
 export const [auth, setAuth] = createStore({
@@ -26,8 +33,9 @@ export const [auth, setAuth] = createStore({
   currentUser: {} as currentUser,
   async login(email: string, password: string, remember: boolean) {
     const resp = await login({ password, email, remember });
-    if (resp.errors || !resp.login.api_key) {
+    if (resp.errors || !resp.login) {
       this.invalidAttempt();
+      return resp;
     }
 
     this.setCurrent(resp.login);
@@ -41,6 +49,13 @@ export const [auth, setAuth] = createStore({
     const resp = await setWebhook({ newUrl });
     if (!resp.errors && resp.setWebhook.length) {
       setAuth("currentUser", "webhook", resp.setWebhook);
+    }
+  },
+  async signOut() {
+    const resp = await signOut();
+    if (!resp.errors && resp.signOut) {
+      this.setCurrent({} as any);
+      this.invalidAttempt();
     }
   },
   async setFast(newFast: boolean) {
@@ -82,8 +97,9 @@ export const [auth, setAuth] = createStore({
       network: import.meta.env.VITE_NETWORK as string,
     });
 
-    if (resp.errors || !resp.createUser.api_key) {
+    if (resp.errors || !resp.createUser) {
       this.invalidAttempt();
+      return resp;
     }
 
     this.setCurrent(resp.createUser);
