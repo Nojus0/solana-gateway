@@ -1,17 +1,16 @@
 import { addMinutes } from "date-fns";
 import { Redis } from "ioredis";
+import { IPayload } from "solanagateway";
 import { ITransaction, IUser, TransactionModel, UserModel } from "shared";
 import crypto, { createPrivateKey, KeyObject } from "crypto";
 import axios from "axios";
 
 interface IConfimer {
-  redis: Redis;
   interval: number;
   requiredExistenceMinutes: number;
 }
 
 export function createWebhookConfirmer({
-  redis,
   interval,
   requiredExistenceMinutes,
 }: IConfimer) {
@@ -59,7 +58,7 @@ export function createWebhookConfirmer({
         transferSignature: transaction.transferSignature,
         sendbackSignature: transaction.sendbackSignature,
         publicKey: transaction.publicKey,
-      });
+      } as IPayload);
 
       const [, privateKey] = transaction.madeBy.verifyKeypair;
 
@@ -83,10 +82,6 @@ export function createWebhookConfirmer({
       if (data?.processed) {
         transaction.processedAt = new Date();
         transaction.IsProcessed = true;
-      }
-
-      if (data?.delete) {
-        redis.del(transaction.publicKey);
       }
 
       await transaction.save();

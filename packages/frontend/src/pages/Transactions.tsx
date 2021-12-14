@@ -63,7 +63,7 @@ const Transactions: Component = () => {
           <Browser>
             <Show when={transactions().length < 1}>
               <NoTransferText>
-                No transfers found setup your details in settings
+                No transfers setup your details in the settings page
               </NoTransferText>
             </Show>
             <For each={transactions()}>{(item) => <Card {...item} />}</For>
@@ -104,7 +104,8 @@ const Card: Component<Transaction> = (props) => {
 
 const NoTransferText = styled("p")({
   color: "white",
-  fontSize: "1.5rem",
+  margin: "3rem",
+  fontSize: "1.25rem",
   textAlign: "center",
 });
 

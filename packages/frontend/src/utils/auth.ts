@@ -1,5 +1,5 @@
 import { useNavigate } from "solid-app-router";
-import { createEffect } from "solid-js";
+import { batch, createEffect } from "solid-js";
 import { createStore } from "solid-js/store";
 import { createUserVars, createUser } from "../graphql/createUser";
 import { currentUser } from "../graphql/currentUser";
@@ -12,7 +12,7 @@ import { signOut } from "../graphql/signOut";
 export const useAuth = (forwardTo?: string) => {
   const navigate = useNavigate();
 
-  createEffect(() => {
+  function validate() {
     if (!auth.loggedIn && !auth.loading) {
       return navigate("/login");
     }
@@ -24,7 +24,9 @@ export const useAuth = (forwardTo?: string) => {
     if (auth.loggedIn && !auth.loading && forwardTo) {
       return navigate(forwardTo);
     }
-  });
+  }
+  validate();
+  createEffect(validate);
 };
 
 export const [auth, setAuth] = createStore({
@@ -107,15 +109,21 @@ export const [auth, setAuth] = createStore({
     return resp;
   },
   setCurrent(u: currentUser) {
-    setAuth("currentUser", u);
-    this.validAttempt();
+    batch(() => {
+      setAuth("currentUser", u);
+      this.validAttempt();
+    });
   },
   validAttempt() {
-    setAuth("loading", false);
-    setAuth("loggedIn", true);
+    batch(() => {
+      setAuth("loggedIn", true);
+      setAuth("loading", false);
+    });
   },
   invalidAttempt() {
-    setAuth("loading", false);
-    setAuth("loggedIn", false);
+    batch(() => {
+      setAuth("loggedIn", false);
+      setAuth("loading", false);
+    });
   },
 });

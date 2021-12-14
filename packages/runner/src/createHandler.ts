@@ -46,7 +46,6 @@ export const createHandler = ({
 }: IHandler) => {
   const conn = new Connection(network.url);
   const webhook = createWebhookConfirmer({
-    redis,
     interval: webhook_interval,
     requiredExistenceMinutes: webhook_retry_exist_min,
   });

@@ -28,12 +28,12 @@ const [valid, setValid] = createStore({
 });
 
 const Login: Component = () => {
+  useAuth("/transactions");
   const [remember, setRemember] = createSignal(true);
   const navigate = useNavigate();
   const [email, setEmail] = createSignal("");
   const [pass, setPass] = createSignal("");
   const [errors, setErrors] = createSignal<IGQLError[]>([]);
-  useAuth("/transactions");
 
   async function login(e: MouseEvent) {
     const { errors } = await auth.login(email(), pass(), remember());

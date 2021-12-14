@@ -39,11 +39,13 @@ const Settings: Component = () => {
         <TextBox
           label="Wallet address"
           value={publicKey()}
+          onInput={(e) => setPk(e.currentTarget.value)}
           placeholder="Wallet address"
         />
         <TextBox
           label="Webhook Url"
           value={webhook()}
+          onInput={(e) => setWeb(e.currentTarget.value)}
           placeholder="Webhook Url"
         />
         <TextBox
@@ -90,6 +92,7 @@ const CheckBoxText = styled("p")({
 const ButtonContainer = styled("div")({
   display: "flex",
   marginTop: "1rem",
+  flexWrap: "wrap",
   justifyContent: "flex-end",
 });
 
