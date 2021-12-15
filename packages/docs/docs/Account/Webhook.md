@@ -3,7 +3,7 @@ sidebar_position: 1
 ---
 
 # Webhooks
-Webhooks are triggered when a new transaction is found, when found the server will send a post request to the user's webhook url with a json payload the payload object looks like this.
+Webhooks are triggered when a new transaction is found, when found the server will send a post request to the user's webhook url with a json payload the object looks like this.
 
 ```json
 {
@@ -15,10 +15,10 @@ Webhooks are triggered when a new transaction is found, when found the server wi
 }
 ```
 
-It also has the signature of the entire json payload + api key signed, so you need to validate if the request comes from solanagateway.com luckily solanagateway has its own NPM package so you can easily validate the request origin by installing the `solanagateway` NPM package. To validate find your api key and the secret key.
+In order to confirm the request came from *solana gateway* the request body is signed `rsa(body.append(APIKEY)) == signature` you can find the signature in the x-signature header. You can easily validate the request by using the `solanagateway` npm package. Though the request body must be a string not an object so if you are using express you need to use `express.text({type: "application/json"})` for that specific route to get the body as a string.
 
 ## Webhook Response
-User webhook's must respond with a json payload example bellow to proccess the transaction if webhook cannot be reached it will retry 10 times. The retries will start when the transaction has been left unprocessed for 2 minutes after its creation. Then after the retries will start every 5 minutes.
+User webhook must respond with a json payload example bellow to proccess the transaction if webhook cannot be reached it will retry 10 times. The retries will start when the transaction has been left unprocessed for 2 minutes after its creation. Then after the retries will start every 5 minutes.
 
 ```json
 {
