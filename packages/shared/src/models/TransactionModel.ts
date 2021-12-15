@@ -18,7 +18,6 @@ export interface TransactionBasic {
 export interface Transaction {
   madeBy: IUser;
   publicKey: string;
-  privateKey: string;
   createdAt: Date;
   processedAt: Date;
   payload: string;
@@ -32,7 +31,6 @@ export interface Transaction {
 export const TransactionSchema = new Schema<ITransaction>({
   madeBy: { type: Schema.Types.ObjectId, ref: "user" },
   publicKey: String,
-  privateKey: String,
   createdAt: { type: Date, default: new Date() },
   processedAt: Date,
   IsProcessed: Boolean,

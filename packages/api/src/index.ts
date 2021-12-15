@@ -66,7 +66,7 @@ export const handler = async (event, context, callback) => {
     expressGetMiddlewareOptions: {
       cors: {
         credentials: true,
-        origin: process.env.ORIGIN,
+        origin: process.env.ORIGIN || "*",
       },
     },
     expressAppFromMiddleware: (middleware) => {

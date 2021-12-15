@@ -117,7 +117,6 @@ export const createHandler = ({
           lamports: LAMPORTS,
           madeBy: owner,
           payload: data,
-          privateKey: base58.encode(recieverKeyPair.secretKey),
           processedAt: null,
           publicKey: recieverKeyPair.publicKey.toBase58(),
           sendbackSignature: SIGNATURE,
