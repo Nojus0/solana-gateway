@@ -46,7 +46,6 @@ export const ErrorText = styled("h4")({
 
 export const BottomWrapper = styled("div")({
   display: "flex",
-  margin: "1rem 0",
   flexDirection: "column",
   button: {
     alignSelf: "flex-end",

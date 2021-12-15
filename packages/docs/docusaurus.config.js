@@ -7,7 +7,7 @@ const darkCodeTheme = require('prism-react-renderer/themes/dracula');
 /** @type {import('@docusaurus/types').Config} */
 const config = {
   title: 'Solana Gateway',
-  tagline: 'Add solana gateway to your website',
+  tagline: 'Add solana gateway to your project',
   url: 'https://www.solanagateway.com',
   baseUrl: '/',
   onBrokenLinks: 'throw',
@@ -50,7 +50,7 @@ const config = {
             position: "right",
           },
           {
-            href: 'https://github.com/facebook/docusaurus',
+            href: 'https://www.npmjs.com/package/solanagateway',
             label: 'npm',
             position: 'right',
           },
@@ -72,9 +72,13 @@ const config = {
             title: 'More',
             items: [
               {
-                label: 'GitHub',
-                href: 'https://github.com/facebook/docusaurus',
+                label: 'npm',
+                href: 'https://www.npmjs.com/package/solanagateway',
               },
+              {
+                label: "Discord",
+                href: "https://discord.gg/rRxDV3y9Ws",
+              }
             ],
           },
         ],

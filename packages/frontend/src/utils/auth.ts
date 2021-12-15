@@ -84,7 +84,6 @@ export const [auth, setAuth] = createStore({
   },
   async fetchUser() {
     const resp = await currentUser();
-
     if (!resp.errors && resp.currentUser.api_key) {
       this.setCurrent(resp.currentUser);
     } else {
@@ -92,11 +91,15 @@ export const [auth, setAuth] = createStore({
     }
   },
 
-  async register(email: string, password: string) {
+  async register(
+    email: string,
+    password: string,
+    network: "main" | "dev"
+  ) {
     const resp = await createUser({
       email,
       password,
-      network: import.meta.env.VITE_NETWORK as string,
+      network,
     });
 
     if (resp.errors || !resp.createUser) {

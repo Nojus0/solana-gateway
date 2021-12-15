@@ -39,10 +39,7 @@ const GQL_SERVER = new ApolloServer({
     res,
     redis,
     mongo,
-    isFrontend:
-      req.headers.origin == process.env.ORIGIN ||
-      (process.env.NETWORK == "dev" &&
-        req.headers.origin == "http://localhost:4000"),
+    isFrontend: req.headers.origin == process.env.ORIGIN,
   }),
 });
 

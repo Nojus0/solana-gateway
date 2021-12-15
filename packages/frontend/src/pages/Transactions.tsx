@@ -12,6 +12,7 @@ import { getTransactions } from "../graphql/getTransactions";
 import Modal from "../components/Modal";
 import fade from "../utils/fade";
 import { Transition } from "solid-transition-group";
+import Spinner, { SpinnerContainer } from "../components/Spinner";
 const SOL_LAMPORTS = 0.000000001;
 
 const [modal, setModal] = createSignal({ show: false, body: "" });
@@ -26,13 +27,16 @@ const Transactions: Component = () => {
   const [skip, setSkip] = createSignal(0);
   const [limit, setLimit] = createSignal(50);
   const [transactions, setTransactions] = createSignal<Transaction[]>([]);
+  const [fetching, setFetch] = createSignal(false);
 
   onMount(async () => {
+    setFetch(true);
     const txns = await getTransactions({
       filter: "All",
       limit: limit(),
       skip: skip(),
     });
+    setFetch(false);
     setTransactions((p) => [...p, ...txns.getTransactions]);
   });
 
@@ -53,7 +57,7 @@ const Transactions: Component = () => {
         <Box>
           <TopBar>
             <Header>Transfers</Header>
-            <Link href="/docs">
+            <Link href="https://docs.solanagateway.com">
               <DocsButton>Docs</DocsButton>
             </Link>
             <Link href="/settings">
@@ -61,18 +65,25 @@ const Transactions: Component = () => {
             </Link>
           </TopBar>
           <Browser>
-            <Show when={transactions().length < 1}>
+            <Show when={transactions().length < 1 && !fetching()}>
               <NoTransferText>
                 No transfers setup your details in the settings page
               </NoTransferText>
             </Show>
             <For each={transactions()}>{(item) => <Card {...item} />}</For>
+            <Show when={fetching()}>
+              <SpinnerContainer>
+                <Spinner />
+              </SpinnerContainer>
+            </Show>
           </Browser>
         </Box>
       </ClampContainer>
     </>
   );
 };
+
+
 
 const RawText = styled("p")({
   color: "white",

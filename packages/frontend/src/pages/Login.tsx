@@ -1,4 +1,4 @@
-import { useNavigate } from "solid-app-router";
+import { Link, useNavigate } from "solid-app-router";
 import { Component, createSignal, For } from "solid-js";
 import { createStore } from "solid-js/store";
 import { styled } from "solid-styled-components";
@@ -85,7 +85,9 @@ const Login: Component = () => {
           </BottomWrapper>
         </Box>
       </ClampedCustom>
-      <RightButton>Docs</RightButton>
+      <Link href="https://docs.solanagateway.com">
+        <RightButton>Docs</RightButton>
+      </Link>
     </>
   );
 };

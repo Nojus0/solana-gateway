@@ -4,6 +4,7 @@ import { Box, FlexBox, MainText } from "../components/Both";
 import { Button } from "../components/Button";
 import Checkbox from "../components/Checkbox";
 import ClampContainer from "../components/ClampContainer";
+import Spinner from "../components/Spinner";
 import TextBox from "../components/TextBox";
 import { auth, useAuth } from "../utils/auth";
 
@@ -36,34 +37,40 @@ const Settings: Component = () => {
     <ClampContainer>
       <Box>
         <MainText>Settings</MainText>
-        <TextBox
-          label="Wallet address"
-          value={publicKey()}
-          onInput={(e) => setPk(e.currentTarget.value)}
-          placeholder="Wallet address"
-        />
-        <TextBox
-          label="Webhook Url"
-          value={webhook()}
-          onInput={(e) => setWeb(e.currentTarget.value)}
-          placeholder="Webhook Url"
-        />
-        <TextBox
-          value={auth.currentUser.secret}
-          label="Secret"
-          disabled
-          placeholder="Secret"
-        />
-        <TextBox
-          value={auth.currentUser.api_key}
-          disabled
-          label="API Key"
-          placeholder="API Key"
-        />
-        <FlexBox>
-          <Checkbox checked={fast()} setCheck={setFast} />
-          <CheckBoxText>Fast Mode</CheckBoxText>
-        </FlexBox>
+        {auth.loading && <Spinner />}
+        {!auth.loading && (
+          <>
+            <TextBox
+              label="Wallet address"
+              value={publicKey()}
+              onInput={(e) => setPk(e.currentTarget.value)}
+              placeholder="Wallet address"
+            />
+            <TextBox
+              label="Webhook Url"
+              value={webhook()}
+              onInput={(e) => setWeb(e.currentTarget.value)}
+              placeholder="Webhook Url"
+            />
+            <TextBox
+              value={auth.currentUser.secret}
+              label="Secret"
+              disabled
+              placeholder="Secret"
+            />
+            <TextBox
+              value={auth.currentUser.api_key}
+              disabled
+              label="API Key"
+              placeholder="API Key"
+            />
+            <FlexBox>
+              <Checkbox checked={fast()} setCheck={setFast} />
+              <CheckBoxText>Fast Mode</CheckBoxText>
+            </FlexBox>
+          </>
+        )}
+
         <ButtonContainer>
           <Button onClick={signOut} margin="1.25rem 0 1.25rem 0">
             Sign Out

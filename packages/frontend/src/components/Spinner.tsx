@@ -5,6 +5,8 @@ import { ISize } from "../utils/interfaces";
 const Spinner = styled("div")(({ size = "4rem" }: ISize) => ({
   "--border-width": ".35rem",
   height: size,
+  minWidth: size,
+  minHeight: size,
   width: size,
   borderRadius: "50%",
   "--mask":
@@ -27,3 +29,9 @@ const Spinner = styled("div")(({ size = "4rem" }: ISize) => ({
 }));
 
 export default Spinner;
+export const SpinnerContainer = styled("div")({
+  display: "flex",
+  width: "100%",
+  alignItems: "center",
+  justifyContent: "center",
+});

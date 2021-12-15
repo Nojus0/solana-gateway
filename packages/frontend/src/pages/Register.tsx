@@ -1,11 +1,12 @@
-import { useNavigate } from "solid-app-router";
-import { Component, createSignal } from "solid-js";
+import { Link, useNavigate } from "solid-app-router";
+import { Component, createSignal, For } from "solid-js";
 import Background from "../components/Background";
 import {
   BottomWrapper,
   Box,
   ClampedCustom,
   email_regex,
+  ErrorText,
   FlexBox,
   MainText,
   RememberText,
@@ -17,6 +18,8 @@ import TextBox from "../components/TextBox";
 import { setPublicKey } from "../graphql/setPublicKey";
 import { createStore } from "solid-js/store";
 import { auth, useAuth } from "../utils/auth";
+import { styled } from "solid-styled-components";
+import { IGQLError } from "../utils/interfaces";
 
 const [valid, setValid] = createStore({
   email: true,
@@ -30,6 +33,8 @@ const Register: Component = () => {
   const [email, setEmail] = createSignal("");
   const [password, setPassword] = createSignal("");
   const [wallet, setWallet] = createSignal("");
+  const [isDev, setIsDev] = createSignal(false);
+  const [errors, setErrors] = createSignal<IGQLError[]>([]);
   const navigate = useNavigate();
   async function register(e: MouseEvent) {
     setValid("email", email_regex.test(email()));
@@ -42,11 +47,19 @@ const Register: Component = () => {
 
     if (password().length < 3) return setValid("password", false);
 
-    const { createUser } = await auth.register(email(), password());
+    const { createUser, errors } = await auth.register(
+      email(),
+      password(),
+      isDev() ? "dev" : "main"
+    );
 
     if (createUser.api_key) {
       const pb = await auth.setPublicKey(wallet());
       navigate("/transactions");
+    }
+
+    if (errors) {
+      setErrors(errors);
     }
   }
 
@@ -77,8 +90,21 @@ const Register: Component = () => {
             onInput={(e) => setWallet(e.currentTarget.value)}
             placeholder="Wallet address"
           />
+          <For each={errors()}>
+            {(err) => <ErrorText>{err.message}</ErrorText>}
+          </For>
           <BottomWrapper>
-            <FlexBox>
+            <CheckContainer>
+              <Checkbox
+                variant="normal"
+                checked={isDev()}
+                setCheck={setIsDev}
+              />
+              <RememberText onClick={() => setIsDev((p) => !p)}>
+                Dev Net Account
+              </RememberText>
+            </CheckContainer>
+            <CheckContainer>
               <Checkbox
                 variant={valid.agreed ? "normal" : "error"}
                 checked={agreed()}
@@ -87,14 +113,20 @@ const Register: Component = () => {
               <RememberText onClick={() => setAgreed((p) => !p)}>
                 I agree to the terms of services
               </RememberText>
-            </FlexBox>
+            </CheckContainer>
             <Button onClick={register}>Create account</Button>
           </BottomWrapper>
         </Box>
       </ClampedCustom>
-      <RightButton>Docs</RightButton>
+      <Link href="https://docs.solanagateway.com">
+        <RightButton>Docs</RightButton>
+      </Link>
     </>
   );
 };
+
+const CheckContainer = styled(FlexBox)({
+  margin: "0 0 1rem 0",
+});
 
 export default Register;

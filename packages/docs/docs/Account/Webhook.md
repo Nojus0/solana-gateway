@@ -2,7 +2,7 @@
 sidebar_position: 1
 ---
 
-# Webhooks
+# Webhook
 Webhooks are triggered when a new transaction is found, when found the server will send a post request to the user's webhook url with a json payload the object looks like this.
 
 ```json
