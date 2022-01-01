@@ -1,11 +1,11 @@
-import { BlockResponse, Connection, PublicKey } from "@solana/web3.js";
-import { IBlockTransaction } from "./interfaces";
+import { BlockResponse, Connection, PublicKey } from "@solana/web3.js"
+import { IBlockTransaction } from "./interfaces"
 
 interface IPoller {
-  conn: Connection;
-  pollInterval?: number;
-  maxRetries?: number;
-  maxPollsPerInterval?: number;
+  conn: Connection
+  pollInterval?: number
+  maxRetries?: number
+  maxPollsPerInterval?: number
   /**
    * Don't set too high, it will block the
    * polling for that amount so you might
@@ -13,12 +13,12 @@ interface IPoller {
    * ! This is Synchronous !
    * TODO Make this Asynchronous
    */
-  retryDelay?: number;
-  startBlock?: number | "latest";
-  onTransaction: (transaction: IBlockTransaction) => void;
-  onBlockMaxRetriesExceeded: (badBlock: number) => void;
-  onPollFinished: (lastBlock: number) => void;
-  onHandleBlock: (asyncCurrentBlock: number) => void;
+  retryDelay?: number
+  startBlock?: number | "latest"
+  onTransaction: (transaction: IBlockTransaction) => void
+  onBlockMaxRetriesExceeded: (badBlock: number) => void
+  onPollFinished: (lastBlock: number) => void
+  onHandleBlock: (asyncCurrentBlock: number) => void
 }
 
 export const createPoller = ({
@@ -31,14 +31,14 @@ export const createPoller = ({
   onBlockMaxRetriesExceeded,
   onTransaction,
   onPollFinished,
-  onHandleBlock,
+  onHandleBlock
 }: IPoller) => {
-  let latestBlock: number | null = null;
-  let lastProcessedBlock = startBlock != "latest" ? startBlock : null;
-  let isActive = false;
+  let latestBlock: number | null = null
+  let lastProcessedBlock = startBlock != "latest" ? startBlock : null
+  let isActive = false
 
   async function parseBlockTransactions(BLOCK: BlockResponse) {
-    if (!BLOCK || !BLOCK.transactions) return;
+    if (!BLOCK || !BLOCK.transactions) return
 
     const ALLTXNS: IBlockTransaction[] = BLOCK.transactions.map((txn, i) => {
       const [sender, reciever] = txn.transaction.message.accountKeys.map(
@@ -47,21 +47,21 @@ export const createPoller = ({
           postBalance: txn.meta.postBalances[i],
           preBalance: txn.meta.preBalances[i],
           feePayer: txn.transaction.message.isAccountSigner(i),
-          change: txn.meta.postBalances[i] - txn.meta.preBalances[i],
+          change: txn.meta.postBalances[i] - txn.meta.preBalances[i]
         })
-      );
+      )
 
       return {
         fee: txn.meta.fee,
-        signatures: Array.isArray(txn.transaction.signatures)
+        signature: Array.isArray(txn.transaction.signatures)
           ? txn.transaction.signatures[0]
           : txn.transaction.signatures,
         sender,
-        reciever,
-      };
-    });
+        reciever
+      }
+    })
 
-    return ALLTXNS;
+    return ALLTXNS
   }
 
   async function repeatBlock(
@@ -69,92 +69,92 @@ export const createPoller = ({
     retries = 0
   ): Promise<BlockResponse | null> {
     try {
-      return await conn.getBlock(slot, { commitment: "finalized" });
+      return await conn.getBlock(slot, { commitment: "finalized" })
     } catch (err: any) {
       if (retries >= maxRetries) {
-        onBlockMaxRetriesExceeded(slot);
-        return null;
+        onBlockMaxRetriesExceeded(slot)
+        return null
       }
 
-      retries++;
+      retries++
       console.log(
         `[${retries}]Failled to fetch block ${slot}, err: ${err.message}`
-      );
+      )
 
-      return new Promise((res) =>
+      return new Promise(res =>
         setTimeout(() => res(repeatBlock(slot, retries)), retryDelay)
-      );
+      )
     }
   }
 
   async function handleBlock(slot: number) {
-    const block = await repeatBlock(slot);
+    const block = await repeatBlock(slot)
 
-    if (!block) return;
+    if (!block) return
 
-    onHandleBlock(slot);
+    onHandleBlock(slot)
 
-    const TXNS = await parseBlockTransactions(block);
+    const TXNS = await parseBlockTransactions(block)
 
-    TXNS.forEach((txn) => {
+    TXNS.forEach(txn => {
       txn.reciever &&
         txn.sender &&
-        txn.signatures &&
+        txn.signature &&
         txn.fee &&
-        onTransaction(txn);
-    });
+        onTransaction(txn)
+    })
   }
 
   async function poll() {
-    if (!isActive) return;
+    if (!isActive) return
 
-    latestBlock = await conn.getSlot("finalized");
+    latestBlock = await conn.getSlot("finalized")
 
-    lastProcessedBlock = lastProcessedBlock || latestBlock;
+    lastProcessedBlock = lastProcessedBlock || latestBlock
 
-    console.log(`Latest block ${latestBlock} last block ${lastProcessedBlock}`);
+    console.log(`Latest block ${latestBlock} last block ${lastProcessedBlock}`)
 
-    const adder = lastProcessedBlock + 1 < latestBlock ? 1 : 0;
+    const adder = lastProcessedBlock + 1 < latestBlock ? 1 : 0
 
     if (latestBlock - (lastProcessedBlock + adder) > maxPollsPerInterval) {
       console.log(
         `Poll limit exceeded by ${
           latestBlock - lastProcessedBlock - maxPollsPerInterval
         } blocks`
-      );
-      latestBlock = lastProcessedBlock + maxPollsPerInterval;
+      )
+      latestBlock = lastProcessedBlock + maxPollsPerInterval
     }
 
     const blocks_list = await conn.getBlocks(
       lastProcessedBlock + adder,
       latestBlock
-    );
+    )
 
-    const promises = blocks_list.map((block) => handleBlock(block));
+    const promises = blocks_list.map(block => handleBlock(block))
 
-    await Promise.all(promises);
+    await Promise.all(promises)
 
-    lastProcessedBlock = latestBlock;
+    lastProcessedBlock = latestBlock
 
-    onPollFinished && onPollFinished(lastProcessedBlock);
+    onPollFinished && onPollFinished(lastProcessedBlock)
 
-    console.log(`Finished Poll`);
+    console.log(`Finished Poll`)
 
-    setTimeout(poll, pollInterval);
+    setTimeout(poll, pollInterval)
   }
 
   return {
     isRunning() {
-      return isActive;
+      return isActive
     },
     start() {
-      isActive = true;
-      poll();
-      return this;
+      isActive = true
+      poll()
+      return this
     },
     stop() {
-      isActive = false;
-      return this;
-    },
-  };
-};
+      isActive = false
+      return this
+    }
+  }
+}

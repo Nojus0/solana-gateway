@@ -1,6 +1,6 @@
 import { Keypair } from "@solana/web3.js";
 import { gql } from "apollo-server-lambda";
-import { createDepositData } from "shared";
+import { DepositRedisObject } from "shared";
 import { APIContext } from "../graphql/middleware";
 
 export const depositTypeDefs = gql`
@@ -19,7 +19,7 @@ export const min_ms_expires = 300000;
 const DepositResolver = {
   Query: {},
   Mutation: {
-    createDepositAddress: async (_, params, { redis, uid }: APIContext) => {
+    createDepositAddress: async (_, params, { redis, u, n }: APIContext) => {
       const GEN_DEPOSIT_WALLET = new Keypair();
 
       // * Cant do account:*publickey* because of buffer, possible but dirty *
@@ -36,18 +36,27 @@ const DepositResolver = {
           "The specified lifetime is too high maximum is 1 hour/3600000 ms"
         );
       }
-      const binary = createDepositData({
-        uid,
-        data: params.data as string,
-        secret: GEN_DEPOSIT_WALLET.secretKey,
-      });
 
-      redis.setBuffer(
-        GEN_DEPOSIT_WALLET.publicKey.toBase58(),
-        binary,
-        "PX",
-        params.lifetime_ms as number
-      );
+      try {
+        const data: DepositRedisObject = {
+          n,
+          d: params.data,
+          u: u,
+          secret: Buffer.from(GEN_DEPOSIT_WALLET.secretKey).toString("base64"),
+        };
+
+        await redis.set(
+          GEN_DEPOSIT_WALLET.publicKey.toBase58(),
+          JSON.stringify(data),
+          "PX",
+          params.lifetime_ms as number
+        );
+
+        
+      } catch (err) {
+        console.log(err);
+        throw new Error("Failed to create deposit address");
+      }
 
       return {
         publicKey: GEN_DEPOSIT_WALLET.publicKey.toBase58(),

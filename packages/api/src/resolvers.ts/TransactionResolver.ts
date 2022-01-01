@@ -1,87 +1,138 @@
-import { gql } from "apollo-server-lambda";
-import { APIContext } from "../graphql/middleware";
-import { TransactionModel } from "shared";
-import { UserModel } from "shared";
+import { gql } from "apollo-server-lambda"
+import { APIContext } from "../graphql/middleware"
+import { Model, TransactionUUIDLength, UserDocument } from "shared"
+import dynamoose from "dynamoose"
+import { TransactionDocument } from "shared"
+import base58 from "bs58"
+import crypto from "crypto"
+export type TransactionFilter = "All" | "Pending" | "Confirmed"
 
 export const transactionDefs = gql`
   type Transaction {
-    id: String!
-    transferSignature: String!
-    sendbackSignature: String!
-    lamports: Int!
+    uuid: String!
+    senderPk: String!
+    senderTo: String!
+    senderSig: String!
+    senderLm: Float!
+
     payload: String!
-    IsProcessed: Boolean
-    processedAt: Date
+    retries: Int!
+
+    recieveLm: Float!
+    recieveSig: String!
+
     createdAt: Date!
-    publicKey: String!
+    status: String!
   }
 
-  enum TransactionFiler {
+  enum TransactionFilter {
     All
-    Processed
-    Unprocessed
+    Pending
+    Confirmed
+  }
+
+  type TransactionsType {
+    transactions: [Transaction!]!
+    next: String
   }
 
   extend type Query {
     getTransactions(
-      filter: TransactionFiler!
-      skip: Int!
+      filter: TransactionFilter!
       limit: Int!
-    ): [Transaction!]
-
-    getAdressTransactions(address: String!): [Transaction!]
+      next: String
+    ): TransactionsType
   }
 
   extend type Mutation {
-    setAsProcessed(id: String!): Transaction
+    setConfirmed(uuid: String!): Transaction
   }
-`;
+`
+
+async function paginify(
+  Limit: number,
+  n: string,
+  u: string,
+  filter: "PENDING" | "CONFIRMED" | "",
+  next?: string
+) {
+  if (next?.includes("#")) throw new Error("Invalid next token.")
+
+  const query = await Model.query(
+    new dynamoose.Condition()
+      .where("pk")
+      .eq(`USER#${u}`)
+      .filter("sk")
+      .beginsWith(`NET#${n}#TXN#${filter}`)
+  ).limit(Limit)
+
+  if (next) {
+    const [type, id, time]: [string, string, string] = (next as any).split(".")
+
+    if (!type || !id || !time) throw new Error("Invalid next token.")
+
+    if (filter && filter != type) throw new Error("Invalid next token.")
+
+    if (isNaN(Number(time))) throw new Error("Invalid next token.")
+    console.log(base58.encode(crypto.randomBytes(16)))
+    if (base58.decode(id).byteLength != TransactionUUIDLength)
+      throw new Error("Invalid next token.")
+
+    query.startAt({
+      pk: `USER#${u}`,
+      sk: `NET#${n}#TXN#${type}#${id}#${time}`
+    })
+  }
+
+  const resp = await query.exec()
+  if (resp.lastKey?.sk) {
+    const [, net, type, status, id, time] = resp.lastKey.sk.split("#")
+    return {
+      transactions: resp,
+      next: `${status}.${id}.${time}`
+    }
+  } else return { transactions: resp, next: null }
+}
 
 export const transactionResolver = {
   Query: {
-    getTransactions: async (_, params, { uid }: APIContext) => {
-      const User = await UserModel.findById(uid);
+    getTransactions: async (_, params, { u, n }: APIContext) => {
+      const Limit = Math.min(50, Math.max(params.limit, 1))
 
-      const Limit = Math.min(50, Math.max(params.limit, 1));
-
-      const match = {
-        IsProcessed:
-          (params.filter == "Processed" && true) ||
-          (params.filter == "Unprocessed" && false),
-      };
-
-      params.filter == "All" && delete match.IsProcessed;
-
-      await User.populate({
-        path: "transactions",
-        match,
-        options: {
-          limit: Limit,
-          skip: params.skip,
-        },
-      });
-
-      return User.transactions;
-    },
-    getAdressTransactions: async (_, params, { uid }: APIContext) => {
-      const USER = await UserModel.findById(uid).populate("transactions");
-
-      return USER.transactions;
-    },
+      switch (params.filter) {
+        case "All": {
+          return await paginify(Limit, n, u, "", params.next)
+        }
+        case "Confirmed": {
+          return await paginify(Limit, n, u, "CONFIRMED", params.next)
+        }
+        case "Pending": {
+          return await paginify(Limit, n, u, "PENDING", params.next)
+        }
+      }
+    }
   },
   Mutation: {
-    setAsProcessed: async (_, params) => {
-      const transaction = await TransactionModel.findById(params.id);
+    setConfirmed: async (_, params, ctx: APIContext) => {
+      const condtion = new dynamoose.Condition()
+        .where("pk")
+        .eq(`USER#${ctx.u}`)
+        .filter("sk")
+        .beginsWith(`NET#${ctx.n}#TXN#PENDING#${params.uuid}`)
 
-      if (!transaction) throw new Error("Transaction doesn't exist");
+      const txn: any = (await Model.query(condtion)
+        .limit(1)
+        .exec()) as TransactionDocument
+      console.log(txn)
+      if (txn.count < 1) throw new Error("Transaction not found.")
 
-      if (transaction.IsProcessed)
-        throw new Error("Transaction already processed");
 
-      transaction.IsProcessed = true;
-      transaction.processedAt = new Date();
-      await transaction.save();
-      return transaction;
-    },
-  },
-};
+      txn.status = "CONFIRMED"
+      txn.sk = `NET#${ctx.n}#TXN#${txn.status}#${txn.uuid}#${txn.createdAt}`
+      txn.confirmedAt = Date.now()
+      await txn.save()
+
+      return txn
+    }
+  }
+}

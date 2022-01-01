@@ -14,7 +14,7 @@ export interface IBlockTransaction {
   sender: ISubTransaction;
   reciever: ISubTransaction;
   fee: number;
-  signatures: string;
+  signature: string;
 }
 
 interface ISubTransaction {

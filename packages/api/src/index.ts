@@ -11,6 +11,12 @@ import middlewares from "./graphql/middleware";
 import { envProcessor } from "shared";
 import cookieParser from "cookie-parser";
 import express from "express";
+import { DynamoDBClient } from "@aws-sdk/client-dynamodb";
+
+export const dynamo = new DynamoDBClient({
+  region: "eu-west-2",
+});
+
 if (!process.env.MONGO_URI || !process.env.REDIS_URI)
   throw new Error("Redis or Mongo server uri not found.");
 
@@ -50,7 +56,7 @@ envProcessor([
   "FEE_RECIEVER_WALLET",
   "NODE_ENV",
   "ORIGIN",
-  "API_KEY_LENGTH",
+  // "API_KEY_LENGTH",
 ]);
 
 export const handler = async (event, context, callback) => {

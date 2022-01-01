@@ -1,3 +1,5 @@
+import { URL } from "url";
+
 export function isUrlValid(web: string) {
   const url = new URL(web);
 

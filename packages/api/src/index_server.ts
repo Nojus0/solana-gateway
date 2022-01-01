@@ -1,7 +1,6 @@
 import "dotenv/config";
 import Redis from "ioredis";
 import _ from "lodash";
-import mongoose from "mongoose";
 import typeDefs from "./graphql/typeDefs";
 import { ApolloServer } from "apollo-server-express";
 import resolvers from "./graphql/resolvers";
@@ -18,8 +17,6 @@ if (!process.env.MONGO_URI || !process.env.REDIS_URI)
 (async () => {
   const redis = new Redis(process.env.REDIS_URI);
 
-  const mongo = await mongoose.connect(process.env.MONGO_URI);
-
   const schema = makeExecutableSchema({
     typeDefs,
     resolvers,
@@ -33,11 +30,10 @@ if (!process.env.MONGO_URI || !process.env.REDIS_URI)
       req,
       res,
       redis,
-      mongo,
       isFrontend:
         req.headers.origin == process.env.ORIGIN ||
         (process.env.NODE_ENV == "development" &&
-          req.headers.origin == "http://localhost:3000"),
+          req.headers.origin == "http://localhost:4000"),
     }),
     plugins: [ApolloServerPluginLandingPageGraphQLPlayground()],
   });

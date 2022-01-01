@@ -4,7 +4,7 @@
   "description": "",
   "main": "src/index.ts",
   "scripts": {
-    "dev": "concurrently \"tsc -w\" \"nodemon ./dist/index_server.js\"",
+    "dev": "tsc && concurrently \"tsc -w\" \"nodemon ./dist/index_server.js\"",
     "build": "tsc",
     "test": "jest --runInBand",
     "deploy": "tsc && webpack && powershell.exe Compress-Archive -Path .\\.webpack\\index.js -DestinationPath .\\.webpack\\bundle.zip && aws lambda update-function-code --function-name graphql-payments --zip-file fileb://.webpack/bundle.zip --region eu-west-2 && echo Done"
@@ -20,6 +20,7 @@
     "apollo-server-env": "^4.2.0",
     "apollo-server-express": "^3.5.0",
     "apollo-server-lambda": "^3.5.0",
+    "aws-sdk": "^2.1048.0",
     "aws4": "^1.11.0",
     "axios": "^0.24.0",
     "bcryptjs": "^2.4.3",
@@ -29,6 +30,7 @@
     "cors": "^2.8.5",
     "date-fns": "^2.26.0",
     "dotenv": "^10.0.0",
+    "dynamoose": "^2.8.3",
     "express": "^4.17.1",
     "graphql": "^15.5.0",
     "graphql-middleware": "^6.1.12",
@@ -36,7 +38,6 @@
     "kerberos": "^1.1.7",
     "lodash": "^4.17.21",
     "mongodb-client-encryption": "^1.2.7",
-    "mongoose": "^6.0.13",
     "shared": "1.0.0",
     "smart-buffer": "^4.2.0",
     "snappy": "^7.0.5"

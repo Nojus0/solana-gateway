@@ -1,27 +1,34 @@
-import { gql } from "apollo-server-lambda";
-import { createKeyData, NetworkModel, UserModel, isUrlValid } from "shared";
-import crypto from "crypto";
-import base58 from "bs58";
-import { IContext } from "../interfaces";
-import { APIContext } from "../graphql/middleware";
-import bcrypt from "bcryptjs";
-import util from "util";
-import { CookieOptions } from "express";
+import { gql } from "apollo-server-lambda"
+import {
+  isUrlValid,
+  Model,
+  UserDocument,
+  UserRedisObject,
+  generateUserApiKey
+} from "shared"
+import crypto from "crypto"
+import base58 from "bs58"
+import { IContext } from "../interfaces"
+import { APIContext } from "../graphql/middleware"
+import bcrypt from "bcryptjs"
+import util from "util"
+import { CookieOptions } from "express"
+
 export const userTypeDefs = gql`
   type CurrentUser {
     email: String!
-    lamports_recieved: Int!
-    api_key: String!
+    recieved: Float!
+    apiKey: String!
     isFast: Boolean!
-    secret: String!
-    webhook: String
-    publicKey: String
+    secretKey: String!
+    webhooks: [String!]
+    walletAddress: String
   }
 
   type BasicUser {
     email: String!
-    lamports_recieved: Float!
-    api_key: String!
+    recieved: Float!
+    apiKey: String!
   }
 
   extend type Query {
@@ -34,20 +41,24 @@ export const userTypeDefs = gql`
     regenerateApiKey: String
     setFast(newFast: Boolean!): Boolean
     setPublicKey(newPublicKey: String!): String
-    setWebhook(newUrl: String!): String
-    login(email: String!, password: String!, remember: Boolean!): CurrentUser
+    addWebhook(newUrl: String!): [String!]
+    removeWebhook(removeUrl: String!): [String!]
+    login(
+      email: String!
+      password: String!
+      remember: Boolean!
+      network: String!
+    ): CurrentUser
     signOut: Boolean
   }
-`;
+`
 
 interface ICreateUser {
-  email: string;
-  password: string;
-  publicKey: string;
-  network: string;
+  email: string
+  password: string
+  publicKey: string
+  network: string
 }
-
-const generateKeyPair = util.promisify(crypto.generateKeyPair);
 
 const UserResolver = {
   Mutation: {
@@ -56,173 +67,210 @@ const UserResolver = {
       { password, network, publicKey, email }: ICreateUser,
       { redis, res, isFrontend }: IContext
     ) => {
-      
-      const NETWORK = await NetworkModel.findOne({ name: network });
-      if (!NETWORK) throw new Error("Network does not exists");
+      const NETWORK = await Model.get({ pk: `NET#${network}`, sk: "DETAILS" })
+      if (!NETWORK) throw new Error("Network does not exists")
 
-      const SALT = await bcrypt.genSalt(5);
-      const HASH = await bcrypt.hash(password, SALT);
+      const SALT = await bcrypt.genSalt(5)
+      const HASH = await bcrypt.hash(password, SALT)
       try {
-        const api_key = base58.encode(
-          crypto.randomBytes(parseInt(process.env.API_KEY_LENGTH))
-        );
+        const usr = (await Model.create({
+          pk: `USER#${email}`,
+          sk: `NET#${network}`,
+          password: HASH
+        })) as UserDocument
 
-        const keypair = await generateKeyPair("rsa", {
-          modulusLength: 2048,
-        });
-
-        const usr = await UserModel.create({
-          publicKey,
-          email,
-          api_key,
-          password: HASH,
-          verifyKeypair: [
-            keypair.publicKey.export({ format: "der", type: "pkcs1" }),
-            keypair.privateKey.export({ format: "der", type: "pkcs1" }),
-          ],
-          network: NETWORK,
-          lamports_recieved: 0,
-        });
-        await usr.save();
-
-        await redis.hsetBuffer(
-          "api_keys",
-          api_key,
-          createKeyData({ requested: 0, uid: usr.id })
-        );
-
-        await NetworkModel.findOneAndUpdate(
-          { _id: NETWORK.id },
-          { $push: { accounts: usr } }
-        ).exec();
-
-        if (isFrontend)
-          res.cookie("api_key", usr.api_key, {
-            httpOnly: true,
-            secure: process.env.NODE_ENV != "development",
-            maxAge: 1000 * 60 * 60 * 24 * 7,
-          });
-
-        return {
-          ...usr.toObject(),
-          secret: usr.verifyKeypair[0].toString("base64"),
-        };
-      } catch (err: any) {
-        if (err.code == 11000) {
-          throw new Error(`The specified email is already registered.`);
+        const redisData: UserRedisObject = {
+          u: email,
+          n: network,
+          rq: 0
         }
 
-        throw new Error(
-          "Unknown error: is your webhook less than 1024 characters and email 128 characters?"
-        );
+        await redis.set(usr.apiKey, JSON.stringify(redisData))
+
+        if (isFrontend)
+          res.cookie("api_key", usr.apiKey, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV != "development",
+            maxAge: 1000 * 60 * 60 * 24 * 7
+          })
+
+        return {
+          ...usr,
+          email
+        }
+      } catch (err: any) {
+        console.log(err)
+        if (err.code === "ConditionalCheckFailedException") {
+          throw new Error("User with the specified email already exists")
+        }
+        throw new Error("An unknown error occurred while creating user")
       }
     },
-    setPublicKey: async (_, params, { uid }: APIContext) => {
+    setPublicKey: async (_, params, { u, n }: APIContext) => {
       if (params.newPublicKey.includes(process.env.FEE_RECIEVER_WALLET))
-        throw new Error("Invalid public key");
-
-      const usr = await UserModel.findById(uid);
+        throw new Error("Invalid public key")
 
       // * PUBLIC KEY MUST BE 32 BYTES LONG *
       if (base58.decode(params.newPublicKey).length != 32)
         throw new Error(
           "Public key is incorrect or isn't 32 bytes long, make sure its base58 encoded."
-        );
-
-      usr.publicKey = params.newPublicKey;
-      await usr.save();
-
-      return params.newPublicKey;
-    },
-    setWebhook: async (_, params, { uid }: APIContext) => {
-      if (!isUrlValid(params.newUrl)) throw new Error("Invalid host");
+        )
 
       try {
-        const usr = await UserModel.findById(uid);
-
-        usr.webhook = params.newUrl;
-
-        await usr.save();
-        return usr.webhook;
+        await Model.update({
+          pk: `USER#${u}`,
+          sk: `NET#${n}`,
+          walletAddress: params.newPublicKey
+        })
       } catch (err) {
-        throw new Error("Error occurred when setting the new webhook.");
+        console.log(err)
+        throw new Error("Error updating public key")
       }
+
+      return params.newPublicKey
     },
-    regenerateApiKey: async (
-      _,
-      params,
-      { redis, uid, api_key, requested }: APIContext
-    ) => {
-      const new_api_key = base58.encode(
-        crypto.randomBytes(parseInt(process.env.API_KEY_LENGTH))
-      );
+    addWebhook: async (_, params, { u, n }: APIContext) => {
+      if (!isUrlValid(params.newUrl)) throw new Error("Invalid host")
 
       try {
-        const USR = await UserModel.findById(uid);
-        USR.api_key = new_api_key;
-        await USR.save();
+        const user = (await Model.get({
+          pk: `USER#${u}`,
+          sk: `NET#${n}`
+        })) as UserDocument
 
-        await redis.hdel("api_keys", api_key);
-        requested++;
-        await redis.hsetBuffer(
-          "api_keys",
-          new_api_key,
-          createKeyData({ requested, uid })
-        );
+        if (user.webhooks.length >= user.maxWebhooks) {
+          throw new RangeError(
+            "You have reached the maximum number of webhooks"
+          )
+        }
 
-        return USR.api_key;
+        const newUrl = new URL(params.newUrl)
+
+        const isDuplicate = user.webhooks.some(
+          urlStr => new URL(urlStr).href == newUrl.href
+        )
+
+        if (isDuplicate)
+          throw new RangeError("The specified webhook uri is already added")
+
+        user.webhooks.push(params.newUrl)
+        await user.save()
+
+        return user.webhooks
       } catch (err) {
-        throw new Error("Error occurred while regenerating the API Key.");
+        if (err instanceof RangeError) throw err
+
+        console.log(err)
+        throw new Error("Error occurred when adding webhook")
       }
     },
-    setFast: async (_, params, ctx: APIContext) => {
+    removeWebhook: async (_, params, { u, n }: APIContext) => {
       try {
-        const USR = await UserModel.findById(ctx.uid);
-        USR.isFast = params.newFast;
-        await USR.save();
-        return USR.isFast;
+        const user = (await Model.get({
+          pk: `USER#${u}`,
+          sk: `NET#${n}`
+        })) as UserDocument
+
+        const removeUrl = new URL(params.removeUrl)
+
+        const isExists = user.webhooks.some(
+          urlStr => new URL(urlStr).href == removeUrl.href
+        )
+
+        if (!isExists)
+          throw new RangeError("The specified webhook url does not exists")
+
+        user.webhooks = user.webhooks.filter(
+          urlStr => new URL(urlStr).href != removeUrl.href
+        )
+
+        await user.save()
+
+        return user.webhooks
       } catch (err) {
-        throw new Error("Error occurred while setting new Fast Mode.");
+        if (err instanceof RangeError) throw err
+
+        console.log(err)
+        throw new Error("Error occurred when adding webhook")
       }
     },
-    login: async (_, params, ctx: IContext) => {
-      const USER = await UserModel.findOne({ email: params.email });
+    regenerateApiKey: async (_, params, { redis, u, n, ak }: APIContext) => {
+      try {
+        const newKey = generateUserApiKey()
 
-      if (!USER) throw new Error("User not found");
+        const current = await redis.get(ak)
+        await redis.del(ak)
+        await redis.set(newKey, current)
+
+        return newKey
+      } catch (err) {
+        console.log(err)
+        throw new Error("Error occurred while regenerating the API Key.")
+      }
+    },
+    setFast: async (_, params, { u, n }: APIContext) => {
+      try {
+        const modUser = (await Model.update({
+          pk: `USER#${u}`,
+          sk: `NET#${n}`,
+          isFast: params.newFast
+        })) as UserDocument
+
+        return modUser.isFast
+      } catch (err) {
+        console.log(err)
+        throw new Error("Error occurred while setting new Fast Mode.")
+      }
+    },
+    login: async (_, params, { redis, res }: IContext) => {
+      const USER = (await Model.get({
+        pk: `USER#${params.email}`,
+        sk: `NET#${params.network}`
+      })) as UserDocument
+
+      if (!USER) throw new Error("User not found")
 
       if (!(await bcrypt.compare(params.password, USER.password)))
-        throw new Error("Incorrect password");
+        throw new Error("Incorrect password")
 
       const cookie: CookieOptions = {
         httpOnly: true,
         secure: process.env.NODE_ENV != "development",
-        maxAge: 1000 * 60 * 60 * 24 * 7,
-      };
+        maxAge: 1000 * 60 * 60 * 24 * 7
+      }
 
-      if (!params.remember) delete cookie.maxAge;
+      if (!params.remember) delete cookie.maxAge
 
-      ctx.res.cookie("api_key", USER.api_key, cookie);
+      res.cookie("api_key", USER.apiKey, cookie)
 
       return {
-        ...USER.toObject(),
-        secret: USER.verifyKeypair[0].toString("base64"),
-      };
+        ...USER,
+        email: params.email
+      }
     },
     signOut: async (_, params, ctx: IContext) => {
-      ctx.res.clearCookie("api_key");
-      return true;
+      ctx.res.clearCookie("api_key")
+      return true
     }
   },
   Query: {
-    currentUser: async (_, params, ctx: APIContext) => {
-      const user = (await UserModel.findById(ctx.uid)).toObject();
+    currentUser: async (_, params, { u, n }: APIContext) => {
+      try {
+        const user = await Model.get({
+          pk: `USER#${u}`,
+          sk: `NET#${n}`
+        })
 
-      return {
-        ...user,
-        secret: user.verifyKeypair[0].toString("base64"),
-      };
-    },
-  },
-};
+        return {
+          ...user,
+          email: u
+        }
+      } catch (err) {
+        console.log(err)
+        throw new Error("Error occurred while getting current user.")
+      }
+    }
+  }
+}
 
-export default UserResolver;
+export default UserResolver

@@ -4,34 +4,31 @@ import {
   PublicKey,
   sendAndConfirmTransaction,
   SystemProgram,
-  Transaction,
-} from "@solana/web3.js";
-import base58 from "bs58";
-import { Redis } from "ioredis";
-import { createPoller } from "./createPoller";
-
+  Transaction
+} from "@solana/web3.js"
+import base58 from "bs58"
+import { Redis } from "ioredis"
+import { createPoller } from "./createPoller"
 import {
-  ErrorModel,
-  IDepositData,
-  INetwork,
-  ITransaction,
-  IUser,
-  NetworkModel,
-  readDepositData,
-  TransactionModel,
-  UserModel,
-} from "shared";
-import { createWebhookConfirmer } from "./createWebhookConfirmer";
+  Model,
+  DepositRedisObject,
+  Network,
+  Transaction as TransactionModel,
+  UserDocument,
+  TransactionDocument,
+  generateTransactionUUID
+} from "shared"
+import { createWebhookConfirmer } from "./createWebhookConfirmer"
 
 interface IHandler {
-  network: INetwork;
-  redis: Redis;
-  webhook_interval: number;
-  webhook_retry_exist_min: number;
-  maxRetries: number;
-  pollInterval: number;
-  maxPollsPerInterval: number;
-  retryDelay: number;
+  network: Network
+  redis: Redis
+  webhook_interval: number
+  webhook_retry_exist_min: number
+  maxRetries: number
+  pollInterval: number
+  maxPollsPerInterval: number
+  retryDelay: number
 }
 
 export const createHandler = ({
@@ -42,13 +39,13 @@ export const createHandler = ({
   maxPollsPerInterval,
   maxRetries,
   pollInterval,
-  retryDelay,
+  retryDelay
 }: IHandler) => {
-  const conn = new Connection(network.url);
+  const conn = new Connection(network.url)
   const webhook = createWebhookConfirmer({
     interval: webhook_interval,
-    requiredExistenceMinutes: webhook_retry_exist_min,
-  });
+    requiredExistenceMinutes: webhook_retry_exist_min
+  })
 
   const poller = createPoller({
     conn,
@@ -56,52 +53,74 @@ export const createHandler = ({
     pollInterval,
     maxPollsPerInterval,
     retryDelay,
-    startBlock: network.lastProcessedBlock || "latest",
-    onTransaction: async ({ reciever, signatures, fee }) => {
-      const KEY_DATA = await redis.getBuffer(reciever.publicKey.toBase58());
+    startBlock: network.lastBlock || "latest",
+    onTransaction: async ({ reciever, signature, fee, sender }) => {
+      const KEY_DATA = await redis.get(reciever.publicKey.toBase58())
+      if (!KEY_DATA || reciever.change <= fee) return
 
-      if (!KEY_DATA || reciever.change <= 0) return;
+      const { d, n, secret, u }: DepositRedisObject = JSON.parse(KEY_DATA)
 
-      // * -5000 lamports because of send back fee *
-      // * So the user pays the fee when sending to the deposit address *
-      // * And when sending back to main wallet *
-
-      const { data, secret, uid } = readDepositData(KEY_DATA);
+      // * Rare case *
+      if (n != network.name) return console.log("Wrong network")
 
       const recieverKeyPair = new Keypair({
         publicKey: reciever.publicKey.toBytes(),
-        secretKey: secret,
-      });
+        secretKey: Buffer.from(secret, "base64")
+      })
 
       try {
-        const owner = await UserModel.findById(uid).select("-transactions");
+        const owner = (await Model.get({
+          pk: `USER#${u}`,
+          sk: `NET#${network.name}`
+        })) as UserDocument
 
         // * - fee = solana network transfer fee *
-        const LAMPORTS_RECIEVED = reciever.change - fee;
-        const SERVICE_FEE = (LAMPORTS_RECIEVED / 100) * network.service_fee;
-        const LAMPORTS =
-          LAMPORTS_RECIEVED - (!owner.isFeeExempt ? SERVICE_FEE : 0);
 
-        console.log(`${reciever.publicKey.toBase58()}`);
-        console.log(
-          `recieved minus incoming fee = ${LAMPORTS_RECIEVED} fee = ${SERVICE_FEE} user gets = ${LAMPORTS}`
-        );
+        const TAKE_FEE = reciever.change - fee / (100 + network.fee)
+        const USER_GOT = reciever.change - TAKE_FEE - fee
+        const LEFT_BALANCE = reciever.change - USER_GOT - TAKE_FEE
+
+        if (reciever.change < 0.01 / 0.000000001) {
+          return
+        }
+
+        if (LEFT_BALANCE != fee) {
+          const error = await Model.create({
+            pk: `NET${network.name}`,
+            sk: `ERROR#${Date.now()}#${owner.pk.split("#")[1]}`,
+            message: `
+            [LEFT_BALANCE != fee]
+            error on ${reciever.publicKey.toBase58()}
+            sig = ${signature}
+            TAKE_FEE = ${TAKE_FEE}
+            USER_GOT = ${USER_GOT}
+            LEFT_BALANCE = ${LEFT_BALANCE}
+            fee = ${fee}
+            secret = ${secret.toString()}
+            user = ${JSON.stringify(owner.toJSON())}
+            `
+          })
+          await error.save()
+        }
+
+        console.log(`${reciever.publicKey.toBase58()}`)
+        console.log(`recieved a transaction `)
         const TXN = new Transaction().add(
           SystemProgram.transfer({
             fromPubkey: reciever.publicKey,
-            toPubkey: new PublicKey(owner.publicKey),
-            lamports: LAMPORTS,
+            toPubkey: new PublicKey(owner.walletAddress),
+            lamports: USER_GOT
           })
-        );
+        )
 
-        if (!owner.isFeeExempt) {
+        if (!owner.paysFee) {
           TXN.add(
             SystemProgram.transfer({
               fromPubkey: reciever.publicKey,
               toPubkey: new PublicKey(process.env.FEE_RECIEVER_WALLET),
-              lamports: SERVICE_FEE,
+              lamports: TAKE_FEE
             })
-          );
+          )
         }
 
         const SIGNATURE = await sendAndConfirmTransaction(
@@ -109,75 +128,74 @@ export const createHandler = ({
           TXN,
           [recieverKeyPair],
           { commitment: owner.isFast ? "confirmed" : "max" }
-        );
+        )
 
-        const transaction = await TransactionModel.create({
-          IsProcessed: false,
-          createdAt: Date.now(),
-          lamports: LAMPORTS,
-          madeBy: owner,
-          payload: data,
-          processedAt: null,
-          publicKey: recieverKeyPair.publicKey.toBase58(),
-          sendbackSignature: SIGNATURE,
-          transferSignature: signatures,
-          webhook_retries: 0,
-        });
-        
-        await transaction.save();
+        const createdAt = Date.now()
+        const uuid = generateTransactionUUID()
 
-        await UserModel.updateOne(
-          { id: owner.id },
-          {
-            $push: { transactions: transaction },
-            $inc: { lamports_recieved: LAMPORTS },
-          }
-        ).exec();
+        const transaction = await Model.create({
+          pk: `USER#${u}`,
+          sk: `NET#${network.name}#TXN#PENDING#${uuid}#${createdAt}`,
+          createdAt,
+          uuid,
+          senderPk: sender.publicKey.toBase58(),
+          senderLm: sender.change,
+          senderSig: signature,
+          senderTo: reciever.publicKey.toBase58(),
+          recieveLm: USER_GOT,
+          recieveSig: SIGNATURE,
+          status: "PENDING",
+          payload: d
+        } as TransactionModel)
 
-        webhook.send(transaction);
-      
+        await transaction.save()
+
+        webhook.send(transaction)
       } catch (err: any) {
-        console.log(err);
-        const error = await ErrorModel.create({
-          publicKey: reciever.publicKey.toBase58(),
-          privateKey: secret,
-          message: err.message,
-        });
-        await error.save();
+        console.log(err)
+        const error = await Model.create({
+          pk: `NET${network.name}`,
+          sk: `ERROR#${Date.now()}`,
+          message: err?.toString(),
+          walletAddress: reciever.publicKey.toBase58(),
+          secretKey: Buffer.from(secret).toString("base64")
+        })
       }
     },
-    onBlockMaxRetriesExceeded: (badBlock) => {
-      NetworkModel.findOneAndUpdate(
-        { name: process.env.NETWORK },
-        { $push: { badBlocks: badBlock } }
-      ).exec();
+    onBlockMaxRetriesExceeded: badBlock => {
+      Model.create({
+        pk: `NET#${process.env.NET}`,
+        sk: `ERROR#${badBlock}#${Date.now()}`,
+        message: `Bad block ${badBlock} on network ${process.env.NET}`
+      })
     },
-    onPollFinished: (last) => {
-      NetworkModel.findOneAndUpdate(
-        { name: process.env.NETWORK },
-        { lastProcessedBlock: last }
-      ).exec();
+    onPollFinished: last => {
+      Model.update({
+        pk: `NET#${process.env.NET}`,
+        sk: "DETAILS",
+        lastBlock: last
+      })
     },
-    onHandleBlock: (block) => {
+    onHandleBlock: block => {
       // NetworkModel.findOneAndUpdate(
       //   { name: process.env.NETWORK },
       //   { $push: { blocks: block } }
       // ).exec();
-    },
-  });
+    }
+  })
 
   return {
     poller,
     conn,
     start() {
-      poller.start();
-      webhook.start();
-      return this;
+      poller.start()
+      webhook.start()
+      return this
     },
     stop() {
-      poller.stop();
-      webhook.stop();
-      return this;
-    },
-  };
-};
+      poller.stop()
+      webhook.stop()
+      return this
+    }
+  }
+}
