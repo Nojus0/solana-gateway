@@ -8,9 +8,7 @@ const baseTypeDefs = gql`
 
   type Mutation
 
-  type Query {
-    test: String
-  }
+  type Query
 `;
 
 const typeDefs = [baseTypeDefs, userTypeDefs, depositTypeDefs, transactionDefs];

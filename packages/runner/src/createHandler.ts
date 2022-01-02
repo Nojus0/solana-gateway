@@ -115,7 +115,7 @@ export const createHandler = ({
           })
         )
 
-        if (!owner.paysFee) {
+        if (owner.paysFee) {
           TXN.add(
             SystemProgram.transfer({
               fromPubkey: reciever.publicKey,
