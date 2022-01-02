@@ -18,7 +18,6 @@ export const transactionDefs = gql`
     senderLm: Float!
 
     payload: String!
-    retries: Int!
     confirmedAt: Date!
     recieveLm: Float!
     recieveSig: String!

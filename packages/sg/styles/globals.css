@@ -1,0 +1,36 @@
+html,
+body,
+#__next {
+  padding: 0;
+  margin: 0;
+  height: 100%;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p {
+  text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.004);
+  text-rendering: optimizeLegibility !important;
+  -webkit-font-smoothing: antialiased !important;
+}
+
+*,
+*::after,
+*::before {
+  box-sizing: border-box;
+  font-family: "Ubuntu", sans-serif;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  text-rendering: optimizeLegibility !important;
+}
+
+::-moz-selection {
+  background: #c3ffc9;
+}
+::selection {
+  background: #c3ffc9;
+}

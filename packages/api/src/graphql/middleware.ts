@@ -47,7 +47,7 @@ const apiMiddleware: IMiddlewareFunction = async (
 
   const data: UserRedisObject = JSON.parse(await ctx.redis.get(token))
 
-  if (!data) throw new Error("Invalid token")
+  if (!data) throw new Error("Invalid api key.")
 
   data.rq += 1
   await ctx.redis.set(token, JSON.stringify(data))

@@ -21,7 +21,6 @@ export interface Transaction {
   senderLm: number
 
   payload: string
-  retries: number
 
   recieveLm: number
   recieveSig: string
@@ -70,10 +69,6 @@ const TransactionSchema = new dynamoose.Schema({
   },
   payload: {
     type: String
-  },
-  retries: {
-    type: Number,
-    default: 0
   },
   recieveLm: {
     type: Number,
