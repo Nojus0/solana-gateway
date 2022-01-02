@@ -1,10 +1,12 @@
 import { gql } from "apollo-server-lambda"
 import { APIContext } from "../graphql/middleware"
-import { Model, TransactionUUIDLength, UserDocument } from "shared"
+import { Model, Transaction, TransactionUUIDLength, UserDocument } from "shared"
 import dynamoose from "dynamoose"
 import { TransactionDocument } from "shared"
 import base58 from "bs58"
 import crypto from "crypto"
+import { SmartBuffer } from "smart-buffer"
+import { decryptToken, encryptToken } from "../crypto"
 export type TransactionFilter = "All" | "Pending" | "Confirmed"
 
 export const transactionDefs = gql`
@@ -17,7 +19,7 @@ export const transactionDefs = gql`
 
     payload: String!
     retries: Int!
-
+    confirmedAt: Date!
     recieveLm: Float!
     recieveSig: String!
 
@@ -49,6 +51,12 @@ export const transactionDefs = gql`
   }
 `
 
+// * Its really hard add pagination when using dynamodb with composite sort key without making it unsecure and slow *
+// * The next token is encrypted with AES 128 bit and split using the '.' character *
+// * I Don't know if that's overkill but atleast its safe *
+// * If the had access to the query sort key, key could only query his own account details,
+// * the graphql fields would mismatch and graphql would throw an error or not return the forbidden fields *
+// * By using encryption the next token gets a bit larger with the iv and the encoding. *
 async function paginify(
   Limit: number,
   n: string,
@@ -69,12 +77,6 @@ async function paginify(
   if (next) {
     const [type, id, time]: [string, string, string] = (next as any).split(".")
 
-    if (!type || !id || !time) throw new Error("Invalid next token.")
-
-    if (filter && filter != type) throw new Error("Invalid next token.")
-
-    if (isNaN(Number(time))) throw new Error("Invalid next token.")
-    console.log(base58.encode(crypto.randomBytes(16)))
     if (base58.decode(id).byteLength != TransactionUUIDLength)
       throw new Error("Invalid next token.")
 
@@ -85,11 +87,11 @@ async function paginify(
   }
 
   const resp = await query.exec()
-  if (resp.lastKey?.sk) {
+  if (resp?.lastKey?.sk) {
     const [, net, type, status, id, time] = resp.lastKey.sk.split("#")
     return {
       transactions: resp,
-      next: `${status}.${id}.${time}`
+      next: encryptToken(`${status}.${id}.${time}`)
     }
   } else return { transactions: resp, next: null }
 }
@@ -99,15 +101,16 @@ export const transactionResolver = {
     getTransactions: async (_, params, { u, n }: APIContext) => {
       const Limit = Math.min(50, Math.max(params.limit, 1))
 
+      const nextToken = params.next ? decryptToken(params.next) : null
       switch (params.filter) {
         case "All": {
-          return await paginify(Limit, n, u, "", params.next)
+          return await paginify(Limit, n, u, "", nextToken)
         }
         case "Confirmed": {
-          return await paginify(Limit, n, u, "CONFIRMED", params.next)
+          return await paginify(Limit, n, u, "CONFIRMED", nextToken)
         }
         case "Pending": {
-          return await paginify(Limit, n, u, "PENDING", params.next)
+          return await paginify(Limit, n, u, "PENDING", nextToken)
         }
       }
     }
@@ -118,21 +121,34 @@ export const transactionResolver = {
         .where("pk")
         .eq(`USER#${ctx.u}`)
         .filter("sk")
-        .beginsWith(`NET#${ctx.n}#TXN#PENDING#${params.uuid}`)
+        .beginsWith(`NET#${ctx.n}#TXN#PENDING#${params.uuid}#`)
 
-      const txn: any = (await Model.query(condtion)
+      const [txn]: TransactionDocument[] = await Model.query(condtion)
         .limit(1)
-        .exec()) as TransactionDocument
-      console.log(txn)
-      if (txn.count < 1) throw new Error("Transaction not found.")
+        .exec()
 
+      if (!txn) throw new Error("Pending transaction not found.")
 
-      txn.status = "CONFIRMED"
-      txn.sk = `NET#${ctx.n}#TXN#${txn.status}#${txn.uuid}#${txn.createdAt}`
-      txn.confirmedAt = Date.now()
-      await txn.save()
+      const newTransaction: Transaction = {
+        ...txn,
+        confirmedAt: Date.now(),
+        sk: `NET#${ctx.n}#TXN#CONFIRMED#${txn.uuid}#${txn.createdAt}`,
+        status: "CONFIRMED"
+      }
 
-      return txn
+      try {
+        await Model.transaction.update([
+          Model.delete({
+            pk: txn.pk,
+            sk: txn.sk
+          }),
+          Model.create(newTransaction)
+        ])
+      } catch (err) {
+        throw new Error("Failed to set as confirmed.")
+      }
+
+      return newTransaction
     }
   }
 }

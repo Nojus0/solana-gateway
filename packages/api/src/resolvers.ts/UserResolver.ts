@@ -76,6 +76,7 @@ const UserResolver = {
         const usr = (await Model.create({
           pk: `USER#${email}`,
           sk: `NET#${network}`,
+          network: `NET#${network}`,
           password: HASH
         })) as UserDocument
 

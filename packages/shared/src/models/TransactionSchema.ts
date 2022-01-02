@@ -36,7 +36,7 @@ export type TransactionDocument = Transaction & Document
 export const TransactionUUIDLength = 16
 
 export const generateTransactionUUID = () =>
-  `txn_${base58.encode(crypto.randomBytes(TransactionUUIDLength))}`
+  base58.encode(crypto.randomBytes(TransactionUUIDLength))
 
 const TransactionSchema = new dynamoose.Schema({
   pk: {

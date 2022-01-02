@@ -18,13 +18,11 @@ import {
   TransactionDocument,
   generateTransactionUUID
 } from "shared"
-import { createWebhookConfirmer } from "./createWebhookConfirmer"
+import { Webhook } from "./createWebhookConfirmer"
 
 interface IHandler {
   network: Network
   redis: Redis
-  webhook_interval: number
-  webhook_retry_exist_min: number
   maxRetries: number
   pollInterval: number
   maxPollsPerInterval: number
@@ -34,18 +32,12 @@ interface IHandler {
 export const createHandler = ({
   redis,
   network,
-  webhook_interval,
-  webhook_retry_exist_min,
   maxPollsPerInterval,
   maxRetries,
   pollInterval,
   retryDelay
 }: IHandler) => {
   const conn = new Connection(network.url)
-  const webhook = createWebhookConfirmer({
-    interval: webhook_interval,
-    requiredExistenceMinutes: webhook_retry_exist_min
-  })
 
   const poller = createPoller({
     conn,
@@ -56,6 +48,7 @@ export const createHandler = ({
     startBlock: network.lastBlock || "latest",
     onTransaction: async ({ reciever, signature, fee, sender }) => {
       const KEY_DATA = await redis.get(reciever.publicKey.toBase58())
+
       if (!KEY_DATA || reciever.change <= fee) return
 
       const { d, n, secret, u }: DepositRedisObject = JSON.parse(KEY_DATA)
@@ -74,19 +67,30 @@ export const createHandler = ({
           sk: `NET#${network.name}`
         })) as UserDocument
 
-        // * - fee = solana network transfer fee *
+        const TAKE_FEE = Math.floor(
+          (reciever.change - fee) / (100 + network.fee)
+        )
+        const USER_GOT = Math.floor(reciever.change - TAKE_FEE - fee)
+        const LEFT_BALANCE = Math.round(reciever.change - USER_GOT - TAKE_FEE)
 
-        const TAKE_FEE = reciever.change - fee / (100 + network.fee)
-        const USER_GOT = reciever.change - TAKE_FEE - fee
-        const LEFT_BALANCE = reciever.change - USER_GOT - TAKE_FEE
+        owner.recieved += USER_GOT
+        await owner.save()
 
-        if (reciever.change < 0.01 / 0.000000001) {
+        console.log(`----`)
+        console.log(reciever.change)
+        console.log(TAKE_FEE)
+        console.log(USER_GOT)
+        console.log(LEFT_BALANCE)
+        console.log(`----`)
+
+        if (reciever.change < 0.005 / 0.000000001) {
+          redis.del(reciever.publicKey.toBase58())
           return
         }
 
         if (LEFT_BALANCE != fee) {
-          const error = await Model.create({
-            pk: `NET${network.name}`,
+          await Model.create({
+            pk: `NET#${network.name}`,
             sk: `ERROR#${Date.now()}#${owner.pk.split("#")[1]}`,
             message: `
             [LEFT_BALANCE != fee]
@@ -100,10 +104,8 @@ export const createHandler = ({
             user = ${JSON.stringify(owner.toJSON())}
             `
           })
-          await error.save()
         }
 
-        console.log(`${reciever.publicKey.toBase58()}`)
         console.log(`recieved a transaction `)
         const TXN = new Transaction().add(
           SystemProgram.transfer({
@@ -133,32 +135,32 @@ export const createHandler = ({
         const createdAt = Date.now()
         const uuid = generateTransactionUUID()
 
-        const transaction = await Model.create({
+        const transaction = (await Model.create({
           pk: `USER#${u}`,
           sk: `NET#${network.name}#TXN#PENDING#${uuid}#${createdAt}`,
           createdAt,
           uuid,
           senderPk: sender.publicKey.toBase58(),
-          senderLm: sender.change,
+          senderLm: reciever.change,
           senderSig: signature,
           senderTo: reciever.publicKey.toBase58(),
           recieveLm: USER_GOT,
           recieveSig: SIGNATURE,
           status: "PENDING",
           payload: d
-        } as TransactionModel)
+        } as TransactionModel)) as TransactionDocument
 
-        await transaction.save()
-
-        webhook.send(transaction)
+        Webhook.send(owner, transaction)
       } catch (err: any) {
         console.log(err)
         const error = await Model.create({
-          pk: `NET${network.name}`,
+          pk: `NET#${network.name}`,
           sk: `ERROR#${Date.now()}`,
-          message: err?.toString(),
-          walletAddress: reciever.publicKey.toBase58(),
-          secretKey: Buffer.from(secret).toString("base64")
+          message:
+            err?.toString() +
+            `#${reciever.publicKey.toBase58()}#${Buffer.from(secret).toString(
+              "base64"
+            )}`
         })
       }
     },
@@ -189,12 +191,10 @@ export const createHandler = ({
     conn,
     start() {
       poller.start()
-      webhook.start()
       return this
     },
     stop() {
       poller.stop()
-      webhook.stop()
       return this
     }
   }

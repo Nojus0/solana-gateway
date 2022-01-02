@@ -23,6 +23,7 @@ export interface User {
   paysFee: boolean
   apiKey: string
   secretKey: string
+  network: string
 }
 
 export type UserDocument = User & Document
@@ -43,6 +44,10 @@ const UserSchema = new dynamoose.Schema({
   },
   walletAddress: {
     type: String
+  },
+  network: {
+    type: String,
+    required: true
   },
   password: {
     type: String,
