@@ -1,9 +1,9 @@
 import base58 from "bs58"
 import { IMiddlewareFunction } from "graphql-middleware"
 import { IContext } from "../interfaces"
-import { Model, UserDocument, UserRedisObject } from "shared"
+import { Model, UserDocument, UserRedisObject, User } from "shared"
 
-export type APIContext = IContext & UserRedisObject & { ak: string }
+export type APIContext = IContext & { user: UserDocument }
 
 const apiMiddleware: IMiddlewareFunction = async (
   resolve,
@@ -13,24 +13,26 @@ const apiMiddleware: IMiddlewareFunction = async (
   info
 ) => {
   // * Check if calling from frontend *
+
   if (ctx.isFrontend) {
     const token = ctx.req.cookies.api_key
 
-    const data: UserRedisObject = JSON.parse(await ctx.redis.get(token))
+    const [user] = await Model.query("apiKey")
+      .eq(token)
+      .limit(1)
+      .using("apiKey-gsi")
+      .exec()
 
-    if (!data) {
+    if (!user) {
       throw new Error("Invalid token")
     }
 
-    data.rq += 1
-    await ctx.redis.set(token, JSON.stringify(data))
     return await resolve(
       root,
       args,
       {
-        ...ctx,
-        ...data,
-        ak: token
+        user,
+        ...ctx
       },
       info
     )
@@ -45,19 +47,20 @@ const apiMiddleware: IMiddlewareFunction = async (
 
   if (!token) throw new Error("No token was provided")
 
-  const data: UserRedisObject = JSON.parse(await ctx.redis.get(token))
+  const [user] = await Model.query("apiKey")
+    .eq(token)
+    .limit(1)
+    .using("apiKey-gsi")
+    .exec()
 
-  if (!data) throw new Error("Invalid api key.")
+  if (!user) throw new Error("Invalid api key.")
 
-  data.rq += 1
-  await ctx.redis.set(token, JSON.stringify(data))
   return await resolve(
     root,
     args,
     {
-      ...ctx,
-      ...data,
-      ak: token
+      user,
+      ...ctx
     },
     info
   )
@@ -70,22 +73,12 @@ const fullDetailsMiddleware: IMiddlewareFunction = async (
   ctx: APIContext,
   info
 ) => {
-  const USER = (await Model.get({
-    pk: `USER#${ctx.u}`,
-    sk: `NET#${ctx.n}`
-  })) as UserDocument
-
-  if (!USER)
-    throw new Error(
-      "Cache server and Main Database are out of sync. We found you in the cache server but not in the Account server"
-    )
-
-  if (!USER.walletAddress)
+  if (!ctx.user.walletAddress)
     throw new Error(
       "Your wallet's public key must be added, to perform this action."
     )
 
-  if (!USER.webhooks || USER.webhooks.length < 1)
+  if (!ctx.user.webhooks || ctx.user.webhooks.length < 1)
     throw new Error(
       "You need to add a webhook url to your account in order to perform this action."
     )
@@ -96,7 +89,7 @@ const fullDetailsMiddleware: IMiddlewareFunction = async (
 const apiMiddlewareConsumers = {
   Query: {
     getTransactions: apiMiddleware,
-    currentUser: apiMiddleware,
+    currentUser: apiMiddleware
   },
   Mutation: {
     createDepositAddress: apiMiddleware,

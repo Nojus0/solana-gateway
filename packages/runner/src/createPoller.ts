@@ -88,7 +88,9 @@ export const createPoller = ({
   }
 
   async function handleBlock(slot: number) {
+    console.log(`[TASK] ${slot}`)
     const block = await repeatBlock(slot)
+    console.log(`[FINISHED] ${slot}`)
 
     if (!block) return
 

@@ -65,28 +65,22 @@ const UserResolver = {
     createUser: async (
       _,
       { password, network, publicKey, email }: ICreateUser,
-      { redis, res, isFrontend }: IContext
+      { res, isFrontend }: IContext
     ) => {
       const NETWORK = await Model.get({ pk: `NET#${network}`, sk: "DETAILS" })
       if (!NETWORK) throw new Error("Network does not exists")
 
       const SALT = await bcrypt.genSalt(5)
       const HASH = await bcrypt.hash(password, SALT)
+
       try {
         const usr = (await Model.create({
           pk: `USER#${email}`,
           sk: `NET#${network}`,
-          network: `NET#${network}`,
-          password: HASH
+          password: HASH,
+          email,
+          network
         })) as UserDocument
-
-        const redisData: UserRedisObject = {
-          u: email,
-          n: network,
-          rq: 0
-        }
-
-        await redis.set(usr.apiKey, JSON.stringify(redisData))
 
         if (isFrontend)
           res.cookie("api_key", usr.apiKey, {
@@ -107,7 +101,7 @@ const UserResolver = {
         throw new Error("An unknown error occurred while creating user")
       }
     },
-    setPublicKey: async (_, params, { u, n }: APIContext) => {
+    setPublicKey: async (_, params, { user }: APIContext) => {
       if (params.newPublicKey.includes(process.env.FEE_RECIEVER_WALLET))
         throw new Error("Invalid public key")
 
@@ -118,27 +112,18 @@ const UserResolver = {
         )
 
       try {
-        await Model.update({
-          pk: `USER#${u}`,
-          sk: `NET#${n}`,
-          walletAddress: params.newPublicKey
-        })
+        user.walletAddress = params.newPublicKey
+        await user.save()
+        return user.walletAddress
       } catch (err) {
         console.log(err)
         throw new Error("Error updating public key")
       }
-
-      return params.newPublicKey
     },
-    addWebhook: async (_, params, { u, n }: APIContext) => {
+    addWebhook: async (_, params, { user }: APIContext) => {
       if (!isUrlValid(params.newUrl)) throw new Error("Invalid host")
 
       try {
-        const user = (await Model.get({
-          pk: `USER#${u}`,
-          sk: `NET#${n}`
-        })) as UserDocument
-
         if (user.webhooks.length >= user.maxWebhooks) {
           throw new RangeError(
             "You have reached the maximum number of webhooks"
@@ -165,13 +150,8 @@ const UserResolver = {
         throw new Error("Error occurred when adding webhook")
       }
     },
-    removeWebhook: async (_, params, { u, n }: APIContext) => {
+    removeWebhook: async (_, params, { user }: APIContext) => {
       try {
-        const user = (await Model.get({
-          pk: `USER#${u}`,
-          sk: `NET#${n}`
-        })) as UserDocument
-
         const removeUrl = new URL(params.removeUrl)
 
         const isExists = user.webhooks.some(
@@ -195,35 +175,32 @@ const UserResolver = {
         throw new Error("Error occurred when adding webhook")
       }
     },
-    regenerateApiKey: async (_, params, { redis, u, n, ak }: APIContext) => {
+    regenerateApiKey: async (_, params, { user }: APIContext) => {
       try {
         const newKey = generateUserApiKey()
 
-        const current = await redis.get(ak)
-        await redis.del(ak)
-        await redis.set(newKey, current)
+        user.apiKey = newKey
 
+        // ! CHECK !
+        await user.save()
         return newKey
       } catch (err) {
         console.log(err)
         throw new Error("Error occurred while regenerating the API Key.")
       }
     },
-    setFast: async (_, params, { u, n }: APIContext) => {
+    setFast: async (_, params, { user }: APIContext) => {
       try {
-        const modUser = (await Model.update({
-          pk: `USER#${u}`,
-          sk: `NET#${n}`,
-          isFast: params.newFast
-        })) as UserDocument
+        user.isFast = params.newFast
+        await user.save()
 
-        return modUser.isFast
+        return user.isFast
       } catch (err) {
         console.log(err)
         throw new Error("Error occurred while setting new Fast Mode.")
       }
     },
-    login: async (_, params, { redis, res }: IContext) => {
+    login: async (_, params, { res }: IContext) => {
       const USER = (await Model.get({
         pk: `USER#${params.email}`,
         sk: `NET#${params.network}`
@@ -244,10 +221,7 @@ const UserResolver = {
 
       res.cookie("api_key", USER.apiKey, cookie)
 
-      return {
-        ...USER,
-        email: params.email
-      }
+      return USER
     },
     signOut: async (_, params, ctx: IContext) => {
       ctx.res.clearCookie("api_key")
@@ -255,17 +229,9 @@ const UserResolver = {
     }
   },
   Query: {
-    currentUser: async (_, params, { u, n }: APIContext) => {
+    currentUser: async (_, params, { user }: APIContext) => {
       try {
-        const user = await Model.get({
-          pk: `USER#${u}`,
-          sk: `NET#${n}`
-        })
-
-        return {
-          ...user,
-          email: u
-        }
+        return user
       } catch (err) {
         console.log(err)
         throw new Error("Error occurred while getting current user.")

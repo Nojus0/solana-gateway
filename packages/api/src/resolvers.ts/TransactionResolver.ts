@@ -17,8 +17,8 @@ export const transactionDefs = gql`
     senderSig: String!
     senderLm: Float!
 
-    payload: String!
-    confirmedAt: Date!
+    payload: String
+    confirmedAt: Date
     recieveLm: Float!
     recieveSig: String!
 
@@ -58,8 +58,7 @@ export const transactionDefs = gql`
 // * By using encryption the next token gets a bit larger with the iv and the encoding. *
 async function paginify(
   Limit: number,
-  n: string,
-  u: string,
+  user: UserDocument,
   filter: "PENDING" | "CONFIRMED" | "",
   next?: string
 ) {
@@ -68,9 +67,9 @@ async function paginify(
   const query = await Model.query(
     new dynamoose.Condition()
       .where("pk")
-      .eq(`USER#${u}`)
+      .eq(user.pk)
       .filter("sk")
-      .beginsWith(`NET#${n}#TXN#${filter}`)
+      .beginsWith(`NET#${user.network}#TXN#${filter}`)
   ).limit(Limit)
 
   if (next) {
@@ -80,8 +79,8 @@ async function paginify(
       throw new Error("Invalid next token.")
 
     query.startAt({
-      pk: `USER#${u}`,
-      sk: `NET#${n}#TXN#${type}#${id}#${time}`
+      pk: user.pk,
+      sk: `NET#${user.network}#TXN#${type}#${id}#${time}`
     })
   }
 
@@ -97,30 +96,30 @@ async function paginify(
 
 export const transactionResolver = {
   Query: {
-    getTransactions: async (_, params, { u, n }: APIContext) => {
+    getTransactions: async (_, params, { user }: APIContext) => {
       const Limit = Math.min(50, Math.max(params.limit, 1))
 
       const nextToken = params.next ? decryptToken(params.next) : null
       switch (params.filter) {
         case "All": {
-          return await paginify(Limit, n, u, "", nextToken)
+          return await paginify(Limit, user, "", nextToken)
         }
         case "Confirmed": {
-          return await paginify(Limit, n, u, "CONFIRMED", nextToken)
+          return await paginify(Limit, user, "CONFIRMED", nextToken)
         }
         case "Pending": {
-          return await paginify(Limit, n, u, "PENDING", nextToken)
+          return await paginify(Limit, user, "PENDING", nextToken)
         }
       }
     }
   },
   Mutation: {
-    setConfirmed: async (_, params, ctx: APIContext) => {
+    setConfirmed: async (_, params, { user }: APIContext) => {
       const condtion = new dynamoose.Condition()
         .where("pk")
-        .eq(`USER#${ctx.u}`)
+        .eq(user.pk)
         .filter("sk")
-        .beginsWith(`NET#${ctx.n}#TXN#PENDING#${params.uuid}#`)
+        .beginsWith(`NET#${user.network}#TXN#PENDING#${params.uuid}#`)
 
       const [txn]: TransactionDocument[] = await Model.query(condtion)
         .limit(1)
@@ -131,7 +130,7 @@ export const transactionResolver = {
       const newTransaction: Transaction = {
         ...txn,
         confirmedAt: Date.now(),
-        sk: `NET#${ctx.n}#TXN#CONFIRMED#${txn.uuid}#${txn.createdAt}`,
+        sk: `NET#${user.network}#TXN#CONFIRMED#${txn.uuid}#${txn.createdAt}`,
         status: "CONFIRMED"
       }
 

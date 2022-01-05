@@ -13,6 +13,7 @@ export interface User {
    */
   sk: string
 
+  email: string
   walletAddress: string
   password: string
   webhooks: string[]
@@ -34,6 +35,10 @@ export const generateUserApiKey = () =>
 const UserSchema = new dynamoose.Schema({
   pk: {
     hashKey: true,
+    type: String,
+    required: true
+  },
+  email: {
     type: String,
     required: true
   },
@@ -79,6 +84,10 @@ const UserSchema = new dynamoose.Schema({
     default: true
   },
   apiKey: {
+    index: {
+      global: true,
+      name: "apiKey-gsi"
+    },
     type: String,
     default: generateUserApiKey
   },
