@@ -22,6 +22,7 @@ const Logo: React.FC<SVGProps<SVGSVGElement>> = (props) => {
 export const GatewayText = styled.h1({
   fontWeight: 500,
   margin: "0 .85rem",
+  color: "black",
   flexGrow: 1,
   fontSize: "2.15rem",
 });

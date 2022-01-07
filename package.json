@@ -3,10 +3,6 @@
   "workspaces": [
     "packages/*"
   ],
-  "nohoist": [
-    "api"
-  ],
-  "scripts": {
-  },
+  "scripts": {},
   "dependencies": {}
 }

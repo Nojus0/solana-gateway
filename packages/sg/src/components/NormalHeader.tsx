@@ -1,28 +1,30 @@
-import styled from "@emotion/styled";
-import Link from "next/link";
-import Logo, { GatewayText } from "../svg/Logo";
-import Button, { TextButton } from "./Button";
-import Container from "./Container";
-import { A } from "./Text";
-import useMediaQuery from "./useMediaQuery";
+import styled from "@emotion/styled"
+import Link from "next/link"
+import Logo, { GatewayText } from "../svg/Logo"
+import Button, { TextButton } from "./Button"
+import Container from "./Container"
+import { A } from "./Text"
+import useMediaQuery from "./useMediaQuery"
 
 interface INormalHeaderProps {
-  showLogo?: boolean;
-  showButton?: boolean;
+  showLogo?: boolean
+  showButton?: boolean
 }
 
 const NormalHeader: React.FC<INormalHeaderProps> = ({
   showLogo = true,
-  showButton = true,
+  showButton = true
 }) => {
-  const isSmall = useMediaQuery("(max-width: 45rem)", false);
+  const isSmall = useMediaQuery("(max-width: 45rem)", false)
   return (
     <Header justifyContent={showLogo && !isSmall ? "center" : "flex-end"}>
       {showLogo && !isSmall && (
-        <>
-          <Logo width="2.5rem" height="2.5rem" />
-          <GatewayText>Gateway</GatewayText>
-        </>
+        <Link passHref href="/">
+          <LogoBoxWrapper>
+            <Logo width="2.5rem" height="2.5rem" />
+            <GatewayText>Gateway</GatewayText>
+          </LogoBoxWrapper>
+        </Link>
       )}
 
       {showButton && (
@@ -42,21 +44,27 @@ const NormalHeader: React.FC<INormalHeaderProps> = ({
         </HeaderButtons>
       )}
     </Header>
-  );
-};
+  )
+}
+
+export const LogoBoxWrapper = styled.a({
+  display: "flex",
+  flexGrow: 1,
+  textDecoration: "none"
+})
 
 export const Underline = styled.div({
   width: "100%",
   height: "0.1rem",
-  background: "#E8E8E8",
-});
+  background: "#E8E8E8"
+})
 
 const HeaderButtons = styled.div({
   display: "flex",
-  alignItems: "center",
-});
+  alignItems: "center"
+})
 interface IHeaderButtonProps {
-  justifyContent?: string;
+  justifyContent?: string
 }
 const Header = styled.div(
   ({ justifyContent = "center" }: IHeaderButtonProps) => ({
@@ -66,8 +74,8 @@ const Header = styled.div(
     zIndex: 1,
     margin: "1.35rem 0",
     height: "3rem",
-    alignItems: "center",
+    alignItems: "center"
   })
-);
+)
 
-export default NormalHeader;
+export default NormalHeader

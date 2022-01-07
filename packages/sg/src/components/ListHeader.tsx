@@ -82,7 +82,7 @@ const RouteText = styled.p(({ selected }: ISelected) => ({
   margin: ".5rem",
   position: "relative",
   padding: ".6rem 1rem",
-  transition: "background 200ms ease",
+  transition: "background 100ms ease",
   "&:hover": {
     background: "rgba(0,0,0,0.05)"
   },

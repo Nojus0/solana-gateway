@@ -1,22 +1,30 @@
 export interface IMargin {
-  margin?: string;
+  margin?: string
 }
 
 export interface IPadding {
-  padding?: string;
+  padding?: string
 }
 export interface ISize {
-  size?: string;
+  size?: string
+}
+
+export interface IFontSize {
+  fontSize?: string
+}
+
+export interface IColor {
+  color?: string
 }
 
 export interface IWrap {
-  flexWrap?: boolean;
+  flexWrap?: boolean
 }
 
 export interface IJustifyContent {
-  justifyContent?: string;
+  justifyContent?: string
 }
 
 export interface ISelected {
-  selected?: boolean;
+  selected?: boolean
 }

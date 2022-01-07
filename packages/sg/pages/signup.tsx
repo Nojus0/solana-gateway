@@ -1,21 +1,24 @@
-import styled from "@emotion/styled";
-import { motion } from "framer-motion";
-import { NextPage } from "next";
-import Head from "next/head";
-import defaultVariant from "../src/animations/defaultVariant";
-import Container from "../src/components/Container";
-import ContinueGithub from "../src/components/ContinueGithub";
-import { IMargin } from "../src/components/interfaces";
-import NormalHeader from "../src/components/NormalHeader";
-import { Text } from "../src/components/Text";
-import useMediaQuery from "../src/components/useMediaQuery";
-import CheckMark from "../src/svg/CheckMark";
-import GithubLogo from "../src/svg/GithubLogo";
-import Logo, { GatewayText } from "../src/svg/Logo";
+import styled from "@emotion/styled"
+import { motion } from "framer-motion"
+import { NextPage } from "next"
+import Head from "next/head"
+import Link from "next/link"
+import defaultVariant from "../src/animations/defaultVariant"
+import Button from "../src/components/Button"
+import Container from "../src/components/Container"
+import ContinueGithub from "../src/components/ContinueGithub"
+import { IMargin } from "../src/components/interfaces"
+import NormalHeader from "../src/components/NormalHeader"
+import { Text } from "../src/components/Text"
+import TextBox, { TextBoxLabel } from "../src/components/TextBox"
+import useMediaQuery from "../src/components/useMediaQuery"
+import CheckMark from "../src/svg/CheckMark"
+import GithubLogo from "../src/svg/GithubLogo"
+import Logo, { GatewayText } from "../src/svg/Logo"
 
-const Signup: NextPage = (props) => {
-  const isSmall = useMediaQuery("(max-width: 45rem)", false);
-  console.log(isSmall);
+const Signup: NextPage = props => {
+  const isSmall = useMediaQuery("(max-width: 50rem)", false)
+  console.log(isSmall)
   return (
     <>
       <Head>
@@ -26,11 +29,11 @@ const Signup: NextPage = (props) => {
         {isSmall ? <FeatureSide /> : <InteractSide />}
       </Wrapper>
     </>
-  );
-};
+  )
+}
 
 const FeatureSide: React.FC = () => {
-  const isSmall = useMediaQuery("(max-width: 45rem)", false);
+  const isSmall = useMediaQuery("(max-width: 50rem)", false)
 
   return (
     <GreySide
@@ -44,10 +47,12 @@ const FeatureSide: React.FC = () => {
         variants={defaultVariant}
       >
         {!isSmall && (
-          <HeaderBox>
-            <Logo width="2.5rem" height="2.5rem" />
-            <GatewayText>Gateway</GatewayText>
-          </HeaderBox>
+          <Link passHref href="/">
+            <HeaderBox>
+              <Logo width="2.5rem" height="2.5rem" />
+              <GatewayText>Gateway</GatewayText>
+            </HeaderBox>
+          </Link>
         )}
 
         <Feature
@@ -64,28 +69,39 @@ const FeatureSide: React.FC = () => {
         />
       </Features>
     </GreySide>
-  );
-};
+  )
+}
 
 const InteractSide: React.FC = () => {
   return (
     <SideContainer animate="visible" initial="hidden" variants={defaultVariant}>
       <TitleText>Start accepting Solana payments.</TitleText>
-      <ContinueGithub />
+      <TextBoxLabel>Email address</TextBoxLabel>
+      <TextBox placeholder="email" />
+
+      <TextBoxLabel>Password</TextBoxLabel>
+      <TextBox placeholder="password" />
+
+      <TextBoxLabel>Confirm password</TextBoxLabel>
+      <TextBox placeholder="password" />
+
+      <Button variant="outline" margin="1rem 0">
+        Sign Up
+      </Button>
       <TermsText>
         By clicking continue, you agree to our Terms of Service and Privacy
         Policy.
       </TermsText>
     </SideContainer>
-  );
-};
-
-interface IFeature {
-  title: string;
-  description: string;
+  )
 }
 
-const Feature: React.FC<IFeature> = (props) => {
+interface IFeature {
+  title: string
+  description: string
+}
+
+const Feature: React.FC<IFeature> = props => {
   return (
     <FeatureContainer>
       <CustomCheckMark width="2rem" height="2rem" />
@@ -94,80 +110,81 @@ const Feature: React.FC<IFeature> = (props) => {
         <FeatureDescription>{props.description}</FeatureDescription>
       </FeatureSection>
     </FeatureContainer>
-  );
-};
+  )
+}
 
 const CustomCheckMark = styled(CheckMark)({
   minWidth: "2rem",
-  minHeight: "2rem",
-});
+  minHeight: "2rem"
+})
 
 const TermsText = styled.p({
   fontSize: ".95rem",
   margin: "2.5rem 0",
   fontWeight: 400,
-  color: "#7A7A7A",
-});
+  color: "#7A7A7A"
+})
 
 const SideContainer = styled(motion.div)({
   display: "flex",
   flexDirection: "column",
-  margin: "3rem 3.5rem",
-});
+  margin: "3rem 3.5rem"
+})
 
 const TitleText = styled.h1({
   fontSize: "2.65rem",
   width: "90%",
-  lineHeight: "100.5%",
-});
+  lineHeight: "100.5%"
+})
 
 interface IWrapperProps {
-  DoWrap?: boolean;
+  DoWrap?: boolean
 }
 
 const Wrapper = styled.div(({ DoWrap = false }: IWrapperProps) => ({
   display: "flex",
-  flexWrap: DoWrap ? "wrap" : "nowrap",
-}));
+  flexWrap: DoWrap ? "wrap" : "nowrap"
+}))
 
 const FeatureTitle = styled("h2")({
   fontSize: "2.25rem",
   color: "black",
-  margin: "0.5rem 0",
-});
+  margin: "0.5rem 0"
+})
 
 const FeatureDescription = styled("p")({
   fontSize: "1rem",
   color: "#7A7A7A",
   fontWeight: 400,
-  margin: 0,
-});
+  margin: 0
+})
 
 const FeatureSection = styled("div")({
   display: "flex",
   flexDirection: "column",
-  margin: "0 .85rem",
-});
+  margin: "0 .85rem"
+})
 
 const FeatureContainer = styled("div")({
   display: "flex",
   alignItems: "center",
-  margin: "2rem 0",
-});
+  margin: "2rem 0"
+})
 
-const HeaderBox = styled.div({
+const HeaderBox = styled.a({
   display: "flex",
+  textDecoration: "none",
   alignItems: "center",
-  justifyContent: "center",
-});
+  justifyContent: "center"
+})
 
 const Features = styled(motion.div)(({ margin = "2rem 5rem" }: IMargin) => ({
-  margin,
-}));
+  margin
+}))
 
 interface IGreySide {
-  width?: string;
-  height?: string;
+  width?: string
+  height?: string
 }
 
 const GreySide = styled.div(
@@ -178,8 +195,8 @@ const GreySide = styled.div(
     alignSelf: "flex-start",
     flexDirection: "column",
     background: "#F5F5F5",
-    borderRight: "1px solid #D4D4D4",
+    borderRight: "1px solid #D4D4D4"
   })
-);
+)
 
-export default Signup;
+export default Signup

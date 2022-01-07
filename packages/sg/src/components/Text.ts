@@ -1,8 +1,8 @@
-import styled from "@emotion/styled";
+import styled from "@emotion/styled"
 
 interface IText {
-  fontSize?: string;
-  margin?: string;
+  fontSize?: string
+  margin?: string
 }
 
 export const Text = styled.h1(
@@ -12,10 +12,13 @@ export const Text = styled.h1(
     letterSpacing: "-0.01em",
     lineHeight: "100.5%",
     width: "80%",
-    textAlign: "center",
+    textAlign: "center"
   })
-);
+)
 
 export const A = styled.a({
   textDecoration: "none",
-});
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center"
+})
