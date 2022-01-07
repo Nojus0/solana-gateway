@@ -13,7 +13,6 @@ const apiMiddleware: IMiddlewareFunction = async (
   info
 ) => {
   // * Check if calling from frontend *
-
   if (ctx.isFrontend) {
     const token = ctx.req.cookies.api_key
 

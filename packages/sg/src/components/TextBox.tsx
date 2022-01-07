@@ -1,17 +1,22 @@
 import styled from "@emotion/styled"
 import { IColor, IFontSize, IMargin, IPadding } from "./interfaces"
 
+interface IVariant {
+  variant?: "normal" | "error"
+}
+
 const TextBox = styled.input(
   ({
     margin = ".5rem 0",
     padding = ".85rem 1rem",
-    color = "black"
-  }: IMargin & IPadding & IColor) => ({
+    color = "black",
+    variant = "normal"
+  }: IMargin & IPadding & IColor & IVariant) => ({
     padding,
     margin,
-    borderRadius: ".4rem",
+    borderRadius: ".5rem",
     backgroundColor: "transparent",
-    border: `.1rem solid ${color}`,
+    border: variant == "normal" ? `.15rem solid ${color}`: `.15rem solid #DD0000`,
     color: "black"
   })
 )

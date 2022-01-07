@@ -1,0 +1,73 @@
+import { createAsyncThunk } from "@reduxjs/toolkit"
+import { CurrentUser } from "shared"
+import { $, Gql, GraphQLError } from "../../zeus"
+import { setLoggedOut, setUser } from "../slices/authSlice"
+
+const loginThunk = createAsyncThunk<
+  any,
+  {
+    email: string
+    password: string
+    network: string
+    onError?: (message: string) => void
+    onSuccess?: (user: CurrentUser) => void
+  }
+>(
+  "user/login",
+  async (
+    { email, network, password, onSuccess, onError },
+    { dispatch, getState }
+  ) => {
+    try {
+      const loginMutation = await Gql("mutation")(
+        {
+          login: [
+            {
+              email: $`email`,
+              network: $`network`,
+              remember: $`remember`,
+              password: $`password`
+            },
+            {
+              email: true,
+              apiKey: true,
+              isFast: true,
+              webhooks: true,
+              walletAddress: true,
+              secretKey: true,
+              recieved: true,
+              __typename: true
+            }
+          ]
+        },
+        {
+          operationName: "login",
+          variables: {
+            email,
+            password,
+            network,
+            remember: true
+          }
+        }
+      )
+
+      if (loginMutation.login) {
+        dispatch(setUser(loginMutation.login))
+        onSuccess && onSuccess(loginMutation.login)
+      }
+    } catch (err) {
+      dispatch(setLoggedOut())
+      if (!onError) return
+
+      if (err instanceof GraphQLError && err.response?.errors) {
+        onError(err.response.errors.map((e: any) => e.message).join("\n"))
+      }
+
+      if (err instanceof TypeError) {
+        onError("Please check your internet connection")
+      }
+    }
+  }
+)
+
+export default loginThunk

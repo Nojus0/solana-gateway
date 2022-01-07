@@ -80,10 +80,10 @@ const InteractSide: React.FC = () => {
       <TextBox placeholder="email" />
 
       <TextBoxLabel>Password</TextBoxLabel>
-      <TextBox placeholder="password" />
+      <TextBox placeholder="password" type="password" />
 
       <TextBoxLabel>Confirm password</TextBoxLabel>
-      <TextBox placeholder="password" />
+      <TextBox placeholder="password" type="password" />
 
       <Button variant="outline" margin="1rem 0">
         Sign Up

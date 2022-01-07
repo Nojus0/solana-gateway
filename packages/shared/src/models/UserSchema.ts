@@ -27,6 +27,16 @@ export interface User {
   network: string
 }
 
+export interface CurrentUser {
+  email: string
+  recieved: number
+  apiKey: string
+  isFast: boolean
+  secretKey: string
+  webhooks: string[]
+  walletAddress?: string | undefined
+}
+
 export type UserDocument = User & Document
 
 export const generateUserApiKey = () =>

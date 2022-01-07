@@ -21,7 +21,7 @@ const Button = styled.button(
     fontWeight: 400,
     borderRadius: ".35rem",
     background: variant == "normal" ? "black" : "white",
-    border: variant == "outline" ? ".1rem solid black" : "none",
+    border: variant == "outline" ? ".15rem solid black" : "none",
     cursor: "pointer",
     color: variant == "normal" ? "white" : "black",
     letterSpacing: "-0.01em",

@@ -13,6 +13,7 @@ import { APIContext } from "../graphql/middleware"
 import bcrypt from "bcryptjs"
 import util from "util"
 import { CookieOptions } from "express"
+import validator from "validator"
 
 export const userTypeDefs = gql`
   type CurrentUser {
@@ -21,7 +22,7 @@ export const userTypeDefs = gql`
     apiKey: String!
     isFast: Boolean!
     secretKey: String!
-    webhooks: [String!]
+    webhooks: [String!]!
     walletAddress: String
   }
 
@@ -56,7 +57,6 @@ export const userTypeDefs = gql`
 interface ICreateUser {
   email: string
   password: string
-  publicKey: string
   network: string
 }
 
@@ -64,9 +64,15 @@ const UserResolver = {
   Mutation: {
     createUser: async (
       _,
-      { password, network, publicKey, email }: ICreateUser,
+      { password, network, email }: ICreateUser,
       { res, isFrontend }: IContext
     ) => {
+      email = email.toLowerCase()
+
+      if (!validator.isEmail(email)) throw new Error("Invalid email")
+      if (!validator.isStrongPassword(password, { minLength: 6 }))
+        throw new Error("Password is too weak")
+
       const NETWORK = await Model.get({ pk: `NET#${network}`, sk: "DETAILS" })
       if (!NETWORK) throw new Error("Network does not exists")
 
@@ -201,15 +207,18 @@ const UserResolver = {
       }
     },
     login: async (_, params, { res }: IContext) => {
+      params.email = params.email.toLowerCase()
+      if (!validator.isEmail(params.email)) throw new Error("Invalid email")
+
       const USER = (await Model.get({
         pk: `USER#${params.email}`,
         sk: `NET#${params.network}`
       })) as UserDocument
 
-      if (!USER) throw new Error("User not found")
+      if (!USER) throw new Error("Incorrect email or password")
 
       if (!(await bcrypt.compare(params.password, USER.password)))
-        throw new Error("Incorrect password")
+        throw new Error("Incorrect email or password")
 
       const cookie: CookieOptions = {
         httpOnly: true,

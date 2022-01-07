@@ -12,8 +12,23 @@ import NormalHeader, { Underline } from "../src/components/NormalHeader"
 import { A } from "../src/components/Text"
 import BasicRowCard from "../src/components/BasicRowCard"
 import { Wrapper } from "../src/layout/dashboard/styled"
+import { useRequireAuth } from "../src/redux/slices/authSlice"
+import { useSelector } from "react-redux"
+import { selectAuth } from "../src/redux/store"
+import { useRouter } from "next/router"
 
 const Transfers: NextPage = () => {
+  const router = useRouter()
+  useRequireAuth()
+  const user = useSelector(selectAuth)
+  
+  if (user.isLoading) return null
+
+  if (!user.isAuthenticated && !user.isLoading) {
+    router.push("/login")
+    return null
+  }
+
   // useEffect(() => {
   //   document.body.style.backgroundColor = "#F5F5F5";
   //   return () => {

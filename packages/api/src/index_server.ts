@@ -36,7 +36,8 @@ if (!process.env.MONGO_URI || !process.env.REDIS_URI)
       isFrontend:
         req.headers.origin == process.env.ORIGIN ||
         (process.env.NODE_ENV == "development" &&
-          req.headers.origin == "http://localhost:4000")
+          req.headers.origin == "http://localhost:4000") ||
+        req.headers.origin == "http://localhost:3000"
     }),
     plugins: [ApolloServerPluginLandingPageGraphQLPlayground()]
   })

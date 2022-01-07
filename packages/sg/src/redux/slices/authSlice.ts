@@ -1,13 +1,44 @@
-import { createSlice } from "@reduxjs/toolkit";
-import { RootState } from "../store";
+import { createSlice, PayloadAction } from "@reduxjs/toolkit"
+import { RootState } from "../store"
+import { CurrentUser } from "shared"
+import { useDispatch, useSelector } from "react-redux"
+import currentUserThunk from "../thunks/currentUser"
+import { useEffect } from "react"
+const initialState = {
+  isAuthenticated: false,
+  isLoading: true,
+  fetched: false,
+  network: "dev" as "dev" | "main",
+  data: null as unknown as CurrentUser
+}
 
 export const authSlice = createSlice({
   name: "auth",
-  initialState: {
-    isAuthenticated: false,
-    user: null,
-  },
-  reducers: {},
-});
+  initialState,
+  reducers: {
+    setUser: (state, action: PayloadAction<CurrentUser>) => {
+      state.isAuthenticated = true
+      state.isLoading = false
+      state.fetched = true
+      state.data = action.payload
+    },
+    setLoggedOut: state => {
+      state.isAuthenticated = false
+      state.fetched = true
+      state.isLoading = false
+    }
+  }
+})
 
-export const selectAuth = (state: RootState) => state.authSlice;
+export const { setUser, setLoggedOut } = authSlice.actions
+
+export const selectAuth = (state: RootState) => state.authSlice
+
+export function useRequireAuth() {
+  const dispatch = useDispatch()
+  const user = useSelector(selectAuth)
+
+  useEffect(() => {
+    if (!user.fetched) dispatch(currentUserThunk())
+  }, [dispatch, user.fetched])
+}
