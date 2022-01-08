@@ -4,6 +4,8 @@ import { CurrentUser } from "shared"
 import { useDispatch, useSelector } from "react-redux"
 import currentUserThunk from "../thunks/currentUser"
 import { useEffect } from "react"
+import { useRouter } from "next/router"
+
 const initialState = {
   isAuthenticated: false,
   isLoading: true,
@@ -26,19 +28,33 @@ export const authSlice = createSlice({
       state.isAuthenticated = false
       state.fetched = true
       state.isLoading = false
+    },
+    removeWebhook: (state, action: PayloadAction<string>) => {
+      state.data.webhooks = state.data.webhooks.filter(
+        webhook => webhook !== action.payload
+      )
+    },
+    addWebhook: (state, action: PayloadAction<string>) => {
+      state.data.webhooks.push(action.payload)
     }
   }
 })
 
-export const { setUser, setLoggedOut } = authSlice.actions
+export const { setUser, setLoggedOut, removeWebhook, addWebhook } =
+  authSlice.actions
 
 export const selectAuth = (state: RootState) => state.authSlice
 
 export function useRequireAuth() {
   const dispatch = useDispatch()
+  const router = useRouter()
   const user = useSelector(selectAuth)
 
   useEffect(() => {
     if (!user.fetched) dispatch(currentUserThunk())
-  }, [dispatch, user.fetched])
+
+    if (!user.isAuthenticated && !user.isLoading) {
+      router.push("/login")
+    }
+  }, [dispatch, user.fetched, user.isAuthenticated, user.isLoading, router])
 }

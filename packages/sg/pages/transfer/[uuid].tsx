@@ -1,6 +1,9 @@
 import styled from "@emotion/styled"
 import { NextPage } from "next"
 import Head from "next/head"
+import { useRouter } from "next/router"
+import { useEffect, useState } from "react"
+import { useSelector } from "react-redux"
 import Button from "../../src/components/Button"
 import Container from "../../src/components/Container"
 import ListHeader from "../../src/components/ListHeader"
@@ -11,8 +14,34 @@ import {
   SubTitleWrapper,
   Wrapper
 } from "../../src/layout/dashboard/styled"
+import { useRequireAuth } from "../../src/redux/slices/authSlice"
+import { selectAuth } from "../../src/redux/store"
+import { GqlInclude } from "../../src/zeus/custom"
 
-const uuid: NextPage = () => {
+async function getTransaction(uuid: string) {
+
+  const data = await GqlInclude("query")({
+    
+  })
+
+} 
+
+const Uuid: NextPage = () => {
+  useRequireAuth()
+  const user = useSelector(selectAuth)
+  const router = useRouter()
+  const [uuid, setUUID] = useState("")
+
+  useEffect(() => {
+    if (!router.isReady) return
+
+    if (router.query.uuid) {
+      setUUID(router.query.uuid as string)
+    } else {
+      router.push("/transfers")
+    }
+  }, [router])
+
   return (
     <>
       <Head>
@@ -34,67 +63,73 @@ const uuid: NextPage = () => {
           <Underline />
         </ListHeader>
         <Container max="60rem" min="1px" value="100%">
-          <TransactionBox>
-            <Row>
-              <Title>uuid</Title>
-              <Value>231sd123ad32rsdw</Value>
-            </Row>
-            <Row>
-              <Title>status</Title>
-              <Value>Confirmed</Value>
-            </Row>
-            <Row>
-              <Title>amount</Title>
-              <Value>0.01 SOL</Value>
-            </Row>
-            <Row>
-              <Title>sender address</Title>
-              <Value>BtmeDx97CSrq9ce7dARsgnusA7YHbVe6732cfTkd8SFW</Value>
-              <Button padding=".45rem 1rem" variant="outline">
-                Copy
-              </Button>
-            </Row>
-            <Row>
-              <Title>sender signature</Title>
-              <Value>31cm6RaU1YHHzhQQ5Ztw3jLu3ncofqtQRypW4zMY33E...</Value>
-              <Button padding=".45rem 1rem" variant="outline">
-                Copy
-              </Button>
-            </Row>
-            <Row>
-              <Title>resend signature</Title>
-              <Value>31cm6RaU1YHHzhQQ5Ztw3jLu3ncofqtQRypW4zMY33E...</Value>
-              <Button padding=".45rem 1rem" variant="outline">
-                Copy
-              </Button>
-            </Row>
-            <Row>
-              <Title>recieve signature</Title>
-              <Value>31cm6RaU1YHHzhQQ5Ztw3jLu3ncofqtQRypW4zMY33E...</Value>
-              <Button padding=".45rem 1rem" variant="outline">
-                Copy
-              </Button>
-            </Row>
-            <Row>
-              <Title>recieve amount</Title>
-              <Value>0.9 SOL</Value>
-            </Row>
-            <Row>
-              <Title>payload</Title>
-              <Value>data=2</Value>
-            </Row>
-            <Row>
-              <Title>created</Title>
-              <Value>2021-12-28 7:32pm</Value>
-            </Row>
-            <Row>
-              <Title>confirmed</Title>
-              <Value>2021-12-28 7:32pm</Value>
-            </Row>
-          </TransactionBox>
+          {user.isLoading ? <p>Loading...</p> : <Transaction />}
         </Container>
       </Wrapper>
     </>
+  )
+}
+
+function Transaction() {
+  return (
+    <TransactionBox>
+      <Row>
+        <Title>uuid</Title>
+        <Value>231sd123ad32rsdw</Value>
+      </Row>
+      <Row>
+        <Title>status</Title>
+        <Value>Confirmed</Value>
+      </Row>
+      <Row>
+        <Title>amount</Title>
+        <Value>0.01 SOL</Value>
+      </Row>
+      <Row>
+        <Title>sender address</Title>
+        <Value>BtmeDx97CSrq9ce7dARsgnusA7YHbVe6732cfTkd8SFW</Value>
+        <Button padding=".45rem 1rem" variant="outline">
+          Copy
+        </Button>
+      </Row>
+      <Row>
+        <Title>sender signature</Title>
+        <Value>31cm6RaU1YHHzhQQ5Ztw3jLu3ncofqtQRypW4zMY33E...</Value>
+        <Button padding=".45rem 1rem" variant="outline">
+          Copy
+        </Button>
+      </Row>
+      <Row>
+        <Title>resend signature</Title>
+        <Value>31cm6RaU1YHHzhQQ5Ztw3jLu3ncofqtQRypW4zMY33E...</Value>
+        <Button padding=".45rem 1rem" variant="outline">
+          Copy
+        </Button>
+      </Row>
+      <Row>
+        <Title>recieve signature</Title>
+        <Value>31cm6RaU1YHHzhQQ5Ztw3jLu3ncofqtQRypW4zMY33E...</Value>
+        <Button padding=".45rem 1rem" variant="outline">
+          Copy
+        </Button>
+      </Row>
+      <Row>
+        <Title>recieve amount</Title>
+        <Value>0.9 SOL</Value>
+      </Row>
+      <Row>
+        <Title>payload</Title>
+        <Value>data=2</Value>
+      </Row>
+      <Row>
+        <Title>created</Title>
+        <Value>2021-12-28 7:32pm</Value>
+      </Row>
+      <Row>
+        <Title>confirmed</Title>
+        <Value>2021-12-28 7:32pm</Value>
+      </Row>
+    </TransactionBox>
   )
 }
 
@@ -160,4 +195,4 @@ const TransactionBox = styled.div({
   }
 })
 
-export default uuid
+export default Uuid

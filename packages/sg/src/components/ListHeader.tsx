@@ -33,7 +33,7 @@ const ListHeader: React.FC<IListHeaderProps> = ({
         <RightWrapper justifyContent={isSmall ? "flex-end" : "unset"}>
           <CustomLogo width="2.5rem" height="2.5rem" />
           <GatewayText>Gateway</GatewayText>
-          <ProfileCircle name={user.data.email} />
+          <ProfileCircle name={user?.data?.email || ""} />
         </RightWrapper>
         <Routes>
           <Link passHref href="/transfers">

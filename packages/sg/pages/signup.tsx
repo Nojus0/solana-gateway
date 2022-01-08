@@ -5,9 +5,9 @@ import Head from "next/head"
 import Link from "next/link"
 import { useEffect, useState } from "react"
 import { useDispatch, useSelector } from "react-redux"
-import { DEFAULT_NETWORK } from "shared"
 import defaultVariant from "../src/animations/defaultVariant"
 import validator from "validator"
+import { DEFAULT_NETWORK } from "shared/dist/default"
 import Button from "../src/components/Button"
 import { IMargin } from "../src/components/interfaces"
 import TextBox, { TextBoxLabel } from "../src/components/TextBox"
@@ -18,10 +18,11 @@ import Logo, { GatewayText } from "../src/svg/Logo"
 import { selectAuth } from "../src/redux/store"
 import { useRouter } from "next/router"
 import { ErrorText } from "./login"
+import loginThunk from "../src/redux/thunks/login"
 
 const Signup: NextPage = props => {
   const isSmall = useMediaQuery("(max-width: 50rem)", false)
-  console.log(isSmall)
+
   return (
     <>
       <Head>
@@ -88,44 +89,43 @@ const InteractSide: React.FC = () => {
   const dispatch = useDispatch()
   const router = useRouter()
 
-  async function signUp() {
+  useEffect(() => {
+    if (user.isAuthenticated && !user.isLoading) {
+      router.replace("/transfers", "/transfers")
+    }
+  }, [router, user.isAuthenticated, user.isLoading])
 
-    // if (!validator.isEmail(email))
-    //   return setError(prev => ({ ...prev, email: "Invalid email" }))
+  async function submitSignup() {
+    if (!validator.isEmail(email))
+      return setError(prev => ({ ...prev, email: "Invalid email" }))
 
-    // setError(prev => ({ ...prev, email: "" }))
+    setError(prev => ({ ...prev, email: "" }))
 
-    // if (!validator.isLength(password, { min: 6 }))
-    //   return setError(prev => ({
-    //     ...prev,
-    //     password: "Password is too weak. Must be at least 6 characters"
-    //   }))
-    
-    // setError(prev => ({ ...prev, password: "" }))
+    if (!validator.isLength(password, { min: 6 }))
+      return setError(prev => ({
+        ...prev,
+        password: "Password is too weak. Must be at least 6 characters"
+      }))
 
-    // if (password !== confirmPass)
-    //   return setError(prev=> ({
-    //     ...prev,
-    //     confirmPass: "Passwords do not match"
-    //   }))
+    setError(prev => ({ ...prev, password: "" }))
 
-    // setError(prev => ({ ...prev, confirmPass: "" }))
+    if (password !== confirmPass)
+      return setError(prev => ({
+        ...prev,
+        confirmPass: "Passwords do not match"
+      }))
+
+    setError(prev => ({ ...prev, confirmPass: "" }))
+
     dispatch(
       signUpThunk({
         email,
         network: DEFAULT_NETWORK,
         password,
-        onError: msg => setError({ ...error, confirmPass: msg })
+        onError: msg => setError(prev => ({ ...prev, confirmPass: msg }))
       })
     )
-
   }
-  
-  useEffect(() => {
-    if (user.isAuthenticated && !user.isLoading) {
-      router.replace("/signup", "/signup")
-    }
-  }, [router, user.isAuthenticated, user.isLoading])
 
   return (
     <SideContainer animate="visible" initial="hidden" variants={defaultVariant}>
@@ -158,7 +158,7 @@ const InteractSide: React.FC = () => {
       />
       {error.confirmPass && <ErrorText>{error.confirmPass}</ErrorText>}
 
-      <Button onClick={signUp} variant="outline" margin="1rem 0">
+      <Button onClick={submitSignup} variant="outline" margin="1rem 0">
         Sign Up
       </Button>
       <TermsText>

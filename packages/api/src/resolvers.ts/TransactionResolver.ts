@@ -43,6 +43,8 @@ export const transactionDefs = gql`
       limit: Int!
       next: String
     ): TransactionsType
+
+    getTransaction(uuid: String!): Transaction
   }
 
   extend type Mutation {
@@ -111,6 +113,21 @@ export const transactionResolver = {
           return await paginify(Limit, user, "PENDING", nextToken)
         }
       }
+    },
+    getTransaction: async (_, params, { user }: APIContext) => {
+      const condition = new dynamoose.Condition()
+        .where("pk")
+        .eq(user.pk)
+        .filter("sk")
+        .attribute("uuid")
+        .eq(params.uuid)
+
+      const txn = await Model.query(condition).exec()
+      console.log(txn)
+
+      if (![txn]) throw new Error("Transaction not found.")
+
+      return [txn]
     }
   },
   Mutation: {

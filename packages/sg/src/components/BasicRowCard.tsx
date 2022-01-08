@@ -2,10 +2,12 @@ import styled from "@emotion/styled"
 import Link from "next/link"
 import Button from "./Button"
 import { A } from "./Text"
+import TextBox from "./TextBox"
 
 interface IField {
   label: string
   value: string
+  onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void
 }
 
 interface IBasicRowCard {
@@ -20,7 +22,16 @@ const BasicRowCard: React.FC<IBasicRowCard> = p => {
       {p.fields.map(field => (
         <Row key={field.label}>
           <Entry>{field.label}</Entry>
-          <Entry>{field.value}</Entry>
+          {field.onChange ? (
+            <TextBox
+              padding=".5rem"
+              margin="0"
+              value={field.value}
+              onChange={field.onChange}
+            />
+          ) : (
+            <Entry>{field.value}</Entry>
+          )}
         </Row>
       ))}
       {p.children}
@@ -39,7 +50,7 @@ const Entry = styled.p({
   fontWeight: 400,
   textOverflow: "ellipsis",
   overflow: "hidden",
-  whiteSpace: "nowrap",
+  // whiteSpace: "nowrap",
   wordBreak: "break-all",
   flexBasis: "100%",
   color: "#7B7B7B"
@@ -55,8 +66,8 @@ const Box = styled.div({
   background: "#FFFFFF",
   borderRadius: ".75rem",
   minWidth: "20rem",
-  // maxWidth: "20rem",
   padding: "1.7rem",
+  flexGrow: 1,
   margin: "1.5rem 1.5rem 1.5rem 0",
   wordBreak: "break-all",
   textOverflow: "ellipsis",

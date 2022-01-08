@@ -19,7 +19,7 @@ const Button = styled.button(
     fontSize,
     userSelect: "none",
     fontWeight: 400,
-    borderRadius: ".35rem",
+    borderRadius: ".45rem",
     background: variant == "normal" ? "black" : "white",
     border: variant == "outline" ? ".15rem solid black" : "none",
     cursor: "pointer",

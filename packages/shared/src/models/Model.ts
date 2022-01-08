@@ -5,7 +5,6 @@ import NetworkSchema, { NetworkDocument } from "./NetworkSchema"
 import TransactionSchema, { TransactionDocument } from "./TransactionSchema"
 import ErrorSchema, { NetworkErrorDocument } from "./ErrorSchema"
 
-export const DEFAULT_NETWORK = "main";
 
 export const Model = dynamoose.model<
   UserDocument | NetworkDocument | TransactionDocument | NetworkErrorDocument

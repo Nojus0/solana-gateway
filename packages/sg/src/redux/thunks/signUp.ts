@@ -1,6 +1,7 @@
 import { createAsyncThunk } from "@reduxjs/toolkit"
 import { CurrentUser } from "shared"
 import { $, Gql, GraphQLError } from "../../zeus"
+import { GqlInclude } from "../../zeus/custom"
 import { setLoggedOut, setUser } from "../slices/authSlice"
 
 const signUpThunk = createAsyncThunk<
@@ -13,48 +14,50 @@ const signUpThunk = createAsyncThunk<
     onSuccess?: (user: CurrentUser) => void
   }
 >(
-  "user/signup",
+  "user/register",
   async (
     { email, network, password, onSuccess, onError },
-    { dispatch, getState }
+    { dispatch, getState, rejectWithValue, fulfillWithValue }
   ) => {
     try {
-      const signUpMutation = await Gql("mutation")(
+      const loginMutation = await GqlInclude("mutation")(
         {
           createUser: [
             {
               email: $`email`,
               network: $`network`,
-              remember: $`remember`,
               password: $`password`
             },
             {
-              apiKey: true,
               email: true,
+              apiKey: true,
               isFast: true,
               webhooks: true,
               walletAddress: true,
               secretKey: true,
-              recieved: true
+              recieved: true,
+              __typename: true
             }
           ]
         },
         {
-          operationName: "signup",
+          operationName: "register",
           variables: {
             email,
             password,
-            network,
-            remember: true
+            network
           }
         }
       )
 
-      if (signUpMutation.createUser) {
-        dispatch(setUser(signUpMutation.createUser))
-        onSuccess && onSuccess(signUpMutation.createUser)
+      if (loginMutation.createUser) {
+        dispatch(setUser(loginMutation.createUser))
+
+        fulfillWithValue(loginMutation.createUser)
+        onSuccess && onSuccess(loginMutation.createUser)
       }
     } catch (err) {
+      rejectWithValue(err)
       dispatch(setLoggedOut())
       if (!onError) return
 

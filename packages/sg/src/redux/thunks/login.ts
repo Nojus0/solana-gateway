@@ -1,6 +1,7 @@
 import { createAsyncThunk } from "@reduxjs/toolkit"
 import { CurrentUser } from "shared"
 import { $, Gql, GraphQLError } from "../../zeus"
+import { GqlInclude } from "../../zeus/custom"
 import { setLoggedOut, setUser } from "../slices/authSlice"
 
 const loginThunk = createAsyncThunk<
@@ -16,10 +17,10 @@ const loginThunk = createAsyncThunk<
   "user/login",
   async (
     { email, network, password, onSuccess, onError },
-    { dispatch, getState }
+    { dispatch, getState, rejectWithValue, fulfillWithValue }
   ) => {
     try {
-      const loginMutation = await Gql("mutation")(
+      const loginMutation = await GqlInclude("mutation")(
         {
           login: [
             {
@@ -53,9 +54,12 @@ const loginThunk = createAsyncThunk<
 
       if (loginMutation.login) {
         dispatch(setUser(loginMutation.login))
+
+        fulfillWithValue(loginMutation.login)
         onSuccess && onSuccess(loginMutation.login)
       }
     } catch (err) {
+      rejectWithValue(err)
       dispatch(setLoggedOut())
       if (!onError) return
 

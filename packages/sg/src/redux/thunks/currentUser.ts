@@ -4,7 +4,7 @@ import { setLoggedOut, setUser } from "../slices/authSlice"
 
 const currentUserThunk = createAsyncThunk(
   "user/currentUser",
-  async (params, { dispatch, getState }) => {
+  async (params, { dispatch, getState, fulfillWithValue, rejectWithValue }) => {
     try {
       const currentUserQuery = await GqlInclude("query")({
         currentUser: {
@@ -20,9 +20,12 @@ const currentUserThunk = createAsyncThunk(
 
       if (currentUserQuery.currentUser) {
         dispatch(setUser(currentUserQuery.currentUser))
+        
+        fulfillWithValue(currentUserQuery.currentUser)
       }
     } catch (err) {
       dispatch(setLoggedOut())
+      rejectWithValue(err)
     }
   }
 )

@@ -16,6 +16,8 @@ const apiMiddleware: IMiddlewareFunction = async (
   if (ctx.isFrontend) {
     const token = ctx.req.cookies.api_key
 
+    if (!token) throw new Error("Invalid token")
+
     const [user] = await Model.query("apiKey")
       .eq(token)
       .limit(1)
@@ -88,6 +90,7 @@ const fullDetailsMiddleware: IMiddlewareFunction = async (
 const apiMiddlewareConsumers = {
   Query: {
     getTransactions: apiMiddleware,
+    getTransaction: apiMiddleware,
     currentUser: apiMiddleware
   },
   Mutation: {
