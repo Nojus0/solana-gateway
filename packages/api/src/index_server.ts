@@ -11,9 +11,6 @@ import { ApolloServerPluginLandingPageGraphQLPlayground } from "apollo-server-co
 import express from "express"
 import cookieParser from "cookie-parser"
 import cors from "cors"
-import axios from "axios"
-import { isProd } from "./interfaces"
-import { Model, UserDocument } from "shared"
 
 if (!process.env.MONGO_URI || !process.env.REDIS_URI)
   throw new Error("Redis or Mongo server uri not found.")

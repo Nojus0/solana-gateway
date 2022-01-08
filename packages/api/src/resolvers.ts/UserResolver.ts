@@ -70,7 +70,7 @@ const UserResolver = {
       email = email.toLowerCase()
 
       if (!validator.isEmail(email)) throw new Error("Invalid email")
-      if (!validator.isStrongPassword(password, { minLength: 6 }))
+      if (!validator.isLength(password, { min: 6 }))
         throw new Error("Password is too weak")
 
       const NETWORK = await Model.get({ pk: `NET#${network}`, sk: "DETAILS" })

@@ -49,6 +49,8 @@ const Login: NextPage = () => {
     )
   }
 
+  if (user.isLoading) return null
+
   return (
     <>
       <Head>
@@ -102,7 +104,7 @@ const Login: NextPage = () => {
   )
 }
 
-const ErrorText = styled.p({
+export const ErrorText = styled.p({
   color: "#DD0000",
   fontSize: ".85rem",
   margin: ".25rem 0"
