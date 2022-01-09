@@ -1,8 +1,10 @@
 import styled from "@emotion/styled"
+import { motion } from "framer-motion"
 import { NextPage } from "next"
 import Head from "next/head"
 import { useState } from "react"
 import { useSelector } from "react-redux"
+import fadeVariant from "../src/animations/fadeVariant"
 import Button from "../src/components/Button"
 import Container from "../src/components/Container"
 import ListHeader from "../src/components/ListHeader"
@@ -39,50 +41,43 @@ const Settings: NextPage = props => {
         </ListHeader>
         <Container max="60rem" min="1px" value="100%">
           {/* <h1>settings</h1> */}
-          <SectionWrapper>
-            <SideBar>
-              <Section>Account</Section>
-            </SideBar>
-            <SettingsSection>
-              <Box>
-                <BoxHeader>Your Credentials</BoxHeader>
-                <Underline />
-                <TextBoxLabel>Your Access Key</TextBoxLabel>
-                <FieldWrapper>
-                  <CustomTextBox
-                    type={showAK ? "text" : "password"}
-                    value={user.data.apiKey}
-                    placeholder="API Key"
-                  />
-                  <Button
-                    margin=".5rem 1rem"
-                    fontSize=".95rem"
-                    padding=".7rem 1rem"
-                    onClick={() => setAK(prev => !prev)}
-                  >
-                    {showAK ? "Hide" : "Show"}
-                  </Button>
-                </FieldWrapper>
+          <SettingsSection variants={fadeVariant} animate="visible" initial="hidden">
+            <Box>
+              <BoxHeader>Your Credentials</BoxHeader>
+              <Underline />
+              <TextBoxLabel>Your Access Key</TextBoxLabel>
+              <FieldWrapper>
+                <CustomTextBox
+                  type={showAK ? "text" : "password"}
+                  placeholder="API Key"
+                />
+                <Button
+                  margin=".5rem 1rem"
+                  fontSize=".95rem"
+                  padding=".7rem 1rem"
+                  onClick={() => setAK(prev => !prev)}
+                >
+                  Reveal
+                </Button>
+              </FieldWrapper>
 
-                <TextBoxLabel>Your Secret Key</TextBoxLabel>
-                <FieldWrapper>
-                  <CustomTextBox
-                    value={user.data.secretKey}
-                    type={showSK ? "text" : "password"}
-                    placeholder="Secret Key"
-                  />
-                  <Button
-                    margin=".5rem 1rem"
-                    fontSize=".95rem"
-                    padding=".7rem 1rem"
-                    onClick={() => setSK(prev => !prev)}
-                  >
-                    {showSK ? "Hide" : "Show"}
-                  </Button>
-                </FieldWrapper>
-              </Box>
-            </SettingsSection>
-          </SectionWrapper>
+              <TextBoxLabel>Your Secret Key</TextBoxLabel>
+              <FieldWrapper>
+                <CustomTextBox
+                  type={showSK ? "text" : "password"}
+                  placeholder="Secret Key"
+                />
+                <Button
+                  margin=".5rem 1rem"
+                  fontSize=".95rem"
+                  padding=".7rem 1rem"
+                  onClick={() => setSK(prev => !prev)}
+                >
+                  Reveal
+                </Button>
+              </FieldWrapper>
+            </Box>
+          </SettingsSection>
         </Container>
       </Wrapper>
     </>
@@ -125,15 +120,16 @@ const SideBar = styled.div({
   flexDirection: "column"
 })
 
-const SettingsSection = styled.div({
+const SettingsSection = styled(motion.div)({
   display: "flex",
-  margin: "1rem 0 0 8rem",
   flexBasis: "100%",
+  margin: "1rem 0",
   flexDirection: "column"
 })
 
 const SectionWrapper = styled.div({
-  display: "flex"
+  display: "flex",
+  flexWrap: "wrap"
 })
 
 export default Settings

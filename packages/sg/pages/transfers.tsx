@@ -160,6 +160,7 @@ const Transfers: NextPage = () => {
 
 const Browser = styled(motion.div)({
   display: "flex",
+  flexWrap: "wrap",
   alignItems: "flex-start",
   justifyContent: "flex-start"
 })

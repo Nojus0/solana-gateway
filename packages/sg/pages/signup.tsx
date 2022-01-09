@@ -93,7 +93,7 @@ const InteractSide: React.FC = () => {
     if (user.isAuthenticated && !user.isLoading) {
       router.replace("/transfers", "/transfers")
     }
-  }, [router, user.isAuthenticated, user.isLoading])
+  }, [user])
 
   async function submitSignup() {
     if (!validator.isEmail(email))

@@ -132,6 +132,14 @@ export const AllTypesProps: Record<string,any> = {
 				arrayRequired:false,
 				required:false
 			}
+		},
+		getTransaction:{
+			uuid:{
+				type:"String",
+				array:false,
+				arrayRequired:false,
+				required:true
+			}
 		}
 	},
 	TransactionFilter: "enum"
@@ -146,6 +154,7 @@ export const ReturnTypes: Record<string,any> = {
 		setPublicKey:"String",
 		addWebhook:"String",
 		removeWebhook:"String",
+		logout:"Boolean",
 		login:"CurrentUser",
 		signOut:"Boolean",
 		createDepositAddress:"DepositAddress",
@@ -153,21 +162,19 @@ export const ReturnTypes: Record<string,any> = {
 	},
 	Query:{
 		currentUser:"CurrentUser",
-		getTransactions:"TransactionsType"
+		getTransactions:"TransactionsType",
+		getTransaction:"Transaction"
 	},
 	CurrentUser:{
 		email:"String",
 		recieved:"Float",
-		apiKey:"String",
 		isFast:"Boolean",
-		secretKey:"String",
 		webhooks:"String",
 		walletAddress:"String"
 	},
 	BasicUser:{
 		email:"String",
-		recieved:"Float",
-		apiKey:"String"
+		recieved:"Float"
 	},
 	DepositAddress:{
 		publicKey:"String"

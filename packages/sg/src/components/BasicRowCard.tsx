@@ -1,5 +1,7 @@
 import styled from "@emotion/styled"
+import { AnimatePresence, motion } from "framer-motion"
 import Link from "next/link"
+import fadeVariant from "../animations/fadeVariant"
 import Button from "./Button"
 import { A } from "./Text"
 import TextBox from "./TextBox"
@@ -17,7 +19,7 @@ interface IBasicRowCard {
 
 const BasicRowCard: React.FC<IBasicRowCard> = p => {
   return (
-    <Box>
+    <Box variants={fadeVariant} animate="visible" initial="hidden" exit="hidden">
       <Title>{p.title}</Title>
       {p.fields.map(field => (
         <Row key={field.label}>
@@ -62,7 +64,7 @@ const Title = styled.h1({
   margin: ".5rem 0"
 })
 
-const Box = styled.div({
+const Box = styled(motion.div)({
   background: "#FFFFFF",
   borderRadius: ".75rem",
   minWidth: "20rem",

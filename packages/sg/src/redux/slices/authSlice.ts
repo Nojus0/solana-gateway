@@ -28,6 +28,7 @@ export const authSlice = createSlice({
       state.isAuthenticated = false
       state.fetched = true
       state.isLoading = false
+      state.data = {} as CurrentUser
     },
     removeWebhook: (state, action: PayloadAction<string>) => {
       state.data.webhooks = state.data.webhooks.filter(
@@ -56,5 +57,5 @@ export function useRequireAuth() {
     if (!user.isAuthenticated && !user.isLoading) {
       router.push("/login")
     }
-  }, [dispatch, user.fetched, user.isAuthenticated, user.isLoading, router])
+  }, [user])
 }

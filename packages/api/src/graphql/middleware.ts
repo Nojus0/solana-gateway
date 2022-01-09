@@ -1,7 +1,14 @@
 import base58 from "bs58"
 import { IMiddlewareFunction } from "graphql-middleware"
 import { IContext } from "../interfaces"
-import { Model, UserDocument, UserRedisObject, User } from "shared"
+import {
+  Model,
+  UserDocument,
+  UserRedisObject,
+  User,
+  verifyToken,
+  IJwtToken
+} from "shared"
 
 export type APIContext = IContext & { user: UserDocument }
 
@@ -14,29 +21,37 @@ const apiMiddleware: IMiddlewareFunction = async (
 ) => {
   // * Check if calling from frontend *
   if (ctx.isFrontend) {
-    const token = ctx.req.cookies.api_key
+    const token = ctx.req.cookies.jwt
 
-    if (!token) throw new Error("Invalid token")
+    if (!token) throw new Error("Not logged in")
 
-    const [user] = await Model.query("apiKey")
-      .eq(token)
-      .limit(1)
-      .using("apiKey-gsi")
-      .exec()
+    try {
+      const userJwt = verifyToken(token) as IJwtToken
 
-    if (!user) {
-      throw new Error("Invalid token")
+      const user = (await Model.get({
+        pk: `USER#${userJwt.email}`,
+        sk: `NET#${userJwt.network}`
+      })) as UserDocument
+
+      if (!user) {
+        ctx.res.clearCookie("jwt")
+        throw new Error(
+          "Authentication token is valid, but user does not exist. Please log in again."
+        )
+      }
+
+      return await resolve(
+        root,
+        args,
+        {
+          user,
+          ...ctx
+        },
+        info
+      )
+    } catch (err) {
+      throw new Error("Invalid authentication token")
     }
-
-    return await resolve(
-      root,
-      args,
-      {
-        user,
-        ...ctx
-      },
-      info
-    )
   }
 
   // * Calling from backend *

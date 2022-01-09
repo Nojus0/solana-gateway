@@ -14,6 +14,7 @@ setFast?: [{	newFast:boolean},boolean],
 setPublicKey?: [{	newPublicKey:string},boolean],
 addWebhook?: [{	newUrl:string},boolean],
 removeWebhook?: [{	removeUrl:string},boolean],
+	logout?:boolean,
 login?: [{	email:string,	password:string,	remember:boolean,	network:string},ValueTypes["CurrentUser"]],
 	signOut?:boolean,
 createDepositAddress?: [{	data:string,	lifetime_ms:number},ValueTypes["DepositAddress"]],
@@ -23,14 +24,13 @@ setConfirmed?: [{	uuid:string},ValueTypes["Transaction"]],
 	["Query"]: AliasType<{
 	currentUser?:ValueTypes["CurrentUser"],
 getTransactions?: [{	filter:ValueTypes["TransactionFilter"],	limit:number,	next?:string | null},ValueTypes["TransactionsType"]],
+getTransaction?: [{	uuid:string},ValueTypes["Transaction"]],
 		__typename?: boolean
 }>;
 	["CurrentUser"]: AliasType<{
 	email?:boolean,
 	recieved?:boolean,
-	apiKey?:boolean,
 	isFast?:boolean,
-	secretKey?:boolean,
 	webhooks?:boolean,
 	walletAddress?:boolean,
 		__typename?: boolean
@@ -38,7 +38,6 @@ getTransactions?: [{	filter:ValueTypes["TransactionFilter"],	limit:number,	next?
 	["BasicUser"]: AliasType<{
 	email?:boolean,
 	recieved?:boolean,
-	apiKey?:boolean,
 		__typename?: boolean
 }>;
 	["DepositAddress"]: AliasType<{
@@ -77,6 +76,7 @@ export type ModelTypes = {
 	setPublicKey?:string,
 	addWebhook?:string[],
 	removeWebhook?:string[],
+	logout:boolean,
 	login?:ModelTypes["CurrentUser"],
 	signOut?:boolean,
 	createDepositAddress?:ModelTypes["DepositAddress"],
@@ -84,21 +84,19 @@ export type ModelTypes = {
 };
 	["Query"]: {
 		currentUser?:ModelTypes["CurrentUser"],
-	getTransactions?:ModelTypes["TransactionsType"]
+	getTransactions?:ModelTypes["TransactionsType"],
+	getTransaction?:ModelTypes["Transaction"]
 };
 	["CurrentUser"]: {
 		email:string,
 	recieved:number,
-	apiKey:string,
 	isFast:boolean,
-	secretKey:string,
 	webhooks:string[],
 	walletAddress?:string
 };
 	["BasicUser"]: {
 		email:string,
-	recieved:number,
-	apiKey:string
+	recieved:number
 };
 	["DepositAddress"]: {
 		publicKey:string
@@ -134,6 +132,7 @@ export type GraphQLTypes = {
 	setPublicKey?: string,
 	addWebhook?: Array<string>,
 	removeWebhook?: Array<string>,
+	logout: boolean,
 	login?: GraphQLTypes["CurrentUser"],
 	signOut?: boolean,
 	createDepositAddress?: GraphQLTypes["DepositAddress"],
@@ -142,23 +141,21 @@ export type GraphQLTypes = {
 	["Query"]: {
 	__typename: "Query",
 	currentUser?: GraphQLTypes["CurrentUser"],
-	getTransactions?: GraphQLTypes["TransactionsType"]
+	getTransactions?: GraphQLTypes["TransactionsType"],
+	getTransaction?: GraphQLTypes["Transaction"]
 };
 	["CurrentUser"]: {
 	__typename: "CurrentUser",
 	email: string,
 	recieved: number,
-	apiKey: string,
 	isFast: boolean,
-	secretKey: string,
 	webhooks: Array<string>,
 	walletAddress?: string
 };
 	["BasicUser"]: {
 	__typename: "BasicUser",
 	email: string,
-	recieved: number,
-	apiKey: string
+	recieved: number
 };
 	["DepositAddress"]: {
 	__typename: "DepositAddress",

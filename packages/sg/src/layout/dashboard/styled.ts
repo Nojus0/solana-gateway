@@ -2,7 +2,7 @@ import styled from "@emotion/styled"
 import Button from "../../components/Button"
 
 export const Wrapper = styled.div({
-  height: "100%",
+  minHeight: "100%",
   background: "#F5F5F5"
 })
 

@@ -30,13 +30,10 @@ const signUpThunk = createAsyncThunk<
             },
             {
               email: true,
-              apiKey: true,
               isFast: true,
               webhooks: true,
               walletAddress: true,
-              secretKey: true,
-              recieved: true,
-              __typename: true
+              recieved: true
             }
           ]
         },

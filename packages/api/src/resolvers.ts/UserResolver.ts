@@ -4,7 +4,8 @@ import {
   Model,
   UserDocument,
   UserRedisObject,
-  generateUserApiKey
+  generateUserApiKey,
+  createToken
 } from "shared"
 import crypto from "crypto"
 import base58 from "bs58"
@@ -14,14 +15,14 @@ import bcrypt from "bcryptjs"
 import util from "util"
 import { CookieOptions } from "express"
 import validator from "validator"
+import { IJwtToken } from "shared"
+import jwt from "jsonwebtoken"
 
 export const userTypeDefs = gql`
   type CurrentUser {
     email: String!
     recieved: Float!
-    apiKey: String!
     isFast: Boolean!
-    secretKey: String!
     webhooks: [String!]!
     walletAddress: String
   }
@@ -29,7 +30,6 @@ export const userTypeDefs = gql`
   type BasicUser {
     email: String!
     recieved: Float!
-    apiKey: String!
   }
 
   extend type Query {
@@ -44,6 +44,7 @@ export const userTypeDefs = gql`
     setPublicKey(newPublicKey: String!): String
     addWebhook(newUrl: String!): [String!]
     removeWebhook(removeUrl: String!): [String!]
+    logout: Boolean!
     login(
       email: String!
       password: String!
@@ -89,10 +90,10 @@ const UserResolver = {
         })) as UserDocument
 
         if (isFrontend)
-          res.cookie("api_key", usr.apiKey, {
+          res.cookie("jwt", createToken({ email, network }), {
             httpOnly: true,
             secure: process.env.NODE_ENV != "development",
-            maxAge: 1000 * 60 * 60 * 24 * 7
+            maxAge: 1000 * 60 * 60 * 24 * 1
           })
 
         return {
@@ -228,12 +229,16 @@ const UserResolver = {
 
       if (!params.remember) delete cookie.maxAge
 
-      res.cookie("api_key", USER.apiKey, cookie)
+      res.cookie(
+        "jwt",
+        createToken({ email: USER.email, network: USER.network }),
+        cookie
+      )
 
       return USER
     },
     signOut: async (_, params, ctx: IContext) => {
-      ctx.res.clearCookie("api_key")
+      ctx.res.clearCookie("jwt")
       return true
     }
   },

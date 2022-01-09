@@ -32,7 +32,7 @@ const Login: NextPage = () => {
     if (user.isAuthenticated) {
       router.replace("/transfers", "/transfers")
     }
-  }, [user.isAuthenticated, router])
+  }, [user.isAuthenticated])
 
   async function submitLogin() {
     if (!validator.isEmail(email)) return setError("Invalid email")

@@ -30,9 +30,7 @@ export interface User {
 export interface CurrentUser {
   email: string
   recieved: number
-  apiKey: string
   isFast: boolean
-  secretKey: string
   webhooks: string[]
   walletAddress?: string | undefined
 }

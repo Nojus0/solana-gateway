@@ -1,4 +1,5 @@
 import styled from "@emotion/styled"
+import { AnimatePresence } from "framer-motion"
 import { NextPage } from "next"
 import Head from "next/head"
 import { useEffect, useState } from "react"
@@ -73,8 +74,8 @@ const Webhooks: NextPage = () => {
         { operationName: "addWebhook", variables: { newUrl: url } }
       )
 
-      setAddErr("")
       setAdd(false)
+      setAddErr("")
       dispatch(addWebhook(url))
     } catch (err) {
       if (err instanceof GraphQLError && err.response?.errors) {
@@ -108,67 +109,72 @@ const Webhooks: NextPage = () => {
         </ListHeader>
         <Container max="60rem" min="1px" value="100%">
           <WebhookBox>
-            {user?.data?.webhooks?.map(webhook => (
-              <BasicRowCard
-                key={webhook}
-                title="Webhook"
-                fields={[
-                  {
-                    label: "url",
-                    value: webhook
-                  }
-                ]}
-              >
-                <ButtonRight>
-                  <Button
-                    onClick={() => submitRemoveWebhook(webhook)}
-                    margin="1.25rem 0 0 0"
-                    fontSize=".95rem"
-                    padding=".425rem .9rem"
-                    variant="outline"
-                  >
-                    Delete
-                  </Button>
-                </ButtonRight>
-              </BasicRowCard>
-            ))}
-            {add && (
-              <BasicRowCard
-                title="Webhook"
-                fields={[
-                  {
-                    label: "url",
-                    value: addUrl,
-                    onChange: e => setUrl(e.target.value)
-                  }
-                ]}
-              >
-                {addError && <ErrorText>{addError}</ErrorText>}
-                <ButtonRight>
-                  <Button
-                    onClick={() => {
-                      setAdd(false)
-                      setAddErr("")
-                      setUrl("")
-                    }}
-                    margin="1.25rem 1rem 0 0"
-                    fontSize=".95rem"
-                    variant="outline"
-                    padding=".425rem .9rem"
-                  >
-                    Close
-                  </Button>
-                  <Button
-                    onClick={() => submitAddWebhook(addUrl)}
-                    margin="1.25rem 0 0 0"
-                    fontSize=".95rem"
-                    padding=".425rem .9rem"
-                  >
-                    Add
-                  </Button>
-                </ButtonRight>
-              </BasicRowCard>
-            )}
+            <AnimatePresence>
+              {user?.data?.webhooks?.map(webhook => (
+                <BasicRowCard
+                  key={webhook}
+                  title="Webhook"
+                  fields={[
+                    {
+                      label: "url",
+                      value: webhook
+                    }
+                  ]}
+                >
+                  <ButtonRight>
+                    <Button
+                      onClick={() => submitRemoveWebhook(webhook)}
+                      margin="1.25rem 0 0 0"
+                      fontSize=".95rem"
+                      padding=".425rem .9rem"
+                      variant="outline"
+                    >
+                      Delete
+                    </Button>
+                  </ButtonRight>
+                </BasicRowCard>
+              ))}
+            </AnimatePresence>
+
+            <AnimatePresence>
+              {add && (
+                <BasicRowCard
+                  title="Webhook"
+                  fields={[
+                    {
+                      label: "url",
+                      value: addUrl,
+                      onChange: e => setUrl(e.target.value)
+                    }
+                  ]}
+                >
+                  {addError && <ErrorText>{addError}</ErrorText>}
+                  <ButtonRight>
+                    <Button
+                      onClick={() => {
+                        setAdd(false)
+                        setAddErr("")
+                        setUrl("")
+                      }}
+                      margin="1.25rem 1rem 0 0"
+                      fontSize=".95rem"
+                      variant="outline"
+                      padding=".425rem .9rem"
+                    >
+                      Close
+                    </Button>
+                    <Button
+                      onClick={() => submitAddWebhook(addUrl)}
+                      margin="1.25rem 0 0 0"
+                      fontSize=".95rem"
+                      padding=".425rem .9rem"
+                    >
+                      Add
+                    </Button>
+                  </ButtonRight>
+                </BasicRowCard>
+              )}
+            </AnimatePresence>
           </WebhookBox>
         </Container>
       </Wrapper>
