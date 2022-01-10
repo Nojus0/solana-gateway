@@ -25,33 +25,29 @@ const apiMiddleware: IMiddlewareFunction = async (
 
     if (!token) throw new Error("Not logged in")
 
-    try {
-      const userJwt = verifyToken(token) as IJwtToken
+    const userJwt = verifyToken(token) as IJwtToken
 
-      const user = (await Model.get({
-        pk: `USER#${userJwt.email}`,
-        sk: `NET#${userJwt.network}`
-      })) as UserDocument
+    const user = (await Model.get({
+      pk: `USER#${userJwt.email}`,
+      sk: `NET#${userJwt.network}`
+    })) as UserDocument
 
-      if (!user) {
-        ctx.res.clearCookie("jwt")
-        throw new Error(
-          "Authentication token is valid, but user does not exist. Please log in again."
-        )
-      }
-
-      return await resolve(
-        root,
-        args,
-        {
-          user,
-          ...ctx
-        },
-        info
+    if (!user) {
+      ctx.res.clearCookie("jwt")
+      throw new Error(
+        "Authentication token is valid, but user does not exist. Please log in again."
       )
-    } catch (err) {
-      throw new Error("Invalid authentication token")
     }
+
+    return await resolve(
+      root,
+      args,
+      {
+        user,
+        ...ctx
+      },
+      info
+    )
   }
 
   // * Calling from backend *
@@ -114,6 +110,7 @@ const apiMiddlewareConsumers = {
     regenerateApiKey: apiMiddleware,
     changeWebhook: apiMiddleware,
     setFast: apiMiddleware,
+    keys: apiMiddleware,
     removeWebhook: apiMiddleware,
     addWebhook: apiMiddleware,
     setPublicKey: apiMiddleware

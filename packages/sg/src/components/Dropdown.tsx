@@ -2,12 +2,13 @@ import styled from "@emotion/styled"
 import { AnimatePresence, motion } from "framer-motion"
 import Link from "next/link"
 import { useRouter } from "next/router"
-import { useDispatch } from "react-redux"
+import { useMemo } from "react"
+import { useDispatch, useSelector } from "react-redux"
 import fadeVariant, { fadeVariantSlow } from "../animations/fadeVariant"
 import { setLoggedOut } from "../redux/slices/authSlice"
+import { selectAuth } from "../redux/store"
 import { GqlInclude } from "../zeus/custom"
 import NetworkCard from "./NetworkCard"
-import { A } from "./Text"
 interface IDropdownProps {
   when: boolean
   setWhen: React.Dispatch<React.SetStateAction<boolean>>
@@ -24,11 +25,32 @@ async function logout() {
 const Dropdown: React.FC<IDropdownProps> = p => {
   const router = useRouter()
   const dispatch = useDispatch()
+  const user = useSelector(selectAuth)
+
+  const oppositeNetwork = useMemo(() => {
+    return user?.data?.network == "main"
+      ? "dev"
+      : user.data.network == "dev"
+      ? "main"
+      : "unknown"
+  }, [user])
 
   async function submitLogout() {
     if (await logout()) {
-      dispatch(setLoggedOut())
       router.push("/login")
+      dispatch(setLoggedOut())
+    }
+  }
+
+  async function switchNetwork() {
+    if (await logout()) {
+      dispatch(setLoggedOut())
+      router.push({
+        pathname: `/login`,
+        query: {
+          network: oppositeNetwork
+        }
+      })
     }
   }
 
@@ -42,9 +64,12 @@ const Dropdown: React.FC<IDropdownProps> = p => {
           exit="hidden"
         >
           <BoxEntry>Network</BoxEntry>
-          <BoxEntry>
+
+          <BoxEntry onClick={switchNetwork}>
             <BoxText>Switch to</BoxText>
-            <NetworkCard network="main">Main net</NetworkCard>
+            <NetworkCard network={oppositeNetwork as any}>
+              {oppositeNetwork} net
+            </NetworkCard>
           </BoxEntry>
           <Link href="/settings" passHref>
             <AnoDecoration>

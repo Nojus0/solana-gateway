@@ -14,6 +14,7 @@ setFast?: [{	newFast:boolean},boolean],
 setPublicKey?: [{	newPublicKey:string},boolean],
 addWebhook?: [{	newUrl:string},boolean],
 removeWebhook?: [{	removeUrl:string},boolean],
+	keys?:ValueTypes["Keys"],
 	logout?:boolean,
 login?: [{	email:string,	password:string,	remember:boolean,	network:string},ValueTypes["CurrentUser"]],
 	signOut?:boolean,
@@ -30,6 +31,7 @@ getTransaction?: [{	uuid:string},ValueTypes["Transaction"]],
 	["CurrentUser"]: AliasType<{
 	email?:boolean,
 	recieved?:boolean,
+	network?:boolean,
 	isFast?:boolean,
 	webhooks?:boolean,
 	walletAddress?:boolean,
@@ -38,6 +40,11 @@ getTransaction?: [{	uuid:string},ValueTypes["Transaction"]],
 	["BasicUser"]: AliasType<{
 	email?:boolean,
 	recieved?:boolean,
+		__typename?: boolean
+}>;
+	["Keys"]: AliasType<{
+	secretKey?:boolean,
+	apiKey?:boolean,
 		__typename?: boolean
 }>;
 	["DepositAddress"]: AliasType<{
@@ -76,6 +83,7 @@ export type ModelTypes = {
 	setPublicKey?:string,
 	addWebhook?:string[],
 	removeWebhook?:string[],
+	keys?:ModelTypes["Keys"],
 	logout:boolean,
 	login?:ModelTypes["CurrentUser"],
 	signOut?:boolean,
@@ -90,6 +98,7 @@ export type ModelTypes = {
 	["CurrentUser"]: {
 		email:string,
 	recieved:number,
+	network:string,
 	isFast:boolean,
 	webhooks:string[],
 	walletAddress?:string
@@ -97,6 +106,10 @@ export type ModelTypes = {
 	["BasicUser"]: {
 		email:string,
 	recieved:number
+};
+	["Keys"]: {
+		secretKey:string,
+	apiKey:string
 };
 	["DepositAddress"]: {
 		publicKey:string
@@ -132,6 +145,7 @@ export type GraphQLTypes = {
 	setPublicKey?: string,
 	addWebhook?: Array<string>,
 	removeWebhook?: Array<string>,
+	keys?: GraphQLTypes["Keys"],
 	logout: boolean,
 	login?: GraphQLTypes["CurrentUser"],
 	signOut?: boolean,
@@ -148,6 +162,7 @@ export type GraphQLTypes = {
 	__typename: "CurrentUser",
 	email: string,
 	recieved: number,
+	network: string,
 	isFast: boolean,
 	webhooks: Array<string>,
 	walletAddress?: string
@@ -156,6 +171,11 @@ export type GraphQLTypes = {
 	__typename: "BasicUser",
 	email: string,
 	recieved: number
+};
+	["Keys"]: {
+	__typename: "Keys",
+	secretKey: string,
+	apiKey: string
 };
 	["DepositAddress"]: {
 	__typename: "DepositAddress",

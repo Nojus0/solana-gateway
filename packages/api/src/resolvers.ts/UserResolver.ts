@@ -3,25 +3,22 @@ import {
   isUrlValid,
   Model,
   UserDocument,
-  UserRedisObject,
   generateUserApiKey,
+  generateSecretKey,
   createToken
 } from "shared"
-import crypto from "crypto"
 import base58 from "bs58"
 import { IContext } from "../interfaces"
 import { APIContext } from "../graphql/middleware"
 import bcrypt from "bcryptjs"
-import util from "util"
 import { CookieOptions } from "express"
 import validator from "validator"
-import { IJwtToken } from "shared"
-import jwt from "jsonwebtoken"
 
 export const userTypeDefs = gql`
   type CurrentUser {
     email: String!
     recieved: Float!
+    network: String!
     isFast: Boolean!
     webhooks: [String!]!
     walletAddress: String
@@ -36,6 +33,11 @@ export const userTypeDefs = gql`
     currentUser: CurrentUser
   }
 
+  type Keys {
+    secretKey: String!
+    apiKey: String!
+  }
+
   extend type Mutation {
     createUser(email: String!, password: String!, network: String!): CurrentUser
     changeWebhook(newUrl: String!): String
@@ -44,6 +46,7 @@ export const userTypeDefs = gql`
     setPublicKey(newPublicKey: String!): String
     addWebhook(newUrl: String!): [String!]
     removeWebhook(removeUrl: String!): [String!]
+    keys: Keys
     logout: Boolean!
     login(
       email: String!
@@ -236,6 +239,24 @@ const UserResolver = {
       )
 
       return USER
+    },
+    keys: async (_, params, { user }: APIContext) => {
+      if (
+        user.lastRegen != null &&
+        user.lastRegen < Date.now() + 1000 * 60 * 60 * 1
+      ) {
+        throw new Error("You can regenerate a new key only once an hour.");
+      }
+
+      user.lastRegen = Date.now()
+      user.secretKey = generateSecretKey()
+      user.apiKey = generateUserApiKey()
+      await user.save()
+
+      return {
+        secretKey: user.secretKey,
+        apiKey: user.apiKey
+      }
     },
     signOut: async (_, params, ctx: IContext) => {
       ctx.res.clearCookie("jwt")

@@ -19,6 +19,7 @@ import { selectAuth } from "../src/redux/store"
 import { useRouter } from "next/router"
 import { ErrorText } from "./login"
 import loginThunk from "../src/redux/thunks/login"
+import NetworkCard, { NetworkContainer } from "../src/components/NetworkCard"
 
 const Signup: NextPage = props => {
   const isSmall = useMediaQuery("(max-width: 50rem)", false)
@@ -86,6 +87,7 @@ const InteractSide: React.FC = () => {
   })
   const [confirmPass, setConfirmPass] = useState("")
   const user = useSelector(selectAuth)
+  const [network, setNet] = useState<"dev" | "main">("main")
   const dispatch = useDispatch()
   const router = useRouter()
 
@@ -120,7 +122,7 @@ const InteractSide: React.FC = () => {
     dispatch(
       signUpThunk({
         email,
-        network: DEFAULT_NETWORK,
+        network,
         password,
         onError: msg => setError(prev => ({ ...prev, confirmPass: msg }))
       })
@@ -157,7 +159,24 @@ const InteractSide: React.FC = () => {
         onChange={e => setConfirmPass(e.target.value)}
       />
       {error.confirmPass && <ErrorText>{error.confirmPass}</ErrorText>}
-
+      <TextBoxLabel>Network</TextBoxLabel>
+      <NetworkContainer>
+        <NetworkCard
+          selected={network != "main"}
+          margin="0 .5rem 0 0"
+          network="main"
+          onClick={() => setNet("main")}
+        >
+          Main net
+        </NetworkCard>
+        <NetworkCard
+          onClick={() => setNet("dev")}
+          selected={network != "dev"}
+          network="dev"
+        >
+          Dev net
+        </NetworkCard>
+      </NetworkContainer>
       <Button onClick={submitSignup} variant="outline" margin="1rem 0">
         Sign Up
       </Button>

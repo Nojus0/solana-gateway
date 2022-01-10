@@ -10,7 +10,6 @@ const initialState = {
   isAuthenticated: false,
   isLoading: true,
   fetched: false,
-  network: "dev" as "dev" | "main",
   data: null as unknown as CurrentUser
 }
 
@@ -46,16 +45,30 @@ export const { setUser, setLoggedOut, removeWebhook, addWebhook } =
 
 export const selectAuth = (state: RootState) => state.authSlice
 
-export function useRequireAuth() {
-  const dispatch = useDispatch()
-  const router = useRouter()
+export function useFetchCurrent() {
   const user = useSelector(selectAuth)
+  const router = useRouter()
+  const dispatch = useDispatch()
+
+  useEffect(() => {
+    if (!user.fetched) dispatch(currentUserThunk())
+  }, [user])
+}
+
+export function useRequireAuth() {
+  const user = useSelector(selectAuth)
+  const router = useRouter()
+  const dispatch = useDispatch()
 
   useEffect(() => {
     if (!user.fetched) dispatch(currentUserThunk())
 
-    if (!user.isAuthenticated && !user.isLoading) {
-      router.push("/login")
+    if (
+      !user.isAuthenticated &&
+      !user.isLoading &&
+      router.pathname != "/login"
+    ) {
+      router.push("/login", "/login")
     }
   }, [user])
 }

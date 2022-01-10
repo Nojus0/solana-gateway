@@ -33,7 +33,8 @@ const signUpThunk = createAsyncThunk<
               isFast: true,
               webhooks: true,
               walletAddress: true,
-              recieved: true
+              recieved: true,
+              network: true 
             }
           ]
         },

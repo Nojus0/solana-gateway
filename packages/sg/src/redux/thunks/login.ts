@@ -35,6 +35,7 @@ const loginThunk = createAsyncThunk<
               webhooks: true,
               walletAddress: true,
               recieved: true,
+              network: true 
             }
           ]
         },

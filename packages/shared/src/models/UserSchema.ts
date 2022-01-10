@@ -1,4 +1,4 @@
-import crypto from "crypto"
+import crypto, { createHash } from "crypto"
 import base58 from "bs58"
 import dynamoose from "dynamoose"
 import { Document } from "dynamoose/dist/Document"
@@ -25,6 +25,7 @@ export interface User {
   apiKey: string
   secretKey: string
   network: string
+  lastRegen: number
 }
 
 export interface CurrentUser {
@@ -32,6 +33,7 @@ export interface CurrentUser {
   recieved: number
   isFast: boolean
   webhooks: string[]
+  network: string
   walletAddress?: string | undefined
 }
 
@@ -39,6 +41,9 @@ export type UserDocument = User & Document
 
 export const generateUserApiKey = () =>
   `ak_${base58.encode(crypto.randomBytes(16))}`
+
+export const generateSecretKey = () =>
+  `sk_${base58.encode(crypto.randomBytes(16))}`
 
 const UserSchema = new dynamoose.Schema({
   pk: {
@@ -57,6 +62,9 @@ const UserSchema = new dynamoose.Schema({
   },
   walletAddress: {
     type: String
+  },
+  lastRegen: {
+    type: Number
   },
   network: {
     type: String,
@@ -96,12 +104,12 @@ const UserSchema = new dynamoose.Schema({
       global: true,
       name: "apiKey-gsi"
     },
-    type: String,
-    default: generateUserApiKey
+    type: String
+    // default: generateUserApiKey
   },
   secretKey: {
-    type: String,
-    default: () => `sk_${base58.encode(crypto.randomBytes(16))}`
+    type: String
+    // default: () => `sk_${base58.encode(crypto.randomBytes(16))}`
   }
 })
 

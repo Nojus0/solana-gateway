@@ -39,7 +39,7 @@ const ListHeader: React.FC<IListHeaderProps> = ({
           <GatewayText>Gateway</GatewayText>
 
           <ProfileWrapper>
-            <NetworkCard margin="0 1rem" network="dev">Dev net</NetworkCard>
+            <NetworkCard margin="0 1rem" network={user?.data?.network as any} selected>{user?.data?.network} net</NetworkCard>
             <ProfileCircle onClick={() => setDrop(prev => !prev)}>
               {user?.data?.email?.substring(0, 1)}
             </ProfileCircle>

@@ -154,6 +154,7 @@ export const ReturnTypes: Record<string,any> = {
 		setPublicKey:"String",
 		addWebhook:"String",
 		removeWebhook:"String",
+		keys:"Keys",
 		logout:"Boolean",
 		login:"CurrentUser",
 		signOut:"Boolean",
@@ -168,6 +169,7 @@ export const ReturnTypes: Record<string,any> = {
 	CurrentUser:{
 		email:"String",
 		recieved:"Float",
+		network:"String",
 		isFast:"Boolean",
 		webhooks:"String",
 		walletAddress:"String"
@@ -175,6 +177,10 @@ export const ReturnTypes: Record<string,any> = {
 	BasicUser:{
 		email:"String",
 		recieved:"Float"
+	},
+	Keys:{
+		secretKey:"String",
+		apiKey:"String"
 	},
 	DepositAddress:{
 		publicKey:"String"

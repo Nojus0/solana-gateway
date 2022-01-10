@@ -12,13 +12,14 @@ const currentUserThunk = createAsyncThunk(
           isFast: true,
           webhooks: true,
           recieved: true,
-          walletAddress: true
+          walletAddress: true,
+          network: true
         }
       })
 
       if (currentUserQuery.currentUser) {
         dispatch(setUser(currentUserQuery.currentUser))
-        
+
         fulfillWithValue(currentUserQuery.currentUser)
       }
     } catch (err) {

@@ -55,6 +55,7 @@ export const LogoBoxWrapper = styled.a({
 
 export const Underline = styled.div({
   width: "100%",
+  borderRadius: "9rem",
   height: "0.1rem",
   background: "#E8E8E8"
 })
