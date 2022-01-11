@@ -7,7 +7,7 @@ import Button from "../src/components/Button"
 import Container from "../src/components/Container"
 import ListHeader from "../src/components/ListHeader"
 import { A } from "../src/components/Text"
-import BasicRowCard from "../src/components/BasicRowCard"
+import BasicRowCard, { BasicWrapper } from "../src/components/BasicRowCard"
 import { Wrapper } from "../src/layout/dashboard/styled"
 import { useRequireAuth } from "../src/redux/slices/authSlice"
 import { useSelector } from "react-redux"
@@ -19,6 +19,7 @@ import { AnimatePresence, motion } from "framer-motion"
 import fadeVariant from "../src/animations/fadeVariant"
 import Spinner, { SpinnerWrapper } from "../src/svg/Spinner"
 import useScrollBar from "../src/layout/dashboard/useScrollBar"
+import { Waypoint } from "react-waypoint"
 type PropType<TObj, TProp extends keyof TObj> = TObj[TProp]
 type Awaited<T> = T extends PromiseLike<infer U> ? U : T
 
@@ -86,12 +87,14 @@ const useComponentWillMount = (cb: () => void) => {
 const Transfers: NextPage = () => {
   const router = useRouter()
   useRequireAuth()
-  useScrollBar();
+  useScrollBar()
   const user = useSelector(selectAuth)
+  const limit = 50
   const [transactions, setTransactions] = useState<TransferBasic[]>([])
   const [loading, setLoading] = useState(true)
-  const [next, setNext] = useState<string | undefined>()
+  const [next, setNext] = useState<string | null>(null)
   const [error, setError] = useState("")
+  const [isMore, setMore] = useState(true)
 
   useEffect(() => {
     fetchTransactions()
@@ -99,19 +102,30 @@ const Transfers: NextPage = () => {
 
   async function fetchTransactions() {
     setLoading(true)
-    const txns = await getTransactions(TransactionFilter.All, null)
+    const txns = await getTransactions(TransactionFilter.All, next, limit)
 
     if (typeof txns === "string") return setError(txns)
     if (typeof txns === "object") {
       setError("")
-      setTransactions(txns.transactions)
-      setNext(txns.next)
+      setTransactions(prev => [...prev, ...txns.transactions])
+
+      if (txns.transactions.length < limit) {
+        setMore(false)
+      }
+
+      setNext(txns.next || null)
     }
     setLoading(false)
   }
 
   if (user.isLoading) {
     return null
+  }
+
+  function reachedBottom() {
+    if (!isMore || loading || !next) return
+    console.log(`fetching more`)
+    fetchTransactions()
   }
 
   return (
@@ -128,39 +142,83 @@ const Transfers: NextPage = () => {
                 <Spinner />
               </SpinnerWrapper>
             )}
-            {transactions.map(txn => (
-              <BasicRowCard
-                key={txn.uuid}
-                fields={[
-                  {
-                    label: "amount",
-                    value: `${txn.recieveLm * 0.000000001} SOL`
-                  },
-                  {
-                    label: "data",
-                    value: txn.payload || "No Payload"
-                  },
-                  {
-                    label: "status",
-                    value: txn.status
-                  }
-                ]}
-                title="transfer"
-              >
-                <Link passHref href={`/transfer/${txn.uuid}`}>
-                  <ButtonRight>
-                    <Button
-                      margin="1.15rem 0 0 0"
-                      fontSize=".95rem"
-                      padding=".35rem 1rem"
-                      variant="outline"
-                    >
-                      More
-                    </Button>
-                  </ButtonRight>
-                </Link>
-              </BasicRowCard>
-            ))}
+            {transactions.map((txn, i) => {
+              const isLast = i === transactions.length - 1
+
+              if (isLast) {
+                return (
+                  <Waypoint onEnter={reachedBottom} key={txn.uuid}>
+                    <BasicWrapper>
+                      <BasicRowCard
+                        key={txn.uuid}
+                        fields={[
+                          {
+                            label: "amount",
+                            value: `${txn.recieveLm * 0.000000001} SOL`
+                          },
+                          {
+                            label: "data",
+                            value: txn.payload || "No Payload"
+                          },
+                          {
+                            label: "status",
+                            value: txn.status
+                          }
+                        ]}
+                        title="transfer"
+                      >
+                        <Link passHref href={`/transfer/${txn.uuid}`}>
+                          <ButtonRight>
+                            <Button
+                              margin="1.15rem 0 0 0"
+                              fontSize=".95rem"
+                              padding=".35rem 1rem"
+                              variant="outline"
+                            >
+                              More
+                            </Button>
+                          </ButtonRight>
+                        </Link>
+                      </BasicRowCard>
+                    </BasicWrapper>
+                  </Waypoint>
+                )
+              }
+
+              return (
+                <BasicRowCard
+                  key={txn.uuid}
+                  fields={[
+                    {
+                      label: "amount",
+                      value: `${txn.recieveLm * 0.000000001} SOL`
+                    },
+                    {
+                      label: "data",
+                      value: txn.payload || "No Payload"
+                    },
+                    {
+                      label: "status",
+                      value: txn.status
+                    }
+                  ]}
+                  title="transfer"
+                >
+                  <Link passHref href={`/transfer/${txn.uuid}`}>
+                    <ButtonRight>
+                      <Button
+                        margin="1.15rem 0 0 0"
+                        fontSize=".95rem"
+                        padding=".35rem 1rem"
+                        variant="outline"
+                      >
+                        More
+                      </Button>
+                    </ButtonRight>
+                  </Link>
+                </BasicRowCard>
+              )
+            })}
           </Browser>
         </Container>
       </Wrapper>

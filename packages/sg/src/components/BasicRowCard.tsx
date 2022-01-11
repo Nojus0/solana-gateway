@@ -64,6 +64,11 @@ const Title = styled.h1({
   margin: ".5rem 0"
 })
 
+export const BasicWrapper = styled.div({
+  flexGrow: 1,
+  minWidth: "20rem",
+})
+
 const Box = styled(motion.div)({
   background: "#FFFFFF",
   borderRadius: ".75rem",

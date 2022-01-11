@@ -38,13 +38,21 @@ const ListHeader: React.FC<IListHeaderProps> = ({
           <CustomLogo width="2.5rem" height="2.5rem" />
           <GatewayText>Gateway</GatewayText>
 
-          <ProfileWrapper>
-            <NetworkCard margin="0 1rem" network={user?.data?.network as any} selected>{user?.data?.network} net</NetworkCard>
-            <ProfileCircle onClick={() => setDrop(prev => !prev)}>
-              {user?.data?.email?.substring(0, 1)}
-            </ProfileCircle>
-            <Dropdown when={isDrop} setWhen={setDrop} />
-          </ProfileWrapper>
+          {!user.isLoading && (
+            <ProfileWrapper>
+              <NetworkCard
+                margin="0 1rem"
+                network={user?.data?.network as any}
+                selected
+              >
+                {user?.data?.network} net
+              </NetworkCard>
+              <ProfileCircle onClick={() => setDrop(prev => !prev)}>
+                {user?.data?.email?.substring(0, 1)}
+              </ProfileCircle>
+              <Dropdown when={isDrop} setWhen={setDrop} />
+            </ProfileWrapper>
+          )}
         </RightWrapper>
 
         <Routes>
@@ -122,7 +130,8 @@ const RightWrapper = styled.div(
   ({ justifyContent = "center" }: IJustifyContent) => ({
     display: "flex",
     justifyContent,
-    width: "100%"
+    width: "100%",
+    minHeight: "3.25rem"
   })
 )
 

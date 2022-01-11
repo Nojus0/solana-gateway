@@ -2,7 +2,7 @@ import styled from "@emotion/styled"
 import { NextPage } from "next"
 import Head from "next/head"
 import { useRouter } from "next/router"
-import { useEffect, useState } from "react"
+import React, { useEffect, useState } from "react"
 import { useSelector } from "react-redux"
 import Button from "../../src/components/Button"
 import Container from "../../src/components/Container"
@@ -14,23 +14,79 @@ import {
   SubTitleWrapper,
   Wrapper
 } from "../../src/layout/dashboard/styled"
+import useScrollBar from "../../src/layout/dashboard/useScrollBar"
 import { useRequireAuth } from "../../src/redux/slices/authSlice"
 import { selectAuth } from "../../src/redux/store"
+import Spinner, { SpinnerWrapper } from "../../src/svg/Spinner"
+import { $, GraphQLError } from "../../src/zeus"
 import { GqlInclude } from "../../src/zeus/custom"
+import { ErrorText } from "../login"
+
+interface ITransaction {
+  uuid: string
+  confirmedAt?: number
+  createdAt: number
+  payload?: string | undefined
+  recieveLm: number
+  status: string
+  recieveSig: string
+  senderLm: number
+  senderSig: string
+  senderPk: string
+  senderTo: string
+}
 
 async function getTransaction(uuid: string) {
+  try {
+    const data = await GqlInclude("query")(
+      {
+        getTransaction: [
+          {
+            uuid: $`uuid`
+          },
+          {
+            confirmedAt: true,
+            createdAt: true,
+            payload: true,
+            recieveLm: true,
+            status: true,
+            uuid: true,
+            recieveSig: true,
+            senderLm: true,
+            senderSig: true,
+            senderPk: true,
+            senderTo: true
+          }
+        ]
+      },
+      {
+        operationName: "getTransaction",
+        variables: {
+          uuid
+        }
+      }
+    )
+    return data.getTransaction
+  } catch (err) {
+    if (err instanceof GraphQLError && err.response?.errors) {
+      return err.response.errors.map((e: any) => e.message).join("\n")
+    }
 
-  const data = await GqlInclude("query")({
-    
-  })
-
-} 
+    if (err instanceof TypeError) {
+      return "Please check your internet connection"
+    }
+    return "Error fetching transaction"
+  }
+}
 
 const Uuid: NextPage = () => {
   useRequireAuth()
+  useScrollBar()
   const user = useSelector(selectAuth)
   const router = useRouter()
   const [uuid, setUUID] = useState("")
+  const [txn, setTxn] = useState<ITransaction>()
+  const [error, setError] = useState("")
 
   useEffect(() => {
     if (!router.isReady) return
@@ -41,6 +97,19 @@ const Uuid: NextPage = () => {
       router.push("/transfers")
     }
   }, [router])
+
+  useEffect(() => {
+    if (!uuid) return
+    fetchCurrentTransaction()
+  }, [uuid])
+
+  async function fetchCurrentTransaction() {
+    const data = await getTransaction(uuid)
+
+    if (typeof data === "string") return setError(data)
+
+    if (data) setTxn(data)
+  }
 
   return (
     <>
@@ -63,71 +132,75 @@ const Uuid: NextPage = () => {
           <Underline />
         </ListHeader>
         <Container max="60rem" min="1px" value="100%">
-          {user.isLoading ? <p>Loading...</p> : <Transaction />}
+          {user.isLoading || !txn ? (
+            <SpinnerWrapper>
+              <Spinner />
+              {error && <ErrorText>{error}</ErrorText>}
+            </SpinnerWrapper>
+          ) : (
+            <Transaction {...txn} />
+          )}
         </Container>
       </Wrapper>
     </>
   )
 }
 
-function Transaction() {
+const Transaction: React.FC<ITransaction> = props => {
   return (
     <TransactionBox>
       <Row>
         <Title>uuid</Title>
-        <Value>231sd123ad32rsdw</Value>
+        <Value>{props.uuid}</Value>
       </Row>
       <Row>
         <Title>status</Title>
-        <Value>Confirmed</Value>
+        <Value>{props.status}</Value>
       </Row>
       <Row>
         <Title>amount</Title>
-        <Value>0.01 SOL</Value>
+        <Value>{props.senderLm * 0.000000001}</Value>
       </Row>
       <Row>
         <Title>sender address</Title>
-        <Value>BtmeDx97CSrq9ce7dARsgnusA7YHbVe6732cfTkd8SFW</Value>
+        <Value>{props.senderPk}</Value>
         <Button padding=".45rem 1rem" variant="outline">
           Copy
         </Button>
       </Row>
       <Row>
         <Title>sender signature</Title>
-        <Value>31cm6RaU1YHHzhQQ5Ztw3jLu3ncofqtQRypW4zMY33E...</Value>
-        <Button padding=".45rem 1rem" variant="outline">
-          Copy
-        </Button>
-      </Row>
-      <Row>
-        <Title>resend signature</Title>
-        <Value>31cm6RaU1YHHzhQQ5Ztw3jLu3ncofqtQRypW4zMY33E...</Value>
+        <Value>{props.senderSig}</Value>
         <Button padding=".45rem 1rem" variant="outline">
           Copy
         </Button>
       </Row>
       <Row>
         <Title>recieve signature</Title>
-        <Value>31cm6RaU1YHHzhQQ5Ztw3jLu3ncofqtQRypW4zMY33E...</Value>
+        <Value>{props.recieveSig}</Value>
         <Button padding=".45rem 1rem" variant="outline">
           Copy
         </Button>
       </Row>
       <Row>
         <Title>recieve amount</Title>
-        <Value>0.9 SOL</Value>
+        <Value>{props.recieveLm * 0.000000001}</Value>
       </Row>
       <Row>
         <Title>payload</Title>
-        <Value>data=2</Value>
+        <Value>{props.payload}</Value>
       </Row>
       <Row>
         <Title>created</Title>
-        <Value>2021-12-28 7:32pm</Value>
+        <Value>{new Date(props.createdAt).toUTCString()}</Value>
       </Row>
       <Row>
         <Title>confirmed</Title>
-        <Value>2021-12-28 7:32pm</Value>
+        <Value>
+          {props.confirmedAt
+            ? new Date(props.confirmedAt).toUTCString()
+            : "false"}
+        </Value>
       </Row>
     </TransactionBox>
   )

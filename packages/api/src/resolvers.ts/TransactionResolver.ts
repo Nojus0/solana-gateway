@@ -61,7 +61,7 @@ export const transactionDefs = gql`
 async function paginify(
   Limit: number,
   user: UserDocument,
-  filter: "PENDING" | "CONFIRMED" | "",
+  filter: "PENDING" | "CONFIRMED" | "ALL",
   next?: string
 ) {
   if (next?.includes("#")) throw new Error("Invalid next token.")
@@ -71,18 +71,24 @@ async function paginify(
       .where("pk")
       .eq(user.pk)
       .filter("sk")
-      .beginsWith(`NET#${user.network}#TXN#${filter}`)
+      .beginsWith(`NET#${user.network}#TXN#${filter == "ALL" ? "" : filter}`)
   ).limit(Limit)
 
   if (next) {
-    const [type, id, time]: [string, string, string] = (next as any).split(".")
+    const [status, id, time]: [string, string, string] = (next as any).split(
+      "."
+    )
 
-    if (base58.decode(id).byteLength != TransactionUUIDLength)
+    if (
+      (filter == "CONFIRMED" && status != "CONFIRMED") ||
+      (filter == "PENDING" && status != "PENDING") ||
+      (filter == "ALL" && status != "CONFIRMED" && status != "PENDING")
+    )
       throw new Error("Invalid next token.")
 
     query.startAt({
       pk: user.pk,
-      sk: `NET#${user.network}#TXN#${type}#${id}#${time}`
+      sk: `NET#${user.network}#TXN#${status}#${id}#${time}`
     })
   }
 
@@ -104,7 +110,7 @@ export const transactionResolver = {
       const nextToken = params.next ? decryptToken(params.next) : null
       switch (params.filter) {
         case "All": {
-          return await paginify(Limit, user, "", nextToken)
+          return await paginify(Limit, user, "ALL", nextToken)
         }
         case "Confirmed": {
           return await paginify(Limit, user, "CONFIRMED", nextToken)

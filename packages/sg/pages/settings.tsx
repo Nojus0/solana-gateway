@@ -29,7 +29,7 @@ const PLACEHOLDER_KEY = "******************"
 
 const Settings: NextPage = props => {
   useRequireAuth()
-  useScrollBar();
+  useScrollBar()
   const user = useSelector(selectAuth)
   const [showAK, setAK] = useState(false)
   const [showSK, setSK] = useState(false)
@@ -103,7 +103,12 @@ interface IKeys {
 
 const KeyBoxEmpty: React.FC<IKeys> = p => {
   return (
-    <KeysBox>
+    <KeysBox
+      variants={fadeVariant}
+      animate="visible"
+      initial="hidden"
+      exit="hidden"
+    >
       <KeyBoxInner>
         <NetworkCard margin="0" network={p.network as any}>
           {p.network} net
@@ -128,8 +133,9 @@ const KeyBoxEmpty: React.FC<IKeys> = p => {
         />
         {p.accessKey != PLACEHOLDER_KEY && (
           <InfoText>
-            Please keep save the access key and secret key in a safe place. You
-            wont be able to view these keys again!
+            Please save the access key and secret key in a safe place. You wont
+            be able to view these keys again! Though you can generate a new one
+            every 1 hour.
           </InfoText>
         )}
         {p.error && <ErrorText>{p.error}</ErrorText>}
@@ -164,7 +170,7 @@ const KeyBoxMain = styled(KeyBoxInner)({
   flexDirection: "column"
 })
 
-const KeysBox = styled.div({
+const KeysBox = styled(motion.div)({
   margin: "1rem 0 7.5rem 0",
   borderRadius: "0.85rem",
   background: "white",

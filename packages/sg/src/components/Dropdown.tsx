@@ -30,7 +30,7 @@ const Dropdown: React.FC<IDropdownProps> = p => {
   const oppositeNetwork = useMemo(() => {
     return user?.data?.network == "main"
       ? "dev"
-      : user.data.network == "dev"
+      : user?.data?.network == "dev"
       ? "main"
       : "unknown"
   }, [user])
