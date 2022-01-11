@@ -36,11 +36,14 @@ export const authSlice = createSlice({
     },
     addWebhook: (state, action: PayloadAction<string>) => {
       state.data.webhooks.push(action.payload)
+    },
+    setFast: (state, action: PayloadAction<boolean>) => {
+      state.data.isFast = action.payload
     }
   }
 })
 
-export const { setUser, setLoggedOut, removeWebhook, addWebhook } =
+export const { setUser, setLoggedOut, removeWebhook, addWebhook, setFast } =
   authSlice.actions
 
 export const selectAuth = (state: RootState) => state.authSlice

@@ -3,6 +3,7 @@ import Link from "next/link"
 import Logo, { GatewayText } from "../svg/Logo"
 import Button, { TextButton } from "./Button"
 import Container from "./Container"
+import { IMargin } from "./interfaces"
 import { A } from "./Text"
 import useMediaQuery from "./useMediaQuery"
 
@@ -53,12 +54,26 @@ export const LogoBoxWrapper = styled.a({
   textDecoration: "none"
 })
 
-export const Underline = styled.div({
-  width: "100%",
-  borderRadius: "9rem",
-  height: "0.1rem",
-  background: "#E8E8E8"
-})
+interface IUnderline {
+  height?: string
+  width?: string
+  color?: string
+}
+
+export const Underline = styled.div(
+  ({
+    color = "#E8E8E8",
+    height = "0.1rem",
+    width = "100%",
+    margin = "0"
+  }: IUnderline & IMargin) => ({
+    width,
+    height,
+    margin,
+    background: color,
+    borderRadius: "9rem"
+  })
+)
 
 const HeaderButtons = styled.div({
   display: "flex",

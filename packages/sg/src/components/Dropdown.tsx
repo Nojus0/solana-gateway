@@ -63,8 +63,6 @@ const Dropdown: React.FC<IDropdownProps> = p => {
           initial="hidden"
           exit="hidden"
         >
-          <BoxEntry>Network</BoxEntry>
-
           <BoxEntry onClick={switchNetwork}>
             <BoxText>Switch to</BoxText>
             <NetworkCard network={oppositeNetwork as any}>
