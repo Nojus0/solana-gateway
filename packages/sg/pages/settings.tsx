@@ -18,6 +18,7 @@ import {
   SubTitleWrapper,
   Wrapper
 } from "../src/layout/dashboard/styled"
+import useScrollBar from "../src/layout/dashboard/useScrollBar"
 import { useRequireAuth } from "../src/redux/slices/authSlice"
 import { selectAuth } from "../src/redux/store"
 import { GraphQLError } from "../src/zeus"
@@ -28,6 +29,7 @@ const PLACEHOLDER_KEY = "******************"
 
 const Settings: NextPage = props => {
   useRequireAuth()
+  useScrollBar();
   const user = useSelector(selectAuth)
   const [showAK, setAK] = useState(false)
   const [showSK, setSK] = useState(false)
@@ -104,7 +106,7 @@ const KeyBoxEmpty: React.FC<IKeys> = p => {
     <KeysBox>
       <KeyBoxInner>
         <NetworkCard margin="0" network={p.network as any}>
-          {p.network}
+          {p.network} net
         </NetworkCard>
       </KeyBoxInner>
       <Underline />
@@ -163,7 +165,7 @@ const KeyBoxMain = styled(KeyBoxInner)({
 })
 
 const KeysBox = styled.div({
-  margin: "1rem 0",
+  margin: "1rem 0 7.5rem 0",
   borderRadius: "0.85rem",
   background: "white",
   boxShadow: "0px 2px 16px rgba(55, 55, 55, 0.25)"

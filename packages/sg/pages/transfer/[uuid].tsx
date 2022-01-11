@@ -175,22 +175,22 @@ const TransactionBox = styled.div({
   background: "white",
   boxShadow: "0px 2px 4px rgba(99, 99, 99, 0.25)",
 
-  "::-webkit-scrollbar": {
+  "&::-webkit-scrollbar": {
     width: "15px",
     height: "15px",
     backgroundColor: "inherit",
     borderRadius: "10px"
   },
-  "::-webkit-scrollbar-corner": {
+  "&::-webkit-scrollbar-corner": {
     backgroundColor: "#0000001a"
   },
-  "::-webkit-scrollbar-thumb": {
+  "&::-webkit-scrollbar-thumb": {
     borderRadius: "15px",
     backgroundColor: "#e95420",
     backgroundClip: "content-box",
     border: "4px solid transparent"
   },
-  "::-webkit-scrollbar-track": {
+  "&::-webkit-scrollbar-track": {
     backgroundColor: "#f5f5f5"
   }
 })

@@ -1,7 +1,7 @@
 import dynamoose from "dynamoose"
 
 export const config = {
-  table: "solana_payments",
+  table: "payments",
   region: "eu-west-2"
 }
 

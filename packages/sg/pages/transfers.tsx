@@ -2,7 +2,7 @@ import styled from "@emotion/styled"
 import { NextPage } from "next"
 import Head from "next/head"
 import Link from "next/link"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import Button from "../src/components/Button"
 import Container from "../src/components/Container"
 import ListHeader from "../src/components/ListHeader"
@@ -18,6 +18,7 @@ import { $, GraphQLError, TransactionFilter } from "../src/zeus"
 import { AnimatePresence, motion } from "framer-motion"
 import fadeVariant from "../src/animations/fadeVariant"
 import Spinner, { SpinnerWrapper } from "../src/svg/Spinner"
+import useScrollBar from "../src/layout/dashboard/useScrollBar"
 type PropType<TObj, TProp extends keyof TObj> = TObj[TProp]
 type Awaited<T> = T extends PromiseLike<infer U> ? U : T
 
@@ -74,9 +75,18 @@ async function getTransactions(
   }
 }
 
+const useComponentWillMount = (cb: () => void) => {
+  const willMount = useRef(true)
+
+  if (willMount.current) cb()
+
+  willMount.current = false
+}
+
 const Transfers: NextPage = () => {
   const router = useRouter()
   useRequireAuth()
+  useScrollBar();
   const user = useSelector(selectAuth)
   const [transactions, setTransactions] = useState<TransferBasic[]>([])
   const [loading, setLoading] = useState(true)

@@ -15,6 +15,7 @@ import {
   SubTitleWrapper,
   Wrapper
 } from "../src/layout/dashboard/styled"
+import useScrollBar from "../src/layout/dashboard/useScrollBar"
 import {
   addWebhook,
   removeWebhook,
@@ -27,7 +28,7 @@ import { ErrorText } from "./login"
 
 const Webhooks: NextPage = () => {
   useRequireAuth()
-
+  useScrollBar();
   const user = useSelector(selectAuth)
   const [add, setAdd] = useState(false)
   const [addUrl, setUrl] = useState("")

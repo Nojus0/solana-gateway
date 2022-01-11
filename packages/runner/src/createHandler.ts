@@ -54,7 +54,8 @@ export const createHandler = ({
       const { d, n, secret, u }: DepositRedisObject = JSON.parse(KEY_DATA)
 
       // * Rare case *
-      if (n != network.name) return console.log("Wrong network")
+      if (n != network.name)
+        return console.log(`Wrong network ${n} != ${network.name}`)
 
       const recieverKeyPair = new Keypair({
         publicKey: reciever.publicKey.toBytes(),
@@ -68,7 +69,7 @@ export const createHandler = ({
         })) as UserDocument
 
         const TAKE_FEE = Math.floor(
-          (reciever.change - fee) / (100 + network.fee)
+          ((reciever.change - fee) / (100 + network.fee)) * network.fee
         )
         const USER_GOT = Math.floor(reciever.change - TAKE_FEE - fee)
         const LEFT_BALANCE = Math.round(reciever.change - USER_GOT - TAKE_FEE)

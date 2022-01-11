@@ -3,7 +3,7 @@ import Button from "../../components/Button"
 
 export const Wrapper = styled.div({
   minHeight: "100%",
-  background: "#F5F5F5"
+  background: "#F5F5F5",
 })
 
 export const AddButton = styled(Button)({

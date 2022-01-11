@@ -44,13 +44,13 @@ const Dropdown: React.FC<IDropdownProps> = p => {
 
   async function switchNetwork() {
     if (await logout()) {
-      dispatch(setLoggedOut())
       router.push({
         pathname: `/login`,
         query: {
           network: oppositeNetwork
         }
       })
+      dispatch(setLoggedOut())
     }
   }
 

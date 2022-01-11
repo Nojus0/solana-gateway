@@ -115,19 +115,17 @@ export const transactionResolver = {
       }
     },
     getTransaction: async (_, params, { user }: APIContext) => {
-      const condition = new dynamoose.Condition()
-        .where("pk")
+      const [txn] = await Model.query("pk")
         .eq(user.pk)
-        .filter("sk")
-        .attribute("uuid")
+        .filter("uuid")
         .eq(params.uuid)
+        .limit(1)
+        .using("uuid-lsi")
+        .exec()
 
-      const txn = await Model.query(condition).exec()
-      console.log(txn)
+      if (!txn) throw new Error("Transaction not found.")
 
-      if (![txn]) throw new Error("Transaction not found.")
-
-      return [txn]
+      return txn
     }
   },
   Mutation: {

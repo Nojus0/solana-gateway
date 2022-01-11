@@ -49,7 +49,11 @@ const TransactionSchema = new dynamoose.Schema({
   },
   uuid: {
     type: String,
-    required: true
+    required: true,
+    index: {
+      name: "uuid-lsi",
+      global: false
+    }
   },
   senderPk: {
     type: String,

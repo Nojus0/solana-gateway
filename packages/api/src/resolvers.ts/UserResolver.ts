@@ -241,11 +241,10 @@ const UserResolver = {
       return USER
     },
     keys: async (_, params, { user }: APIContext) => {
-      if (
-        user.lastRegen != null &&
-        user.lastRegen < Date.now() + 1000 * 60 * 60 * 1
-      ) {
-        throw new Error("You can regenerate a new key only once an hour.");
+      const diff = Date.now() - user.lastRegen
+      console.log(diff)
+      if (diff < 1000 * 60 * 60) {
+        throw new Error("You can regenerate a new key only once an hour.")
       }
 
       user.lastRegen = Date.now()
