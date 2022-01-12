@@ -7,7 +7,7 @@ import Button from "../src/components/Button"
 import Container from "../src/components/Container"
 import ListHeader from "../src/components/ListHeader"
 import { A } from "../src/components/Text"
-import BasicRowCard, { BasicWrapper } from "../src/components/BasicRowCard"
+import BasicRowCard from "../src/components/BasicRowCard"
 import { Wrapper } from "../src/layout/dashboard/styled"
 import { useRequireAuth } from "../src/redux/slices/authSlice"
 import { useSelector } from "react-redux"
@@ -20,6 +20,7 @@ import fadeVariant from "../src/animations/fadeVariant"
 import Spinner, { SpinnerWrapper } from "../src/svg/Spinner"
 import useScrollBar from "../src/layout/dashboard/useScrollBar"
 import { Waypoint } from "react-waypoint"
+import useMediaQuery from "../src/components/useMediaQuery"
 type PropType<TObj, TProp extends keyof TObj> = TObj[TProp]
 type Awaited<T> = T extends PromiseLike<infer U> ? U : T
 
@@ -95,6 +96,7 @@ const Transfers: NextPage = () => {
   const [next, setNext] = useState<string | null>(null)
   const [error, setError] = useState("")
   const [isMore, setMore] = useState(true)
+  const isSmall = useMediaQuery(`(max-width: 65rem)`, false)
 
   useEffect(() => {
     fetchTransactions()
@@ -136,7 +138,12 @@ const Transfers: NextPage = () => {
       <Wrapper>
         <ListHeader selectedRoute="transfers" />
         <Container margin="0 .75rem" max="60rem" min="1px" value="100%">
-          <Browser variants={fadeVariant} animate="visible" initial="hidden">
+          <Browser
+            direction={isSmall ? "column" : "row"}
+            variants={fadeVariant}
+            animate="visible"
+            initial="hidden"
+          >
             {loading && (
               <SpinnerWrapper>
                 <Spinner />
@@ -148,8 +155,9 @@ const Transfers: NextPage = () => {
               if (isLast) {
                 return (
                   <Waypoint onEnter={reachedBottom} key={txn.uuid}>
-                    <BasicWrapper>
+                    <WaypointWrapper>
                       <BasicRowCard
+                        width={isSmall ? "100%" : "30rem"}
                         key={txn.uuid}
                         fields={[
                           {
@@ -180,7 +188,7 @@ const Transfers: NextPage = () => {
                           </ButtonRight>
                         </Link>
                       </BasicRowCard>
-                    </BasicWrapper>
+                    </WaypointWrapper>
                   </Waypoint>
                 )
               }
@@ -188,6 +196,7 @@ const Transfers: NextPage = () => {
               return (
                 <BasicRowCard
                   key={txn.uuid}
+                  width={isSmall ? "100%" : "30rem"}
                   fields={[
                     {
                       label: "amount",
@@ -226,12 +235,23 @@ const Transfers: NextPage = () => {
   )
 }
 
-const Browser = styled(motion.div)({
-  display: "flex",
-  flexWrap: "wrap",
-  alignItems: "flex-start",
-  justifyContent: "flex-start"
+interface IDirection {
+  direction?: "row" | "column"
+}
+
+const WaypointWrapper = styled.span({
+  width: "100%"
 })
+
+const Browser = styled(motion.div)(
+  ({ direction: flexDirection = "row" }: IDirection) => ({
+    flexDirection,
+    display: "flex",
+    flexWrap: "wrap",
+    alignItems: "center",
+    justifyContent: "flex-start"
+  })
+)
 
 const ButtonRight = styled.a({
   display: "flex",

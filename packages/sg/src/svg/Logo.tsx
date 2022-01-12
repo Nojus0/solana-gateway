@@ -1,7 +1,8 @@
-import styled from "@emotion/styled";
-import { SVGProps } from "react";
+import styled from "@emotion/styled"
+import { SVGProps } from "react"
+import { IGrow } from "../components/interfaces"
 
-const Logo: React.FC<SVGProps<SVGSVGElement>> = (props) => {
+const Logo: React.FC<SVGProps<SVGSVGElement>> = props => {
   return (
     <svg
       width="28"
@@ -16,15 +17,15 @@ const Logo: React.FC<SVGProps<SVGSVGElement>> = (props) => {
         fill="black"
       />
     </svg>
-  );
-};
+  )
+}
 
 export const GatewayText = styled.h1({
   fontWeight: 500,
+  flexGrow: 1,
   margin: "0 .85rem",
   color: "black",
-  flexGrow: 1,
-  fontSize: "2.15rem",
-});
+  fontSize: "2.15rem"
+})
 
-export default Logo;
+export default Logo

@@ -8,7 +8,7 @@ import Logo, { GatewayText } from "../svg/Logo"
 import Button, { TextButton } from "./Button"
 import Container from "./Container"
 import Dropdown from "./Dropdown"
-import { IJustifyContent, ISelected, IWrap } from "./interfaces"
+import { IGrow, IJustifyContent, ISelected, IWrap } from "./interfaces"
 import NetworkCard from "./NetworkCard"
 import { Underline } from "./NormalHeader"
 import ProfileCircle from "./ProfileCircle"
@@ -36,6 +36,7 @@ const ListHeader: React.FC<IListHeaderProps> = ({
       <Container margin="0 .75rem" max="60rem" min="1px" value="100%">
         <RightWrapper justifyContent={isSmall ? "flex-end" : "unset"}>
           <CustomLogo width="2.5rem" height="2.5rem" />
+
           <GatewayText>Gateway</GatewayText>
 
           {!user.isLoading && (
@@ -85,12 +86,17 @@ const ProfileWrapper = styled.div({
   alignItems: "center"
 })
 
-const CustomLogo = styled(Logo)({
+const GrowWrapper = styled.div({
+  flexGrow: 1
+})
+
+const CustomLogo = styled(Logo)(({ flexGrow = 0 }: IGrow) => ({
+  flexGrow,
   width: "2.5rem",
   height: "2.5rem",
   minHeight: "2.5rem",
   minWidth: "2.5rem"
-})
+}))
 
 const Routes = styled("div")({
   display: "flex",

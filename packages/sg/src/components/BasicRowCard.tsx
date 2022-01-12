@@ -1,8 +1,9 @@
 import styled from "@emotion/styled"
-import { AnimatePresence, motion } from "framer-motion"
+import { AnimatePresence, HTMLMotionProps, motion } from "framer-motion"
 import Link from "next/link"
 import fadeVariant from "../animations/fadeVariant"
 import Button from "./Button"
+import { IMargin } from "./interfaces"
 import { A } from "./Text"
 import TextBox from "./TextBox"
 
@@ -12,32 +13,48 @@ interface IField {
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void
 }
 
-interface IBasicRowCard {
+interface IBasicRowCard extends HTMLMotionProps<"div"> {
   title: string
   fields: IField[]
+  margin?: string
+  width?: string
 }
 
-const BasicRowCard: React.FC<IBasicRowCard> = p => {
+const BasicRowCard: React.FC<IBasicRowCard> = ({
+  title,
+  fields,
+  children,
+  width,
+  ...rest
+}) => {
   return (
-    <Box variants={fadeVariant} animate="visible" initial="hidden" exit="hidden">
-      <Title>{p.title}</Title>
-      {p.fields.map(field => (
-        <Row key={field.label}>
-          <Entry>{field.label}</Entry>
-          {field.onChange ? (
-            <TextBox
-              padding=".5rem"
-              margin="0"
-              value={field.value}
-              onChange={field.onChange}
-            />
-          ) : (
-            <Entry>{field.value}</Entry>
-          )}
-        </Row>
-      ))}
-      {p.children}
-    </Box>
+    <Wrapper width={width}>
+      <Box
+        variants={fadeVariant}
+        animate="visible"
+        initial="hidden"
+        exit="hidden"
+        {...rest}
+      >
+        <Title>{title}</Title>
+        {fields.map(field => (
+          <Row key={field.label}>
+            <Entry>{field.label}</Entry>
+            {field.onChange ? (
+              <TextBox
+                padding=".5rem"
+                margin="0"
+                value={field.value}
+                onChange={field.onChange}
+              />
+            ) : (
+              <Entry>{field.value}</Entry>
+            )}
+          </Row>
+        ))}
+        {children}
+      </Box>
+    </Wrapper>
   )
 }
 
@@ -63,24 +80,25 @@ const Title = styled.h1({
   color: "#575757",
   margin: ".5rem 0"
 })
+interface IWidth {
+  width?: string
+}
 
-export const BasicWrapper = styled.div({
-  flexGrow: 1,
-  minWidth: "20rem",
-})
-
-const Box = styled(motion.div)({
+const Wrapper = styled.div(({ width = "30rem" }: IWidth) => ({
+  width,
+  padding: "1rem"
+}))
+const Box = styled(motion.div)(({ margin = "0" }: IMargin) => ({
   background: "#FFFFFF",
   borderRadius: ".75rem",
-  minWidth: "20rem",
+  margin,
   padding: "1.7rem",
-  flexGrow: 1,
-  margin: "1.5rem 1.5rem 1.5rem 0",
+  // flexGrow: 1,
   wordBreak: "break-all",
   textOverflow: "ellipsis",
   // overflow: "hidden",
   boxShadow: "0px 2px 4px rgba(138, 138, 138, 0.25)"
-})
+}))
 
 export const ButtonRight = styled.div({
   display: "flex",

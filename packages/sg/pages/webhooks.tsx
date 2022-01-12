@@ -9,6 +9,7 @@ import Button from "../src/components/Button"
 import Container from "../src/components/Container"
 import ListHeader from "../src/components/ListHeader"
 import { Underline } from "../src/components/NormalHeader"
+import useMediaQuery from "../src/components/useMediaQuery"
 import {
   AddButton,
   SubTitle,
@@ -30,6 +31,7 @@ const Webhooks: NextPage = () => {
   const [addUrl, setUrl] = useState("")
   const [addError, setAddErr] = useState("")
   const dispatch = useDispatch()
+  const isSmall = useMediaQuery(`(max-width: 65rem)`, false)
   if (user.isLoading) return null
 
   async function submitRemoveWebhook(url: string) {
@@ -108,8 +110,9 @@ const Webhooks: NextPage = () => {
           <WebhookBox>
             <AnimatePresence>
               {user?.data?.webhooks?.map(webhook => (
-                <BasicRowCard
+                <TransferCard
                   key={webhook}
+                  width={isSmall ? "100%" : "30rem"}
                   title="Webhook"
                   fields={[
                     {
@@ -129,13 +132,13 @@ const Webhooks: NextPage = () => {
                       Delete
                     </Button>
                   </ButtonRight>
-                </BasicRowCard>
+                </TransferCard>
               ))}
             </AnimatePresence>
 
             <AnimatePresence>
               {add && (
-                <BasicRowCard
+                <TransferCard
                   title="Webhook"
                   fields={[
                     {
@@ -169,7 +172,7 @@ const Webhooks: NextPage = () => {
                       Add
                     </Button>
                   </ButtonRight>
-                </BasicRowCard>
+                </TransferCard>
               )}
             </AnimatePresence>
           </WebhookBox>
@@ -178,6 +181,10 @@ const Webhooks: NextPage = () => {
     </>
   )
 }
+
+const TransferCard = styled(BasicRowCard)({
+  width: "100%"
+})
 
 const Text = styled.p({
   color: "black",

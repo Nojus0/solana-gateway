@@ -28,3 +28,11 @@ export interface IJustifyContent {
 export interface ISelected {
   selected?: boolean
 }
+
+export interface IDirection {
+  direction?: string
+}
+
+export interface IGrow {
+  flexGrow?: number
+}
