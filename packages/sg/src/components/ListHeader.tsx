@@ -8,7 +8,7 @@ import Logo, { GatewayText } from "../svg/Logo"
 import Button, { TextButton } from "./Button"
 import Container from "./Container"
 import Dropdown from "./Dropdown"
-import { IGrow, IJustifyContent, ISelected, IWrap } from "./interfaces"
+import { IGrow, IJustifyContent, IMargin, ISelected, IWrap } from "./interfaces"
 import NetworkCard from "./NetworkCard"
 import { Underline } from "./NormalHeader"
 import ProfileCircle from "./ProfileCircle"
@@ -27,7 +27,7 @@ const ListHeader: React.FC<IListHeaderProps> = ({
   selectedRoute = "none",
   children
 }) => {
-  const isSmall = useMediaQuery("(max-width: 45rem)", false)
+  const isSmall = useMediaQuery("(max-width: 45rem)")
   const user = useSelector(selectAuth)
   const [isDrop, setDrop] = useState(false)
 
@@ -35,9 +35,16 @@ const ListHeader: React.FC<IListHeaderProps> = ({
     <Header justifyContent={showLogo && !isSmall ? "center" : "flex-end"}>
       <Container margin="0 .75rem" max="60rem" min="1px" value="100%">
         <RightWrapper justifyContent={isSmall ? "flex-end" : "unset"}>
-          <CustomLogo width="2.5rem" height="2.5rem" />
-
-          <GatewayText>Gateway</GatewayText>
+          {!isSmall ? (
+            <>
+              <CustomLogo width="2.5rem" height="2.5rem" />
+              <GatewayText>Gateway</GatewayText>
+            </>
+          ) : (
+            <GrowWrapper flexGrow={1}>
+              <CustomLogo width="2.5rem" height="2.5rem" />
+            </GrowWrapper>
+          )}
 
           {!user.isLoading && (
             <ProfileWrapper>
@@ -86,9 +93,12 @@ const ProfileWrapper = styled.div({
   alignItems: "center"
 })
 
-const GrowWrapper = styled.div({
-  flexGrow: 1
-})
+const GrowWrapper = styled.div(
+  ({ flexGrow = 0, margin = "0 .5rem" }: IGrow & IMargin) => ({
+    flexGrow,
+    margin
+  })
+)
 
 const CustomLogo = styled(Logo)(({ flexGrow = 0 }: IGrow) => ({
   flexGrow,

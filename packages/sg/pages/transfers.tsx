@@ -175,8 +175,8 @@ const Transfers: NextPage = () => {
                         ]}
                         title="transfer"
                       >
-                        <Link passHref href={`/transfer/${txn.uuid}`}>
-                          <ButtonRight>
+                        <ButtonRight>
+                          <Link passHref href={`/transfer/${txn.uuid}`}>
                             <Button
                               margin="1.15rem 0 0 0"
                               fontSize=".95rem"
@@ -185,8 +185,8 @@ const Transfers: NextPage = () => {
                             >
                               More
                             </Button>
-                          </ButtonRight>
-                        </Link>
+                          </Link>
+                        </ButtonRight>
                       </BasicRowCard>
                     </WaypointWrapper>
                   </Waypoint>
@@ -213,18 +213,19 @@ const Transfers: NextPage = () => {
                   ]}
                   title="transfer"
                 >
-                  <Link passHref href={`/transfer/${txn.uuid}`}>
-                    <ButtonRight>
-                      <Button
-                        margin="1.15rem 0 0 0"
-                        fontSize=".95rem"
-                        padding=".35rem 1rem"
-                        variant="outline"
-                      >
-                        More
-                      </Button>
-                    </ButtonRight>
-                  </Link>
+                  <RightDiv>
+                    <Link passHref href={`/transfer/${txn.uuid}`}>
+                      <A margin="1.15rem 0 0 0">
+                        <Button
+                          fontSize=".95rem"
+                          padding=".35rem 1rem"
+                          variant="outline"
+                        >
+                          More
+                        </Button>
+                      </A>
+                    </Link>
+                  </RightDiv>
                 </BasicRowCard>
               )
             })}
@@ -252,6 +253,11 @@ const Browser = styled(motion.div)(
     justifyContent: "flex-start"
   })
 )
+
+export const RightDiv = styled.div({
+  display: "flex",
+  justifyContent: "flex-end"
+})
 
 const ButtonRight = styled.a({
   display: "flex",

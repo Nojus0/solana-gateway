@@ -1,4 +1,5 @@
 import styled from "@emotion/styled"
+import { IMargin } from "./interfaces"
 
 interface IText {
   fontSize?: string
@@ -16,9 +17,10 @@ export const Text = styled.h1(
   })
 )
 
-export const A = styled.a({
+export const A = styled.a(({ margin = "0" }: IMargin) => ({
+  margin,
   textDecoration: "none",
   display: "flex",
   alignItems: "center",
   justifyContent: "center"
-})
+}))

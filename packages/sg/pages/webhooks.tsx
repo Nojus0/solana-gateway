@@ -22,6 +22,7 @@ import { selectAuth } from "../src/redux/store"
 import { $, GraphQLError } from "../src/zeus"
 import { GqlInclude } from "../src/zeus/custom"
 import { ErrorText } from "./login"
+import { RightDiv } from "./transfers"
 
 const Webhooks: NextPage = () => {
   useRequireAuth()
