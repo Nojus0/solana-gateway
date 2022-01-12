@@ -7,7 +7,7 @@ type ZEUS_UNIONS = never
 export type ValueTypes = {
     ["Date"]:unknown;
 	["Mutation"]: AliasType<{
-createUser?: [{	email:string,	password:string,	network:string},ValueTypes["CurrentUser"]],
+createUser?: [{	email:string,	password:string,	network:string,	token:string},ValueTypes["CurrentUser"]],
 changeWebhook?: [{	newUrl:string},boolean],
 	regenerateApiKey?:boolean,
 setFast?: [{	newFast:boolean},boolean],
@@ -16,7 +16,7 @@ addWebhook?: [{	newUrl:string},boolean],
 removeWebhook?: [{	removeUrl:string},boolean],
 	keys?:ValueTypes["Keys"],
 	logout?:boolean,
-login?: [{	email:string,	password:string,	remember:boolean,	network:string},ValueTypes["CurrentUser"]],
+login?: [{	email:string,	password:string,	remember:boolean,	network:string,	token:string},ValueTypes["CurrentUser"]],
 	signOut?:boolean,
 createDepositAddress?: [{	data:string,	lifetime_ms:number},ValueTypes["DepositAddress"]],
 setConfirmed?: [{	uuid:string},ValueTypes["Transaction"]],

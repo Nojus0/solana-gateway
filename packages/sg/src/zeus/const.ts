@@ -21,6 +21,12 @@ export const AllTypesProps: Record<string,any> = {
 				array:false,
 				arrayRequired:false,
 				required:true
+			},
+			token:{
+				type:"String",
+				array:false,
+				arrayRequired:false,
+				required:true
 			}
 		},
 		changeWebhook:{
@@ -83,6 +89,12 @@ export const AllTypesProps: Record<string,any> = {
 				required:true
 			},
 			network:{
+				type:"String",
+				array:false,
+				arrayRequired:false,
+				required:true
+			},
+			token:{
 				type:"String",
 				array:false,
 				arrayRequired:false,

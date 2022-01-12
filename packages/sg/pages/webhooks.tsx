@@ -16,11 +16,7 @@ import {
   Wrapper
 } from "../src/layout/dashboard/styled"
 import useScrollBar from "../src/layout/dashboard/useScrollBar"
-import {
-  addWebhook,
-  removeWebhook,
-  useRequireAuth
-} from "../src/redux/slices/authSlice"
+import { setWebhook, useRequireAuth } from "../src/redux/slices/authSlice"
 import { selectAuth } from "../src/redux/store"
 import { $, GraphQLError } from "../src/zeus"
 import { GqlInclude } from "../src/zeus/custom"
@@ -28,7 +24,7 @@ import { ErrorText } from "./login"
 
 const Webhooks: NextPage = () => {
   useRequireAuth()
-  useScrollBar();
+  useScrollBar()
   const user = useSelector(selectAuth)
   const [add, setAdd] = useState(false)
   const [addUrl, setUrl] = useState("")
@@ -55,7 +51,7 @@ const Webhooks: NextPage = () => {
         }
       )
 
-      dispatch(removeWebhook(url))
+      dispatch(setWebhook(data.removeWebhook || []))
     } catch (err) {
       // Handle
     }
@@ -77,7 +73,7 @@ const Webhooks: NextPage = () => {
 
       setAdd(false)
       setAddErr("")
-      dispatch(addWebhook(url))
+      dispatch(setWebhook(data.addWebhook || []))
     } catch (err) {
       if (err instanceof GraphQLError && err.response?.errors) {
         setAddErr(err.response.errors.map((e: any) => e.message).join("\n"))
@@ -182,6 +178,11 @@ const Webhooks: NextPage = () => {
     </>
   )
 }
+
+const Text = styled.p({
+  color: "black",
+  fontSize: "1.25rem"
+})
 
 const WebhookBox = styled.div({
   display: "flex",

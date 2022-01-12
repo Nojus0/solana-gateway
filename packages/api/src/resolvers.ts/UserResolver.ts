@@ -11,6 +11,7 @@ import base58 from "bs58"
 import { IContext } from "../interfaces"
 import { APIContext } from "../graphql/middleware"
 import bcrypt from "bcryptjs"
+import hcaptcha from "hcaptcha"
 import { CookieOptions } from "express"
 import validator from "validator"
 
@@ -39,7 +40,12 @@ export const userTypeDefs = gql`
   }
 
   extend type Mutation {
-    createUser(email: String!, password: String!, network: String!): CurrentUser
+    createUser(
+      email: String!
+      password: String!
+      network: String!
+      token: String!
+    ): CurrentUser
     changeWebhook(newUrl: String!): String
     regenerateApiKey: String
     setFast(newFast: Boolean!): Boolean
@@ -53,6 +59,7 @@ export const userTypeDefs = gql`
       password: String!
       remember: Boolean!
       network: String!
+      token: String!
     ): CurrentUser
     signOut: Boolean
   }
@@ -62,16 +69,24 @@ interface ICreateUser {
   email: string
   password: string
   network: string
+  token: string
 }
 
 const UserResolver = {
   Mutation: {
     createUser: async (
       _,
-      { password, network, email }: ICreateUser,
-      { res, isFrontend }: IContext
+      { password, network, email, token }: ICreateUser,
+      { res, isFrontend, req }: IContext
     ) => {
       email = email.toLowerCase()
+      const resp = await hcaptcha.verify(
+        process.env.HCAPTCHA_SECRET!,
+        token,
+        req.ip
+      )
+
+      if (!resp.success) throw new Error("Invalid Captcha.")
 
       if (!validator.isEmail(email)) throw new Error("Invalid email")
       if (!validator.isLength(password, { min: 6 }))
@@ -212,6 +227,15 @@ const UserResolver = {
     },
     login: async (_, params, { res }: IContext) => {
       params.email = params.email.toLowerCase()
+
+      const resp = await hcaptcha.verify(
+        process.env.HCAPTCHA_SECRET!,
+        params.token,
+        params.ip
+      )
+
+      if (!resp.success) throw new Error("Invalid Captcha.")
+
       if (!validator.isEmail(params.email)) throw new Error("Invalid email")
 
       const USER = (await Model.get({

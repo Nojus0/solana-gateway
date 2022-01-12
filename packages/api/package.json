@@ -33,6 +33,7 @@
     "express": "^4.17.1",
     "graphql": "^15.5.0",
     "graphql-middleware": "^6.1.12",
+    "hcaptcha": "^0.1.1",
     "ioredis": "^4.28.0",
     "jsonwebtoken": "^8.5.1",
     "lodash": "^4.17.21",

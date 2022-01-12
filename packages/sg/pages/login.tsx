@@ -17,6 +17,7 @@ import loginThunk from "../src/redux/thunks/login"
 import { useDispatch, useSelector } from "react-redux"
 import { selectAuth } from "../src/redux/store"
 import { useRouter } from "next/router"
+import HCaptcha from "@hcaptcha/react-hcaptcha"
 
 interface QueryState {
   initial: string
@@ -39,7 +40,7 @@ export function useQueryState({ initial, path }: QueryState) {
   useEffect(() => {
     if (!router.isReady || !get) return
 
-    router.query[path] = get;
+    router.query[path] = get
     router.replace({ query: router.query })
   }, [get, router.isReady])
 
@@ -54,7 +55,7 @@ const Login: NextPage = () => {
   const dispatch = useDispatch()
   const user = useSelector(selectAuth)
   const [network, setNet] = useQueryState({ initial: "main", path: "network" })
-
+  const [token, setToken] = useState("")
   useEffect(() => {
     if (user.isAuthenticated) {
       router.replace("/transfers", "/transfers")
@@ -79,6 +80,7 @@ const Login: NextPage = () => {
         network,
         email,
         password,
+        token,
         onError: msg => setError(msg)
       })
     )
@@ -141,11 +143,18 @@ const Login: NextPage = () => {
             </NetworkCard>
           </NetworkContainer>
           {error && <ErrorText>{error}</ErrorText>}
-
+          <HCaptcha
+            sitekey={process.env.NEXT_PUBLIC_SITE_KEY!}
+            onVerify={setToken}
+            onExpire={() => {
+              setError("Captcha expired")
+              setToken("")
+            }}
+          ></HCaptcha>
           <Button onClick={submitLogin} variant="outline" margin="1rem 0">
             Sign In
           </Button>
-          <Seperator margin="2rem 0 0 0" width="100%" />
+          <Seperator margin=".75rem 0 0 0" width="100%" />
           <Link href="/signup" passHref>
             <A>
               <DontAccount>Don’t have an account? Sign Up</DontAccount>

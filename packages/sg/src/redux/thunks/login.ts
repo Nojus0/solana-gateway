@@ -10,13 +10,14 @@ const loginThunk = createAsyncThunk<
     email: string
     password: string
     network: string
+    token: string
     onError?: (message: string) => void
     onSuccess?: (user: CurrentUser) => void
   }
 >(
   "user/login",
   async (
-    { email, network, password, onSuccess, onError },
+    { email, network, password, token, onSuccess, onError },
     { dispatch, getState, rejectWithValue, fulfillWithValue }
   ) => {
     try {
@@ -27,7 +28,8 @@ const loginThunk = createAsyncThunk<
               email: $`email`,
               network: $`network`,
               remember: $`remember`,
-              password: $`password`
+              password: $`password`,
+              token: $`token`
             },
             {
               email: true,
@@ -35,7 +37,7 @@ const loginThunk = createAsyncThunk<
               webhooks: true,
               walletAddress: true,
               recieved: true,
-              network: true 
+              network: true
             }
           ]
         },
@@ -45,6 +47,7 @@ const loginThunk = createAsyncThunk<
             email,
             password,
             network,
+            token,
             remember: true
           }
         }

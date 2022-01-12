@@ -37,7 +37,7 @@ const Dropdown: React.FC<IDropdownProps> = p => {
 
   async function submitLogout() {
     if (await logout()) {
-      router.push("/login")
+      await router.push("/login")
       dispatch(setLoggedOut())
     }
   }

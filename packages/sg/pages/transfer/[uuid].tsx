@@ -4,6 +4,7 @@ import Head from "next/head"
 import { useRouter } from "next/router"
 import React, { useEffect, useState } from "react"
 import { useSelector } from "react-redux"
+import fadeVariant from "../../src/animations/fadeVariant"
 import Button from "../../src/components/Button"
 import Container from "../../src/components/Container"
 import ListHeader from "../../src/components/ListHeader"
@@ -111,6 +112,49 @@ const Uuid: NextPage = () => {
     if (data) setTxn(data)
   }
 
+  async function setConfirmed() {
+    try {
+      const data = await GqlInclude("mutation")(
+        {
+          setConfirmed: [
+            {
+              uuid: $`uuid`
+            },
+            {
+              confirmedAt: true,
+              createdAt: true,
+              payload: true,
+              recieveLm: true,
+              status: true,
+              uuid: true,
+              recieveSig: true,
+              senderLm: true,
+              senderSig: true,
+              senderPk: true,
+              senderTo: true
+            }
+          ]
+        },
+        {
+          operationName: "setConfirmed",
+          variables: {
+            uuid
+          }
+        }
+      )
+      setTxn(data.setConfirmed)
+    } catch (err) {
+      if (err instanceof GraphQLError && err.response?.errors) {
+        setError(err.response.errors.map((e: any) => e.message).join("\n"))
+      }
+
+      if (err instanceof TypeError) {
+        return setError("Please check your internet connection")
+      }
+      return setError("Error fetching transaction")
+    }
+  }
+
   return (
     <>
       <Head>
@@ -120,6 +164,21 @@ const Uuid: NextPage = () => {
         <ListHeader selectedRoute="none">
           <SubTitleWrapper>
             <SubTitle>Transaction</SubTitle>
+            {txn?.status == "PENDING" && (
+              <Button
+                variant="outline"
+                variants={fadeVariant}
+                animate="visible"
+                initial="hidden"
+                exit="hidden"
+                onClick={setConfirmed}
+                padding=".6rem 1.25rem"
+                fontSize=".9rem"
+              >
+                Set Confirmed
+              </Button>
+            )}
+
             <Button
               onClick={() => history.back()}
               variant="outline"
@@ -164,21 +223,33 @@ const Transaction: React.FC<ITransaction> = props => {
       <Row>
         <Title>sender address</Title>
         <Value>{props.senderPk}</Value>
-        <Button padding=".45rem 1rem" variant="outline">
+        <Button
+          onClick={() => navigator.clipboard.writeText(props.senderPk)}
+          padding=".45rem 1rem"
+          variant="outline"
+        >
           Copy
         </Button>
       </Row>
       <Row>
         <Title>sender signature</Title>
         <Value>{props.senderSig}</Value>
-        <Button padding=".45rem 1rem" variant="outline">
+        <Button
+          onClick={() => navigator.clipboard.writeText(props.senderSig)}
+          padding=".45rem 1rem"
+          variant="outline"
+        >
           Copy
         </Button>
       </Row>
       <Row>
         <Title>recieve signature</Title>
         <Value>{props.recieveSig}</Value>
-        <Button padding=".45rem 1rem" variant="outline">
+        <Button
+          onClick={() => navigator.clipboard.writeText(props.recieveSig)}
+          padding=".45rem 1rem"
+          variant="outline"
+        >
           Copy
         </Button>
       </Row>

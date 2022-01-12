@@ -20,9 +20,11 @@ import { useRouter } from "next/router"
 import { ErrorText } from "./login"
 import loginThunk from "../src/redux/thunks/login"
 import NetworkCard, { NetworkContainer } from "../src/components/NetworkCard"
+import HCaptcha from "@hcaptcha/react-hcaptcha"
+const min = 65
 
 const Signup: NextPage = props => {
-  const isSmall = useMediaQuery("(max-width: 50rem)", false)
+  const isSmall = useMediaQuery(`(max-width: ${min}rem)`, false)
 
   return (
     <>
@@ -38,7 +40,7 @@ const Signup: NextPage = props => {
 }
 
 const FeatureSide: React.FC = () => {
-  const isSmall = useMediaQuery("(max-width: 50rem)", false)
+  const isSmall = useMediaQuery(`(max-width: ${min}rem)`, false)
 
   return (
     <GreySide
@@ -83,10 +85,13 @@ const InteractSide: React.FC = () => {
   const [error, setError] = useState({
     email: "",
     password: "",
-    confirmPass: ""
+    confirmPass: "",
+    captcha: ""
   })
+  const isSmall = useMediaQuery(`(max-width: ${min}rem)`, false)
   const [confirmPass, setConfirmPass] = useState("")
   const user = useSelector(selectAuth)
+  const [token, setToken] = useState("")
   const [network, setNet] = useState<"dev" | "main">("main")
   const dispatch = useDispatch()
   const router = useRouter()
@@ -98,10 +103,23 @@ const InteractSide: React.FC = () => {
   }, [user])
 
   async function submitSignup() {
+    setError({
+      email: "",
+      password: "",
+      confirmPass: "",
+      captcha: ""
+    })
+
+    if (!token) {
+      setError({
+        ...error,
+        captcha: "Please complete the captcha"
+      })
+      return
+    }
+
     if (!validator.isEmail(email))
       return setError(prev => ({ ...prev, email: "Invalid email" }))
-
-    setError(prev => ({ ...prev, email: "" }))
 
     if (!validator.isLength(password, { min: 6 }))
       return setError(prev => ({
@@ -109,28 +127,30 @@ const InteractSide: React.FC = () => {
         password: "Password is too weak. Must be at least 6 characters"
       }))
 
-    setError(prev => ({ ...prev, password: "" }))
-
     if (password !== confirmPass)
       return setError(prev => ({
         ...prev,
         confirmPass: "Passwords do not match"
       }))
 
-    setError(prev => ({ ...prev, confirmPass: "" }))
-
     dispatch(
       signUpThunk({
         email,
         network,
         password,
+        token,
         onError: msg => setError(prev => ({ ...prev, confirmPass: msg }))
       })
     )
   }
 
   return (
-    <SideContainer animate="visible" initial="hidden" variants={defaultVariant}>
+    <SideContainer
+      width={isSmall ? "100%" : "auto"}
+      animate="visible"
+      initial="hidden"
+      variants={defaultVariant}
+    >
       <TitleText>Start accepting Solana payments.</TitleText>
       <TextBoxLabel>Email address</TextBoxLabel>
       <TextBox
@@ -177,6 +197,12 @@ const InteractSide: React.FC = () => {
           Dev net
         </NetworkCard>
       </NetworkContainer>
+      <HCaptcha
+        sitekey={process.env.NEXT_PUBLIC_SITE_KEY!}
+        onVerify={setToken}
+        onExpire={() => setToken("")}
+      ></HCaptcha>
+      {error.captcha && <ErrorText>{error.captcha}</ErrorText>}
       <Button onClick={submitSignup} variant="outline" margin="1rem 0">
         Sign Up
       </Button>
@@ -217,11 +243,35 @@ const TermsText = styled.p({
   color: "#7A7A7A"
 })
 
-const SideContainer = styled(motion.div)({
+interface ISide {
+  width?: string
+}
+
+const SideContainer = styled(motion.div)(({ width = "auto" }: ISide) => ({
+  width,
   display: "flex",
   flexDirection: "column",
-  margin: "3rem 3.5rem"
-})
+  margin: "3rem 3.5rem",
+  overflowY: "auto",
+  "&::-webkit-scrollbar": {
+    width: "15px",
+    height: "15px",
+    backgroundColor: "inherit",
+    borderRadius: "10px"
+  },
+  "&::-webkit-scrollbar-corner": {
+    backgroundColor: "#0000001a"
+  },
+  "&::-webkit-scrollbar-thumb": {
+    borderRadius: "15px",
+    backgroundColor: "#dcdcdc",
+    backgroundClip: "content-box",
+    border: "4px solid transparent"
+  },
+  "&::-webkit-scrollbar-track": {
+    backgroundColor: "white"
+  }
+}))
 
 const TitleText = styled.h1({
   fontSize: "2.65rem",

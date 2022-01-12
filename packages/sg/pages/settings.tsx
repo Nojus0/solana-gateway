@@ -79,9 +79,9 @@ const Settings: NextPage = props => {
           </SubTitleWrapper>
           <Underline />
         </ListHeader>
-        <Container margin=".5rem 0" max="60rem" min="1px" value="100%">
+        <Container margin=".5rem" max="60rem" min="1px" value="100%">
           <Email>{user.data.email}</Email>
-          <Underline margin="0 0 1rem 0"/>
+          <Underline margin="0 0 1rem 0" />
           <KeyBoxEmpty
             onNew={newKeys}
             network={user.data.network}
@@ -168,16 +168,16 @@ const SettingsCard: React.FC = () => {
         </HeaderContainer>
         <ResendBox>
           <ResendOption
-            onClick={() => setOptionFast(true)}
+            onClick={() => setOptionFast(false)}
             margin="0 .5rem 0 0"
-            selected={fast == false}
+            selected={!fast}
           >
             Finalized
           </ResendOption>
           <ResendOption
-            onClick={() => setOptionFast(false)}
+            onClick={() => setOptionFast(true)}
             margin="0"
-            selected={fast == true}
+            selected={fast}
           >
             Confirmed
           </ResendOption>
@@ -220,9 +220,9 @@ const ResendOption = styled.button(
     cursor: "pointer",
     padding: ".65rem 1rem",
     borderRadius: "5rem",
-    background: selected ? "transparent" : "black",
-    border: selected ? ".15rem solid black" : "none",
-    color: selected ? "black" : "white",
+    background: selected ? "black" : "transparent",
+    border: ".15rem solid black",
+    color: selected ? "white" : "black",
     outline: "none"
   })
 )
