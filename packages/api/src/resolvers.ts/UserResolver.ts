@@ -280,7 +280,12 @@ const UserResolver = {
       }
     },
     signOut: async (_, params, ctx: IContext) => {
-      ctx.res.clearCookie("jwt")
+      ctx.res.cookie("jwt", "", {
+        httpOnly: true,
+        secure: process.env.MODE != "development",
+        expires: new Date(0),
+        sameSite: process.env.MODE != "development" ? "none" : "lax"
+      })
       return true
     }
   },
