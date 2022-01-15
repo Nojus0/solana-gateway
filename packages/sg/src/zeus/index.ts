@@ -7,7 +7,7 @@ type ZEUS_UNIONS = never
 export type ValueTypes = {
     ["Date"]:unknown;
 	["Mutation"]: AliasType<{
-createUser?: [{	email:string,	password:string,	network:string,	token:string},ValueTypes["CurrentUser"]],
+createUser?: [{	email:string,	password:string,	network:string},ValueTypes["CurrentUser"]],
 changeWebhook?: [{	newUrl:string},boolean],
 	regenerateApiKey?:boolean,
 setFast?: [{	newFast:boolean},boolean],
@@ -15,8 +15,7 @@ setPublicKey?: [{	newPublicKey:string},boolean],
 addWebhook?: [{	newUrl:string},boolean],
 removeWebhook?: [{	removeUrl:string},boolean],
 	keys?:ValueTypes["Keys"],
-	logout?:boolean,
-login?: [{	email:string,	password:string,	remember:boolean,	network:string,	token:string},ValueTypes["CurrentUser"]],
+login?: [{	email:string,	password:string,	remember:boolean,	network:string},ValueTypes["CurrentUser"]],
 	signOut?:boolean,
 createDepositAddress?: [{	data:string,	lifetime_ms:number},ValueTypes["DepositAddress"]],
 setConfirmed?: [{	uuid:string},ValueTypes["Transaction"]],
@@ -24,6 +23,8 @@ setConfirmed?: [{	uuid:string},ValueTypes["Transaction"]],
 }>;
 	["Query"]: AliasType<{
 	currentUser?:ValueTypes["CurrentUser"],
+	redis?:boolean,
+	model?:boolean,
 getTransactions?: [{	filter:ValueTypes["TransactionFilter"],	limit:number,	next?:string | null},ValueTypes["TransactionsType"]],
 getTransaction?: [{	uuid:string},ValueTypes["Transaction"]],
 		__typename?: boolean
@@ -84,7 +85,6 @@ export type ModelTypes = {
 	addWebhook?:string[],
 	removeWebhook?:string[],
 	keys?:ModelTypes["Keys"],
-	logout:boolean,
 	login?:ModelTypes["CurrentUser"],
 	signOut?:boolean,
 	createDepositAddress?:ModelTypes["DepositAddress"],
@@ -92,6 +92,8 @@ export type ModelTypes = {
 };
 	["Query"]: {
 		currentUser?:ModelTypes["CurrentUser"],
+	redis?:string,
+	model?:string,
 	getTransactions?:ModelTypes["TransactionsType"],
 	getTransaction?:ModelTypes["Transaction"]
 };
@@ -146,7 +148,6 @@ export type GraphQLTypes = {
 	addWebhook?: Array<string>,
 	removeWebhook?: Array<string>,
 	keys?: GraphQLTypes["Keys"],
-	logout: boolean,
 	login?: GraphQLTypes["CurrentUser"],
 	signOut?: boolean,
 	createDepositAddress?: GraphQLTypes["DepositAddress"],
@@ -155,6 +156,8 @@ export type GraphQLTypes = {
 	["Query"]: {
 	__typename: "Query",
 	currentUser?: GraphQLTypes["CurrentUser"],
+	redis?: string,
+	model?: string,
 	getTransactions?: GraphQLTypes["TransactionsType"],
 	getTransaction?: GraphQLTypes["Transaction"]
 };

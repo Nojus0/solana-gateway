@@ -1,6 +1,6 @@
 import { createAsyncThunk } from "@reduxjs/toolkit"
 import { CurrentUser } from "shared"
-import { $, Gql, GraphQLError } from "../../zeus"
+import { $, GraphQLError } from "../../zeus"
 import { GqlInclude } from "../../zeus/custom"
 import { setLoggedOut, setUser } from "../slices/authSlice"
 
@@ -10,14 +10,14 @@ const loginThunk = createAsyncThunk<
     email: string
     password: string
     network: string
-    token: string
+    // token: string
     onError?: (message: string) => void
     onSuccess?: (user: CurrentUser) => void
   }
 >(
   "user/login",
   async (
-    { email, network, password, token, onSuccess, onError },
+    { email, network, password, onSuccess, onError },
     { dispatch, getState, rejectWithValue, fulfillWithValue }
   ) => {
     try {
@@ -28,8 +28,7 @@ const loginThunk = createAsyncThunk<
               email: $`email`,
               network: $`network`,
               remember: $`remember`,
-              password: $`password`,
-              token: $`token`
+              password: $`password`
             },
             {
               email: true,
@@ -47,7 +46,6 @@ const loginThunk = createAsyncThunk<
             email,
             password,
             network,
-            token,
             remember: true
           }
         }

@@ -21,12 +21,6 @@ export const AllTypesProps: Record<string,any> = {
 				array:false,
 				arrayRequired:false,
 				required:true
-			},
-			token:{
-				type:"String",
-				array:false,
-				arrayRequired:false,
-				required:true
 			}
 		},
 		changeWebhook:{
@@ -89,12 +83,6 @@ export const AllTypesProps: Record<string,any> = {
 				required:true
 			},
 			network:{
-				type:"String",
-				array:false,
-				arrayRequired:false,
-				required:true
-			},
-			token:{
 				type:"String",
 				array:false,
 				arrayRequired:false,
@@ -167,7 +155,6 @@ export const ReturnTypes: Record<string,any> = {
 		addWebhook:"String",
 		removeWebhook:"String",
 		keys:"Keys",
-		logout:"Boolean",
 		login:"CurrentUser",
 		signOut:"Boolean",
 		createDepositAddress:"DepositAddress",
@@ -175,6 +162,8 @@ export const ReturnTypes: Record<string,any> = {
 	},
 	Query:{
 		currentUser:"CurrentUser",
+		redis:"String",
+		model:"String",
 		getTransactions:"TransactionsType",
 		getTransaction:"Transaction"
 	},

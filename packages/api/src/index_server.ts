@@ -12,7 +12,7 @@ import express from "express"
 import cookieParser from "cookie-parser"
 import cors from "cors"
 
-if (!process.env.MONGO_URI || !process.env.REDIS_URI)
+if (!process.env.REDIS_URI)
   throw new Error("Redis or Mongo server uri not found.")
 ;(async () => {
   const redis = new Redis(process.env.REDIS_URI)

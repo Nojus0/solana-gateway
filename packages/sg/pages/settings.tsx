@@ -111,6 +111,7 @@ const SettingsCard: React.FC = () => {
   const [fast, setOptionFast] = useState(user.data.isFast)
 
   async function submitFast() {
+    if (user.data.isFast == fast) return
     try {
       setError("")
 

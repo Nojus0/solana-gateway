@@ -1,6 +1,6 @@
 import { createAsyncThunk } from "@reduxjs/toolkit"
 import { CurrentUser } from "shared"
-import { $, Gql, GraphQLError } from "../../zeus"
+import { $, GraphQLError } from "../../zeus"
 import { GqlInclude } from "../../zeus/custom"
 import { setLoggedOut, setUser } from "../slices/authSlice"
 
@@ -10,14 +10,14 @@ const signUpThunk = createAsyncThunk<
     email: string
     password: string
     network: string
-    token: string
+    // token: string
     onError?: (message: string) => void
     onSuccess?: (user: CurrentUser) => void
   }
 >(
   "user/register",
   async (
-    { email, network, password, token, onSuccess, onError },
+    { email, network, password, onSuccess, onError },
     { dispatch, getState, rejectWithValue, fulfillWithValue }
   ) => {
     try {
@@ -27,8 +27,7 @@ const signUpThunk = createAsyncThunk<
             {
               email: $`email`,
               network: $`network`,
-              password: $`password`,
-              token: $`token`
+              password: $`password`
             },
             {
               email: true,
@@ -45,8 +44,7 @@ const signUpThunk = createAsyncThunk<
           variables: {
             email,
             password,
-            network,
-            token
+            network
           }
         }
       )

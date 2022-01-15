@@ -77,14 +77,6 @@ async function getTransactions(
   }
 }
 
-const useComponentWillMount = (cb: () => void) => {
-  const willMount = useRef(true)
-
-  if (willMount.current) cb()
-
-  willMount.current = false
-}
-
 const Transfers: NextPage = () => {
   const router = useRouter()
   useRequireAuth()
@@ -94,7 +86,6 @@ const Transfers: NextPage = () => {
   const [transactions, setTransactions] = useState<TransferBasic[]>([])
   const [loading, setLoading] = useState(true)
   const [next, setNext] = useState<string | null>(null)
-  const [error, setError] = useState("")
   const [isMore, setMore] = useState(true)
   const isSmall = useMediaQuery(`(max-width: 65rem)`, false)
 
@@ -104,11 +95,16 @@ const Transfers: NextPage = () => {
 
   async function fetchTransactions() {
     setLoading(true)
+
     const txns = await getTransactions(TransactionFilter.All, next, limit)
 
-    if (typeof txns === "string") return setError(txns)
+    if (typeof txns === "string") return setLoading(false)
     if (typeof txns === "object") {
-      setError("")
+      if (txns.transactions == null) {
+        setMore(false)
+        return
+      }
+
       setTransactions(prev => [...prev, ...txns.transactions])
 
       if (txns.transactions.length < limit) {
@@ -117,6 +113,7 @@ const Transfers: NextPage = () => {
 
       setNext(txns.next || null)
     }
+
     setLoading(false)
   }
 

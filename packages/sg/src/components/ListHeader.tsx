@@ -27,24 +27,14 @@ const ListHeader: React.FC<IListHeaderProps> = ({
   selectedRoute = "none",
   children
 }) => {
-  const isSmall = useMediaQuery("(max-width: 45rem)")
   const user = useSelector(selectAuth)
   const [isDrop, setDrop] = useState(false)
-
   return (
-    <Header justifyContent={showLogo && !isSmall ? "center" : "flex-end"}>
+    <Header>
       <Container margin="0 .75rem" max="60rem" min="1px" value="100%">
-        <RightWrapper justifyContent={isSmall ? "flex-end" : "unset"}>
-          {!isSmall ? (
-            <>
-              <CustomLogo width="2.5rem" height="2.5rem" />
-              <GatewayText>Gateway</GatewayText>
-            </>
-          ) : (
-            <GrowWrapper flexGrow={1}>
-              <CustomLogo width="2.5rem" height="2.5rem" />
-            </GrowWrapper>
-          )}
+        <RightWrapper >
+          <CustomLogo width="2.5rem" height="2.5rem" />
+          <GatewayText>Gateway</GatewayText>
 
           {!user.isLoading && (
             <ProfileWrapper>

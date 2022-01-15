@@ -74,7 +74,7 @@ const Home: NextPage = () => {
           <Section>
             <Header>High availability</Header>
             <Paragraph>
-              Little to no down time. Designed to withstand outages so no data
+              Low down time. Designed to withstand outages so no data
               gets lost, if in some case outage occurs to the blockchain
               analyzer, it will resume where it left off when its back online
               and catch up with the blockchain. If an outange occurs to the API

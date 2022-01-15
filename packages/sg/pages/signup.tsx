@@ -20,7 +20,6 @@ import { useRouter } from "next/router"
 import { ErrorText } from "./login"
 import loginThunk from "../src/redux/thunks/login"
 import NetworkCard, { NetworkContainer } from "../src/components/NetworkCard"
-import HCaptcha from "@hcaptcha/react-hcaptcha"
 const min = 65
 
 const Signup: NextPage = props => {
@@ -85,13 +84,11 @@ const InteractSide: React.FC = () => {
   const [error, setError] = useState({
     email: "",
     password: "",
-    confirmPass: "",
-    captcha: ""
+    confirmPass: ""
   })
   const isSmall = useMediaQuery(`(max-width: ${min}rem)`, false)
   const [confirmPass, setConfirmPass] = useState("")
   const user = useSelector(selectAuth)
-  const [token, setToken] = useState("")
   const [network, setNet] = useState<"dev" | "main">("main")
   const dispatch = useDispatch()
   const router = useRouter()
@@ -106,17 +103,8 @@ const InteractSide: React.FC = () => {
     setError({
       email: "",
       password: "",
-      confirmPass: "",
-      captcha: ""
+      confirmPass: ""
     })
-
-    if (!token) {
-      setError({
-        ...error,
-        captcha: "Please complete the captcha"
-      })
-      return
-    }
 
     if (!validator.isEmail(email))
       return setError(prev => ({ ...prev, email: "Invalid email" }))
@@ -138,7 +126,6 @@ const InteractSide: React.FC = () => {
         email,
         network,
         password,
-        token,
         onError: msg => setError(prev => ({ ...prev, confirmPass: msg }))
       })
     )
@@ -197,12 +184,6 @@ const InteractSide: React.FC = () => {
           Dev net
         </NetworkCard>
       </NetworkContainer>
-      <HCaptcha
-        sitekey={process.env.NEXT_PUBLIC_SITE_KEY!}
-        onVerify={setToken}
-        onExpire={() => setToken("")}
-      ></HCaptcha>
-      {error.captcha && <ErrorText>{error.captcha}</ErrorText>}
       <Button onClick={submitSignup} variant="outline" margin="1rem 0">
         Sign Up
       </Button>

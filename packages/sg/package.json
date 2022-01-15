@@ -4,7 +4,7 @@
   "description": "",
   "main": "src/index.ts",
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev --https",
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
@@ -13,7 +13,6 @@
   "dependencies": {
     "@emotion/react": "^11.7.1",
     "@emotion/styled": "^11.6.0",
-    "@hcaptcha/react-hcaptcha": "^1.0.0",
     "@reduxjs/toolkit": "^1.7.1",
     "framer-motion": "^5.5.5",
     "graphql": "^15.5.0",

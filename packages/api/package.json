@@ -7,7 +7,7 @@
     "dev": "concurrently \"tsc -w\" \"nodemon ./dist/index_server.js\"",
     "build": "tsc",
     "test": "jest --runInBand",
-    "deploy": "tsc && webpack && powershell.exe Compress-Archive -Path .\\.webpack\\index.js -DestinationPath .\\.webpack\\bundle.zip && aws lambda update-function-code --function-name graphql-payments --zip-file fileb://.webpack/bundle.zip --region eu-west-2 && echo Done"
+    "deploy": "tsc && webpack && powershell.exe Compress-Archive -Force -Path .\\.webpack\\index.js -DestinationPath .\\.webpack\\bundle.zip && aws lambda update-function-code --function-name graphql-payments --zip-file fileb://.webpack/bundle.zip --region eu-west-2 && echo Done"
   },
   "keywords": [],
   "author": "",
@@ -33,7 +33,6 @@
     "express": "^4.17.1",
     "graphql": "^15.5.0",
     "graphql-middleware": "^6.1.12",
-    "hcaptcha": "^0.1.1",
     "ioredis": "^4.28.0",
     "jsonwebtoken": "^8.5.1",
     "lodash": "^4.17.21",
