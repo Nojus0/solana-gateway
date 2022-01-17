@@ -1,11 +1,8 @@
 import { gql } from "apollo-server-lambda"
 import { APIContext } from "../graphql/middleware"
-import { Model, Transaction, TransactionUUIDLength, UserDocument } from "shared"
+import { Model, Transaction, UserDocument } from "shared"
 import dynamoose from "dynamoose"
 import { TransactionDocument } from "shared"
-import base58 from "bs58"
-import crypto from "crypto"
-import { SmartBuffer } from "smart-buffer"
 import { decryptToken, encryptToken } from "../crypto"
 export type TransactionFilter = "All" | "Pending" | "Confirmed"
 

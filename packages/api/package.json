@@ -5,9 +5,10 @@
   "main": "src/index.ts",
   "scripts": {
     "dev": "concurrently \"tsc -w\" \"nodemon ./dist/index_server.js\"",
-    "build": "tsc",
-    "test": "jest --runInBand",
-    "deploy": "tsc && webpack && powershell.exe Compress-Archive -Force -Path .\\.webpack\\index.js -DestinationPath .\\.webpack\\bundle.zip && aws lambda update-function-code --function-name graphql-payments --zip-file fileb://.webpack/bundle.zip --region eu-west-2 && echo Done"
+    "build": "node ./build.js && echo Build finished",
+    "compress": "powershell.exe Compress-Archive -Force -Path ./build/index.js -DestinationPath ./build/bundle.zip",
+    "upload": "aws lambda update-function-code --function-name graphql-payments --zip-file fileb://build/bundle.zip --region eu-west-2",
+    "deploy": "npm run build && npm run compress && npm run upload && echo Done"
   },
   "keywords": [],
   "author": "",
@@ -15,11 +16,6 @@
   "dependencies": {
     "@graphql-tools/schema": "^8.3.1",
     "@solana/web3.js": "^1.30.2",
-    "@types/aws-lambda": "^8.10.85",
-    "@types/validator": "^13.7.1",
-    "apollo-server": "^3.5.0",
-    "apollo-server-env": "^4.2.0",
-    "apollo-server-express": "^3.5.0",
     "apollo-server-lambda": "^3.5.0",
     "aws-sdk": "^2.1048.0",
     "axios": "^0.24.0",
@@ -30,6 +26,7 @@
     "date-fns": "^2.26.0",
     "dotenv": "^10.0.0",
     "dynamoose": "^2.8.3",
+    "esbuild": "^0.14.11",
     "express": "^4.17.1",
     "graphql": "^15.5.0",
     "graphql-middleware": "^6.1.12",
@@ -41,6 +38,7 @@
     "validator": "^13.7.0"
   },
   "devDependencies": {
+    "@types/aws-lambda": "^8.10.85",
     "@types/bcryptjs": "^2.4.2",
     "@types/bs58": "^4.0.1",
     "@types/cookie-parser": "^1.4.2",
@@ -50,12 +48,11 @@
     "@types/jest": "^27.0.3",
     "@types/jsonwebtoken": "^8.5.6",
     "@types/node": "^16.11.7",
-    "jest": "^27.3.1",
-    "ts-jest": "^27.0.7",
+    "@types/validator": "^13.7.1",
+    "apollo-server-core": "^3.6.1",
+    "apollo-server-express": "^3.5.0",
+    "esbuild": "^0.14.11",
     "ts-node": "^10.4.0",
-    "typescript": "^4.5.4",
-    "webpack": "^5.64.2",
-    "webpack-cli": "^4.9.1",
-    "webpack-node-externals": "^3.0.0"
+    "typescript": "^4.5.4"
   }
 }

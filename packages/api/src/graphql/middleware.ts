@@ -1,11 +1,8 @@
-import base58 from "bs58"
 import { IMiddlewareFunction } from "graphql-middleware"
 import { IContext } from "../interfaces"
 import {
   Model,
   UserDocument,
-  UserRedisObject,
-  User,
   verifyToken,
   IJwtToken
 } from "shared"

@@ -5,3 +5,5 @@ dist
 template.yml
 packages/test/
 .env.production
+.pem
+build
