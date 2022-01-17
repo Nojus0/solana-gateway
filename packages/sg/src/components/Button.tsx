@@ -18,8 +18,10 @@ const Button = styled(motion.button)(
     padding,
     margin,
     fontSize,
-    userSelect: "none",
     fontWeight: 400,
+    "&:focus-visible": {
+      outline: "#dedede .2rem solid"
+    },
     borderRadius: ".5rem",
     background: variant == "normal" ? "black" : "white",
     border: variant == "outline" ? ".15rem solid black" : "none",

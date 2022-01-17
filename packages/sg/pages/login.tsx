@@ -54,7 +54,7 @@ const Login: NextPage = () => {
   const dispatch = useDispatch()
   const user = useSelector(selectAuth)
   const [network, setNet] = useQueryState({ initial: "main", path: "network" })
-  
+
   useEffect(() => {
     if (user.isAuthenticated) {
       router.replace("/transfers", "/transfers")
@@ -103,9 +103,7 @@ const Login: NextPage = () => {
         <NormalHeader />
 
         <Container max="35rem">
-          <TextCustom margin="1rem 1rem .25rem 1rem">
-            Log in to Solana Gateway
-          </TextCustom>
+          <TextCustom>Log in to Solana Gateway</TextCustom>
 
           <TextBoxLabel>Email address</TextBoxLabel>
           <TextBox

@@ -42,6 +42,7 @@ export const userTypeDefs = gql`
     createUser(
       email: String!
       password: String!
+      acceptedTerms: Boolean!
       network: String! # token: String!
     ): CurrentUser
     changeWebhook(newUrl: String!): String
@@ -65,6 +66,7 @@ interface ICreateUser {
   email: string
   password: string
   network: string
+  acceptedTerms: boolean
   // token: string
 }
 
@@ -72,7 +74,7 @@ const UserResolver = {
   Mutation: {
     createUser: async (
       _,
-      { password, network, email }: ICreateUser,
+      { password, network, email, acceptedTerms }: ICreateUser,
       { res, isFrontend, req }: IContext
     ) => {
       email = email.toLowerCase()
@@ -83,6 +85,11 @@ const UserResolver = {
       // )
 
       // if (!resp.success) throw new Error("Invalid Captcha.")
+
+      if (!acceptedTerms)
+        throw new Error(
+          "You must agree to the terms and conditions and privacy policy"
+        )
 
       if (!validator.isEmail(email)) throw new Error("Invalid email")
       if (!validator.isLength(password, { min: 6 }))
@@ -100,15 +107,19 @@ const UserResolver = {
           sk: `NET#${network}`,
           password: HASH,
           email,
-          network
+          network,
+          acceptedTerms,
+          acceptedTime: Date.now(),
+          acceptedVersion: 1,
+          ip: req.ip
         })) as UserDocument
 
         if (isFrontend)
           res.cookie("jwt", createToken({ email, network }), {
             httpOnly: true,
-            secure: process.env.MODE != "development",
+            secure: true,
             maxAge: 1000 * 60 * 60 * 24 * 1,
-            sameSite: process.env.MODE != "development" ? "none" : "lax"
+            sameSite: "none"
           })
 
         return {
@@ -247,9 +258,9 @@ const UserResolver = {
 
       const cookie: CookieOptions = {
         httpOnly: true,
-        secure: process.env.MODE != "development",
-        sameSite: process.env.MODE != "development" ? "none" : "lax",
-        maxAge: 1000 * 60 * 60 * 24 * 7
+        secure: true,
+        maxAge: 1000 * 60 * 60 * 24 * 1,
+        sameSite: "none"
       }
 
       if (!params.remember) delete cookie.maxAge
@@ -282,9 +293,9 @@ const UserResolver = {
     signOut: async (_, params, ctx: IContext) => {
       ctx.res.cookie("jwt", "", {
         httpOnly: true,
-        secure: process.env.MODE != "development",
+        secure: true,
         expires: new Date(0),
-        sameSite: process.env.MODE != "development" ? "none" : "lax"
+        sameSite: "none"
       })
       return true
     }

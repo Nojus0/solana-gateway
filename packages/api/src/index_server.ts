@@ -30,11 +30,7 @@ if (!process.env.REDIS_URI)
       req,
       res,
       redis,
-      isFrontend:
-        req.headers.origin == process.env.ORIGIN ||
-        (process.env.NODE_ENV == "development" &&
-          req.headers.origin == "http://localhost:4000") ||
-        req.headers.origin == "http://localhost:3000"
+      isFrontend: req.headers.origin == process.env.ORIGIN
     }),
     plugins: [ApolloServerPluginLandingPageGraphQLPlayground()]
   })
@@ -43,7 +39,7 @@ if (!process.env.REDIS_URI)
   app.use(
     cors({
       credentials: true,
-      origin: "http://localhost:3000"
+      origin: process.env.ORIGIN
     })
   )
 

@@ -24,6 +24,7 @@ const NetworkCard = styled.button(
   }: INetworkCardProps) => ({
     padding,
     margin,
+    transition: "200ms background ease-in-out, 200ms color ease-in-out",
     borderRadius: "1.15rem",
     "&:focus-visible": {
       outline: "#dedede .2rem solid"

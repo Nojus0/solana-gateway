@@ -7,7 +7,7 @@ type ZEUS_UNIONS = never
 export type ValueTypes = {
     ["Date"]:unknown;
 	["Mutation"]: AliasType<{
-createUser?: [{	email:string,	password:string,	network:string},ValueTypes["CurrentUser"]],
+createUser?: [{	email:string,	password:string,	acceptedTerms:boolean,	network:string},ValueTypes["CurrentUser"]],
 changeWebhook?: [{	newUrl:string},boolean],
 	regenerateApiKey?:boolean,
 setFast?: [{	newFast:boolean},boolean],
@@ -23,8 +23,6 @@ setConfirmed?: [{	uuid:string},ValueTypes["Transaction"]],
 }>;
 	["Query"]: AliasType<{
 	currentUser?:ValueTypes["CurrentUser"],
-	redis?:boolean,
-	model?:boolean,
 getTransactions?: [{	filter:ValueTypes["TransactionFilter"],	limit:number,	next?:string | null},ValueTypes["TransactionsType"]],
 getTransaction?: [{	uuid:string},ValueTypes["Transaction"]],
 		__typename?: boolean
@@ -92,8 +90,6 @@ export type ModelTypes = {
 };
 	["Query"]: {
 		currentUser?:ModelTypes["CurrentUser"],
-	redis?:string,
-	model?:string,
 	getTransactions?:ModelTypes["TransactionsType"],
 	getTransaction?:ModelTypes["Transaction"]
 };
@@ -156,8 +152,6 @@ export type GraphQLTypes = {
 	["Query"]: {
 	__typename: "Query",
 	currentUser?: GraphQLTypes["CurrentUser"],
-	redis?: string,
-	model?: string,
 	getTransactions?: GraphQLTypes["TransactionsType"],
 	getTransaction?: GraphQLTypes["Transaction"]
 };

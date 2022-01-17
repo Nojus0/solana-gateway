@@ -16,6 +16,12 @@ export const AllTypesProps: Record<string,any> = {
 				arrayRequired:false,
 				required:true
 			},
+			acceptedTerms:{
+				type:"Boolean",
+				array:false,
+				arrayRequired:false,
+				required:true
+			},
 			network:{
 				type:"String",
 				array:false,
@@ -162,8 +168,6 @@ export const ReturnTypes: Record<string,any> = {
 	},
 	Query:{
 		currentUser:"CurrentUser",
-		redis:"String",
-		model:"String",
 		getTransactions:"TransactionsType",
 		getTransaction:"Transaction"
 	},

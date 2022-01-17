@@ -26,6 +26,10 @@ export interface User {
   secretKey: string
   network: string
   lastRegen: number
+  acceptedTerms: boolean
+  acceptedTime: number
+  acceptedVersion: number
+  ip: string
 }
 
 export interface CurrentUser {
@@ -65,6 +69,22 @@ const UserSchema = new dynamoose.Schema({
   },
   lastRegen: {
     type: Number
+  },
+  acceptedTerms: {
+    type: Boolean,
+    required: true
+  },
+  acceptedTime: {
+    type: Number,
+    required: true
+  },
+  acceptedVersion: {
+    type: Number,
+    required: true
+  },
+  ip: {
+    type: String,
+    required: true
   },
   network: {
     type: String,

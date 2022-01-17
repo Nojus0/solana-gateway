@@ -27,7 +27,7 @@ const Home: NextPage = () => {
             <TransferCard>
               Transfer
               <CustomArrow />
-              <YouText>You</YouText>
+              <YouText>Notify</YouText>
             </TransferCard>
             <TransferCard variant="grey">Transfer</TransferCard>
           </TransferCardContainer>
@@ -104,7 +104,7 @@ const Section = styled.div({
   display: "flex",
   flexDirection: "column",
   padding: "2rem 0 2rem 2rem",
-  width: "50%",
+  flexBasis: "50%",
 })
 
 const SectionHeader = styled.h2({

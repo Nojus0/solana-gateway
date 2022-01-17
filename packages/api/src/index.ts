@@ -25,7 +25,6 @@ envProcessor([
   "FEE_RECIEVER_WALLET",
   "ORIGIN",
   "TOKEN_SECRET",
-  "MODE"
 ])
 
 if (typeof redis === "undefined") {

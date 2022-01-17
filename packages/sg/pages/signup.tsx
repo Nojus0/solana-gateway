@@ -1,5 +1,5 @@
 import styled from "@emotion/styled"
-import { motion } from "framer-motion"
+import { AnimatePresence, motion } from "framer-motion"
 import { NextPage } from "next"
 import Head from "next/head"
 import Link from "next/link"
@@ -20,6 +20,9 @@ import { useRouter } from "next/router"
 import { ErrorText } from "./login"
 import loginThunk from "../src/redux/thunks/login"
 import NetworkCard, { NetworkContainer } from "../src/components/NetworkCard"
+import CheckBox from "../src/components/CheckBox"
+import Mark from "../src/svg/Mark"
+import fadeVariant from "../src/animations/fadeVariant"
 const min = 65
 
 const Signup: NextPage = props => {
@@ -84,7 +87,8 @@ const InteractSide: React.FC = () => {
   const [error, setError] = useState({
     email: "",
     password: "",
-    confirmPass: ""
+    confirmPass: "",
+    bottom: ""
   })
   const isSmall = useMediaQuery(`(max-width: ${min}rem)`, false)
   const [confirmPass, setConfirmPass] = useState("")
@@ -92,6 +96,7 @@ const InteractSide: React.FC = () => {
   const [network, setNet] = useState<"dev" | "main">("main")
   const dispatch = useDispatch()
   const router = useRouter()
+  const [accepted, setAccepted] = useState(false)
 
   useEffect(() => {
     if (user.isAuthenticated && !user.isLoading) {
@@ -103,7 +108,8 @@ const InteractSide: React.FC = () => {
     setError({
       email: "",
       password: "",
-      confirmPass: ""
+      confirmPass: "",
+      bottom: ""
     })
 
     if (!validator.isEmail(email))
@@ -121,9 +127,17 @@ const InteractSide: React.FC = () => {
         confirmPass: "Passwords do not match"
       }))
 
+    if (!accepted) {
+      return setError(prev => ({
+        ...prev,
+        bottom: "You must agree terms and conditions and privacy policy"
+      }))
+    }
+
     dispatch(
       signUpThunk({
         email,
+        acceptedTerms: accepted,
         network,
         password,
         onError: msg => setError(prev => ({ ...prev, confirmPass: msg }))
@@ -184,13 +198,29 @@ const InteractSide: React.FC = () => {
           Dev net
         </NetworkCard>
       </NetworkContainer>
+      <TermsContainer>
+        <CheckBox margin="0.25rem" onClick={() => setAccepted(prev => !prev)}>
+          <AnimatePresence>
+            {accepted && (
+              <Mark
+                variants={fadeVariant}
+                animate="visible"
+                initial="hidden"
+                exit="hidden"
+                width="1.25rem"
+                height="1.25rem"
+              />
+            )}
+          </AnimatePresence>
+        </CheckBox>
+        <TermsText>
+          I agree to the terms and conditions and privacy policy
+        </TermsText>
+      </TermsContainer>
+      {error.bottom && <ErrorText>{error.bottom}</ErrorText>}
       <Button onClick={submitSignup} variant="outline" margin="1rem 0">
         Sign Up
       </Button>
-      <TermsText>
-        By clicking continue, you agree to our Terms of Service and Privacy
-        Policy.
-      </TermsText>
     </SideContainer>
   )
 }
@@ -212,16 +242,23 @@ const Feature: React.FC<IFeature> = props => {
   )
 }
 
-const CustomCheckMark = styled(CheckMark)({
-  minWidth: "2rem",
-  minHeight: "2rem"
+const TermsContainer = styled.div({
+  display: "flex",
+  alignItems: "center",
+  padding: ".75rem 0"
 })
 
 const TermsText = styled.p({
-  fontSize: ".95rem",
-  margin: "2.5rem 0",
-  fontWeight: 400,
-  color: "#7A7A7A"
+  fontSize: "1rem",
+  lineHeight: "140%",
+  letterSpacing: "-0.01em",
+  margin: "0 .5rem",
+  color: "#000000"
+})
+
+const CustomCheckMark = styled(CheckMark)({
+  minWidth: "2rem",
+  minHeight: "2rem"
 })
 
 interface ISide {
@@ -232,7 +269,8 @@ const SideContainer = styled(motion.div)(({ width = "auto" }: ISide) => ({
   width,
   display: "flex",
   flexDirection: "column",
-  margin: "3rem 3.5rem",
+  padding: "3rem 3.5rem",
+  position: "relative",
   overflowY: "auto",
   "&::-webkit-scrollbar": {
     width: "15px",
