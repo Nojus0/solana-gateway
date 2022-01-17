@@ -16,6 +16,7 @@
     "@emotion/react": "^11.7.1",
     "@emotion/styled": "^11.6.0",
     "@reduxjs/toolkit": "^1.7.1",
+    "shared": "workspace:*",
     "framer-motion": "^5.5.5",
     "graphql": "^15.5.0",
     "next": "12.0.7",
@@ -27,6 +28,7 @@
     "validator": "^13.7.0"
   },
   "devDependencies": {
+    "@babel/core": "^7.16.7",
     "@types/node": "17.0.5",
     "@types/react": "17.0.38",
     "@types/validator": "^13.7.1",

@@ -1,4 +1,4 @@
-import { BlockResponse, Connection, PublicKey } from "@solana/web3.js"
+import { BlockResponse, Connection } from "@solana/web3.js"
 import { IBlockTransaction } from "./interfaces"
 
 interface IPoller {

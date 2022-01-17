@@ -23,7 +23,7 @@
     "ioredis": "^4.28.0",
     "lodash": "^4.17.21",
     "mongoose": "^6.0.13",
-    "shared": "1.0.0",
+    "shared": "workspace:*",
     "smart-buffer": "^4.2.0"
   },
   "devDependencies": {

@@ -12,11 +12,13 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@types/bs58": "^4.0.1",
+    "@types/jsonwebtoken": "^8.5.8",
     "@types/node": "^16.11.9",
     "typescript": "^4.5.2"
   },
   "dependencies": {
-    "@types/jsonwebtoken": "^8.5.6",
+    "bs58": "^4.0.1",
     "dynamodb-onetable": "^2.2.1",
     "dynamoose": "^2.8.3",
     "jsonwebtoken": "^8.5.1",
