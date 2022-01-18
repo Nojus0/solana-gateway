@@ -1,4 +1,4 @@
-import { gql } from "apollo-server-lambda"
+import { gql } from "apollo-server-core"
 import {
   isUrlValid,
   Model,
@@ -85,7 +85,6 @@ const UserResolver = {
       // )
 
       // if (!resp.success) throw new Error("Invalid Captcha.")
-
       if (!acceptedTerms)
         throw new Error(
           "You must agree to the terms and conditions and privacy policy"
@@ -121,7 +120,6 @@ const UserResolver = {
             maxAge: 1000 * 60 * 60 * 24 * 1,
             sameSite: "none"
           })
-
 
         return {
           ...usr,
@@ -302,9 +300,9 @@ const UserResolver = {
     }
   },
   Query: {
-    currentUser: async (_, params, { user }: APIContext) => {
+    currentUser: async (parent, params, ctx: APIContext, info) => {
       try {
-        return user
+        return ctx.user
       } catch (err) {
         console.log(err)
         throw new Error("Error occurred while getting current user.")

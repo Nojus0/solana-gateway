@@ -6,6 +6,7 @@ const TOKEN_SECRET = base58.decode(process.env.TOKEN_SECRET)
 const IV_LEN = 16
 
 export function encryptToken(str: string) {
+
   const iv = crypto.randomBytes(IV_LEN)
 
   const SB = new SmartBuffer()
@@ -14,7 +15,6 @@ export function encryptToken(str: string) {
   const ciph = crypto.createCipheriv("aes-256-cbc", TOKEN_SECRET, iv)
 
   SB.writeBuffer(Buffer.concat([ciph.update(str), ciph.final()]))
-
   return base58.encode(SB.toBuffer())
 }
 

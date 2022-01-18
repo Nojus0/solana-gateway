@@ -1,4 +1,4 @@
-import { gql } from "apollo-server-lambda"
+import { gql } from "apollo-server-core"
 import { APIContext } from "../graphql/middleware"
 import { Model, Transaction, UserDocument } from "shared"
 import dynamoose from "dynamoose"
@@ -6,7 +6,7 @@ import { TransactionDocument } from "shared"
 import { decryptToken, encryptToken } from "../crypto"
 export type TransactionFilter = "All" | "Pending" | "Confirmed"
 
-export const transactionDefs = gql`
+export const TransactionDefs = gql`
   type Transaction {
     uuid: String!
     senderPk: String!

@@ -2,15 +2,15 @@ import "dotenv/config"
 import Redis from "ioredis"
 import _ from "lodash"
 import typeDefs from "./graphql/typeDefs"
-import { ApolloServer } from "apollo-server-express"
+import { ApolloServer } from "./modified/apollo-express"
 import resolvers from "./graphql/resolvers"
-import { makeExecutableSchema } from "@graphql-tools/schema"
-import { applyMiddleware } from "graphql-middleware"
-import middlewares from "./graphql/middleware"
 import { ApolloServerPluginLandingPageGraphQLPlayground } from "apollo-server-core"
 import express from "express"
 import cookieParser from "cookie-parser"
 import cors from "cors"
+import { makeExecutableSchema } from "@graphql-tools/schema"
+import { applyMiddleware } from "graphql-middleware"
+import middlewares from "./graphql/middleware"
 
 if (!process.env.REDIS_URI)
   throw new Error("Redis or Mongo server uri not found.")
@@ -37,15 +37,13 @@ if (!process.env.REDIS_URI)
 
   const app = express()
   app.use(cookieParser())
-  app.use(
-    cors({
-      credentials: true,
-      origin: process.env.ORIGIN
-    })
-  )
 
   await GQL_SERVER.start()
-  GQL_SERVER.applyMiddleware({ app, cors: false })
+
+  GQL_SERVER.applyMiddleware({
+    app,
+    cors: { credentials: true, origin: process.env.ORIGIN }
+  })
 
   app.listen(4000, () =>
     console.log(`Listening on http://localhost:4000/graphql`)

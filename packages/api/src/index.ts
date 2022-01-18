@@ -2,7 +2,7 @@ import "dotenv/config"
 import Redis from "ioredis"
 import _ from "lodash"
 import typeDefs from "./graphql/typeDefs"
-import { ApolloServer } from "apollo-server-lambda"
+import { ApolloServer } from "./modified/apollo-lambda"
 import resolvers from "./graphql/resolvers"
 import { makeExecutableSchema } from "@graphql-tools/schema"
 import { applyMiddleware } from "graphql-middleware"
@@ -20,12 +20,7 @@ const schema = makeExecutableSchema({
 
 const schemaWithMiddleware = applyMiddleware(schema, ...middlewares)
 
-envProcessor([
-  "REDIS_URI",
-  "FEE_RECIEVER_WALLET",
-  "ORIGIN",
-  "TOKEN_SECRET",
-])
+envProcessor(["REDIS_URI", "FEE_RECIEVER_WALLET", "ORIGIN", "TOKEN_SECRET"])
 
 if (typeof redis === "undefined") {
   var redis = new Redis(process.env.REDIS_URI)

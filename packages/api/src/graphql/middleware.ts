@@ -17,14 +17,16 @@ const apiMiddleware: IMiddlewareFunction = async (
     redis: ctx.redis,
     category: "api",
     identifier: ctx.req.ip,
-    capacity: 5,
-    rate: 1 / (3600 * 24),
+    capacity: 100,
+    rate: 1,
     consume: 1
   })
 
   ctx.res.setHeader("X-RateLimit-Remaining", remaining.toString())
+  ctx.res.setHeader("X-RateLimit-Req-Cost", "1");
+
   if (!allowed) {
-    ctx.res.status(429).send("Too many requests")
+    return ctx.res.status(429).send("Too many requests")
   }
 
   if (ctx.isFrontend) {
@@ -38,7 +40,6 @@ const apiMiddleware: IMiddlewareFunction = async (
       pk: `USER#${userJwt.email}`,
       sk: `NET#${userJwt.network}`
     })) as UserDocument
-
     if (!user) {
       ctx.res.clearCookie("jwt")
       throw new Error(

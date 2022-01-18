@@ -1,5 +1,5 @@
 import { Keypair } from "@solana/web3.js"
-import { gql } from "apollo-server-lambda"
+import { gql } from "apollo-server-core"
 import { DepositRedisObject } from "shared"
 import { APIContext } from "../graphql/middleware"
 

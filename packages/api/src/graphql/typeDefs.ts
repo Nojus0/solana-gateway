@@ -1,7 +1,7 @@
-import { gql } from "apollo-server-lambda";
-import { depositTypeDefs } from "../resolvers.ts/DepositResolver";
-import { transactionDefs } from "../resolvers.ts/TransactionResolver";
-import { userTypeDefs } from "../resolvers.ts/UserResolver";
+import { gql } from "apollo-server-core"
+import { depositTypeDefs } from "../resolvers.ts/DepositResolver"
+import { TransactionDefs } from "../resolvers.ts/TransactionResolver"
+import { userTypeDefs } from "../resolvers.ts/UserResolver"
 
 const baseTypeDefs = gql`
   scalar Date
@@ -9,8 +9,8 @@ const baseTypeDefs = gql`
   type Mutation
 
   type Query
-`;
+`
 
-const typeDefs = [baseTypeDefs, userTypeDefs, depositTypeDefs, transactionDefs];
+const typeDefs = [baseTypeDefs, userTypeDefs, depositTypeDefs, TransactionDefs]
 
-export default typeDefs;
+export default typeDefs
