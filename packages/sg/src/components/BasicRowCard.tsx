@@ -65,7 +65,7 @@ const Row = styled.div({
 const Entry = styled.p({
   margin: ".5rem 0",
   flexGrow: 1,
-  fontSize: "1rem",
+  fontSize: "1.15rem",
   fontWeight: 400,
   textOverflow: "ellipsis",
   overflow: "hidden",
@@ -76,7 +76,7 @@ const Entry = styled.p({
 })
 
 const Title = styled.h1({
-  fontSize: "1.5rem",
+  fontSize: "2rem",
   color: "#575757",
   margin: ".5rem 0"
 })

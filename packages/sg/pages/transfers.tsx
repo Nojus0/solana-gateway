@@ -175,9 +175,8 @@ const Transfers: NextPage = () => {
                         <ButtonRight>
                           <Link passHref href={`/transfer/${txn.uuid}`}>
                             <Button
-                              margin="1.15rem 0 0 0"
-                              fontSize=".95rem"
-                              padding=".35rem 1rem"
+                              margin=" 0 0 .7rem 0"
+                              padding=".50rem 1rem"
                               variant="outline"
                             >
                               More

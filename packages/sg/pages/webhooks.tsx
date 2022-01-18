@@ -100,7 +100,6 @@ const Webhooks: NextPage = () => {
             <AddButton
               onClick={() => setAdd(prev => !prev)}
               padding=".6rem 1.25rem"
-              fontSize=".95rem"
             >
               Add
             </AddButton>
