@@ -21,6 +21,9 @@ const currentUserThunk = createAsyncThunk(
         dispatch(setUser(currentUserQuery.currentUser))
 
         fulfillWithValue(currentUserQuery.currentUser)
+      } else {
+        dispatch(setLoggedOut())
+        rejectWithValue("No user found")
       }
     } catch (err) {
       dispatch(setLoggedOut())

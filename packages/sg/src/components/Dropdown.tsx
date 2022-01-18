@@ -98,7 +98,7 @@ const BoxEntry = styled.div({
   alignItems: "center",
   justifyContent: "flex-start",
   color: "black",
-  fontSize: ".95rem",
+  fontSize: "1.05rem",
   cursor: "pointer",
   "&:hover": {
     background: "#F8F8F8",

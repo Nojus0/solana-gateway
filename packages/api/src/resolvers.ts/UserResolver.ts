@@ -75,7 +75,7 @@ const UserResolver = {
     createUser: async (
       _,
       { password, network, email, acceptedTerms }: ICreateUser,
-      { res, isFrontend, req }: IContext
+      { res, isFrontend, req, redis }: IContext
     ) => {
       email = email.toLowerCase()
       // const resp = await hcaptcha.verify(
@@ -121,6 +121,7 @@ const UserResolver = {
             maxAge: 1000 * 60 * 60 * 24 * 1,
             sameSite: "none"
           })
+
 
         return {
           ...usr,

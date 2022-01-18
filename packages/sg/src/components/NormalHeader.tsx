@@ -37,7 +37,7 @@ const NormalHeader: React.FC<INormalHeaderProps> = ({
           </Link>
           <Link passHref href="/signup">
             <A>
-              <Button fontSize=".85rem" padding="0.8rem 1rem">
+              <Button fontSize="1.05rem" padding="0.8rem 1rem">
                 Sign Up
               </Button>
             </A>

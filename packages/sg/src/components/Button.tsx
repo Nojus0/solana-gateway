@@ -1,5 +1,6 @@
 import styled from "@emotion/styled"
 import { motion } from "framer-motion"
+import { IFontSize, IMargin, IPadding } from "./interfaces"
 
 interface IButtonProps {
   margin?: string
@@ -18,11 +19,11 @@ const Button = styled(motion.button)(
     padding,
     margin,
     fontSize,
-    fontWeight: 400,
+    fontWeight: 500,
     "&:focus-visible": {
       outline: "#dedede .2rem solid"
     },
-    borderRadius: ".5rem",
+    borderRadius: ".45rem",
     background: variant == "normal" ? "black" : "white",
     border: variant == "outline" ? ".15rem solid black" : "none",
     cursor: "pointer",
@@ -33,8 +34,19 @@ const Button = styled(motion.button)(
 
 export default Button
 
-export const TextButton = styled.p({
-  margin: "0 1.85rem",
-  cursor: "pointer",
-  color: "#575757"
-})
+interface ITextButton {}
+
+export const TextButton = styled.p(
+  ({
+    fontSize = "1.2rem",
+    padding = "0.8rem 1.45rem",
+    margin = "0rem"
+  }: IFontSize & IMargin & IPadding) => ({
+    margin,
+    padding,
+    fontWeight: 400,
+    fontSize,
+    cursor: "pointer",
+    color: "#575757"
+  })
+)

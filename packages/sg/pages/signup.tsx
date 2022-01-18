@@ -207,8 +207,8 @@ const InteractSide: React.FC = () => {
                 animate="visible"
                 initial="hidden"
                 exit="hidden"
-                width="1.25rem"
-                height="1.25rem"
+                width="1.15rem"
+                height="1.15rem"
               />
             )}
           </AnimatePresence>
@@ -249,8 +249,9 @@ const TermsContainer = styled.div({
 })
 
 const TermsText = styled.p({
-  fontSize: "1rem",
+  fontSize: "1.05rem",
   lineHeight: "140%",
+  fontWeight: 400,
   letterSpacing: "-0.01em",
   margin: "0 .5rem",
   color: "#000000"

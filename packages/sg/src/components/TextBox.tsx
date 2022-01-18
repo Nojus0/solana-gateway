@@ -24,7 +24,7 @@ const TextBox = styled.input(
 export const TextBoxLabel = styled.p(
   ({
     margin = ".8rem 0 .05rem .25rem",
-    fontSize = ".95rem"
+    fontSize = "1.05rem"
   }: IMargin & IFontSize) => ({
     fontSize,
     margin,

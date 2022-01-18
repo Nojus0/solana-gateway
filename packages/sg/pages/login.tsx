@@ -167,8 +167,9 @@ const TextCustom = styled(Text)({
 })
 
 const DontAccount = styled.p({
-  fontSize: ".85rem",
-  color: "#7A7A7A",
+  fontSize: "1.05rem",
+  color: "#414141",
+  fontWeight: 400,
   cursor: "pointer",
   transition: "color 100ms ease-in-out",
   "&:hover": {

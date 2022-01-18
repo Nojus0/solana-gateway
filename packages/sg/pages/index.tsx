@@ -11,6 +11,7 @@ import NormalHeader from "../src/components/NormalHeader"
 import { Text } from "../src/components/Text"
 import useMediaQuery from "../src/components/useMediaQuery"
 import Arrow from "../src/svg/Arrow"
+import CheckMark from "../src/svg/CheckMark"
 import Logo, { GatewayText } from "../src/svg/Logo"
 
 const Home: NextPage = () => {
@@ -55,7 +56,10 @@ const Home: NextPage = () => {
         <SectionHeader>Solana Gateway Features</SectionHeader>
         <AboutContainer>
           <Section>
-            <Header>Events</Header>
+            <SectionHead>
+              <Header>Events</Header>
+              <Marker />
+            </SectionHead>
             <Paragraph>
               Solana gateway lets you integrate the solana blockchain into your
               application with ease, currently the only blockchain events we
@@ -65,21 +69,23 @@ const Home: NextPage = () => {
             </Paragraph>
           </Section>
           <Section>
-            <Header>Transfer Explorer</Header>
+            <SectionHead>
+              <Header>Transfer Explorer</Header>
+              <Marker />
+            </SectionHead>
             <Paragraph>
-              You can view your transfers in the transfer explorer. And see all
-              the data associated with transfer.
+              View your transfers in the transfer explorer. And see all the data
+              associated with a transfer.
             </Paragraph>
           </Section>
           <Section>
-            <Header>High availability</Header>
+            <SectionHead>
+              <Header>High availability</Header>
+              <Marker />
+            </SectionHead>
             <Paragraph>
-              Low down time. Designed to withstand outages so no data
-              gets lost, if in some case outage occurs to the blockchain
-              analyzer, it will resume where it left off when its back online
-              and catch up with the blockchain. If an outange occurs to the API
-              you wouldn’t be able to generate new addresses, in that case you
-              would need to signal that to the user.
+              Low down time. Designed to withstand outages, so no data gets
+              lost.
             </Paragraph>
           </Section>
         </AboutContainer>
@@ -88,12 +94,24 @@ const Home: NextPage = () => {
   )
 }
 
+const Marker = styled(CheckMark)({
+  margin: "0 1rem"
+})
+
 const AboutContainer = styled.div({
   display: "flex",
   alignItems: "flex-start",
   flexWrap: "wrap",
-  margin: "0 0 10rem 0"
+  margin: "0 0 10rem 0",
+  "&media (max-width: 40rem)": {
+    flexDirection: "column"
+  }
 })
+const SectionHead = styled.div({
+  display: "flex",
+  alignItems: "center"
+})
+
 const Paragraph = styled.p({
   fontSize: "1.25rem",
   fontWeight: 400,
@@ -103,8 +121,8 @@ const Paragraph = styled.p({
 const Section = styled.div({
   display: "flex",
   flexDirection: "column",
-  padding: "2rem 0 2rem 2rem",
-  flexBasis: "50%",
+  width: "100%",
+  padding: "3.5rem 0",
 })
 
 const SectionHeader = styled.h2({

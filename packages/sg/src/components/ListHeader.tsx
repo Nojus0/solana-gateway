@@ -108,7 +108,7 @@ const Routes = styled("div")({
 
 const RouteText = styled.p(({ selected }: ISelected) => ({
   color: "black",
-  fontSize: "1rem",
+  fontSize: "1.15rem",
   textDecoration: "none",
   cursor: "pointer",
   fontWeight: 400,

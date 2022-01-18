@@ -1,11 +1,7 @@
 import { IMiddlewareFunction } from "graphql-middleware"
 import { IContext } from "../interfaces"
-import {
-  Model,
-  UserDocument,
-  verifyToken,
-  IJwtToken
-} from "shared"
+import { Model, UserDocument, verifyToken, IJwtToken } from "shared"
+import { rateLimit } from "../rateLimit"
 
 export type APIContext = IContext & { user: UserDocument }
 
@@ -17,6 +13,20 @@ const apiMiddleware: IMiddlewareFunction = async (
   info
 ) => {
   // * Check if calling from frontend *
+  const { allowed, remaining } = await rateLimit({
+    redis: ctx.redis,
+    category: "api",
+    identifier: ctx.req.ip,
+    capacity: 5,
+    rate: 1 / (3600 * 24),
+    consume: 1
+  })
+
+  ctx.res.setHeader("X-RateLimit-Remaining", remaining.toString())
+  if (!allowed) {
+    ctx.res.status(429).send("Too many requests")
+  }
+
   if (ctx.isFrontend) {
     const token = ctx.req.cookies.jwt
 
