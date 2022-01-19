@@ -134,7 +134,7 @@ const Transfers: NextPage = () => {
       </Head>
       <Wrapper>
         <ListHeader selectedRoute="transfers" />
-        <Container margin="0 .75rem" max="60rem" min="1px" value="100%">
+        <Container margin="1rem .75rem 5rem .75rem" max="60rem" min="1px" value="100%">
           <Browser
             direction={isSmall ? "column" : "row"}
             variants={fadeVariant}

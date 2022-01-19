@@ -1,7 +1,7 @@
 import { Keypair } from "@solana/web3.js"
 import { gql } from "apollo-server-core"
 import { DepositRedisObject } from "shared"
-import { APIContext } from "../graphql/middleware"
+import { APIContext } from "../graphql/middlewares/apiMiddleware"
 
 export const depositTypeDefs = gql`
   extend type Mutation {

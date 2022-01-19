@@ -1,5 +1,5 @@
 import { gql } from "apollo-server-core"
-import { APIContext } from "../graphql/middleware"
+import { APIContext } from "../graphql/middlewares/apiMiddleware"
 import { Model, Transaction, UserDocument } from "shared"
 import dynamoose from "dynamoose"
 import { TransactionDocument } from "shared"

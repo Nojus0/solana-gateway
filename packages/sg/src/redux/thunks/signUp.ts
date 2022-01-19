@@ -51,7 +51,6 @@ const signUpThunk = createAsyncThunk<
           }
         }
       )
-
       if (loginMutation.createUser) {
         dispatch(setUser(loginMutation.createUser))
 
@@ -63,12 +62,14 @@ const signUpThunk = createAsyncThunk<
       dispatch(setLoggedOut())
       if (!onError) return
 
+      if(err == "Too many requests") return onError("Too many registrations per 24 hours, please try again later.");
+
       if (err instanceof GraphQLError && err.response?.errors) {
-        onError(err.response.errors.map((e: any) => e.message).join("\n"))
+        return onError(err.response.errors.map((e: any) => e.message).join("\n"))
       }
 
       if (err instanceof TypeError) {
-        onError("Please check your internet connection")
+        return onError("Please check your internet connection")
       }
     }
   }

@@ -1,13 +1,4 @@
-import dynamoose from "dynamoose"
 
-export const config = {
-  table: "payments",
-  region: "eu-west-2"
-}
-
-dynamoose.aws.sdk.config.update({
-  region: config.region
-})
 
 export * from "./models/Model"
 export * from "./models/NetworkSchema"

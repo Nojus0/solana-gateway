@@ -65,16 +65,16 @@ const FeatureSide: React.FC = () => {
         )}
 
         <Feature
-          title="Temporary Addresses"
-          description="Accept payments by generating a deposit address."
+          title="temporary addresses"
+          description="accept payments by generating a temporary deposit address."
         />
         <Feature
-          title="Recieve Events"
-          description="Get notified when you recieve a payment by using a webhook."
+          title="events"
+          description="get notified in real time when you recieve a payment by using a webhook."
         />
         <Feature
-          title="Browse Transactions"
-          description="Browse your transactions and the data associated with them."
+          title="transaction explorer"
+          description="browse your transactions and the data associated with them."
         />
       </Features>
     </GreySide>
@@ -140,7 +140,7 @@ const InteractSide: React.FC = () => {
         acceptedTerms: accepted,
         network,
         password,
-        onError: msg => setError(prev => ({ ...prev, confirmPass: msg }))
+        onError: msg => setError(prev => ({ ...prev, bottom: msg }))
       })
     )
   }
@@ -270,7 +270,7 @@ const SideContainer = styled(motion.div)(({ width = "auto" }: ISide) => ({
   width,
   display: "flex",
   flexDirection: "column",
-  padding: "3rem 3.5rem",
+  padding: ".75rem 3.5rem",
   position: "relative",
   overflowY: "auto",
   "&::-webkit-scrollbar": {
@@ -317,7 +317,7 @@ const FeatureTitle = styled("h2")({
 
 const FeatureDescription = styled("p")({
   fontSize: "1rem",
-  color: "#7A7A7A",
+  color: "black",
   fontWeight: 400,
   margin: 0
 })

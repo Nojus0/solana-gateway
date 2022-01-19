@@ -1,14 +1,14 @@
-import { URL } from "url";
+import { URL } from "url"
 
-export function isUrlValid(web: string) {
-  const url = new URL(web);
+export function isUrlValid(web: string, httpsRequired: boolean = false) {
+  const url = new URL(web)
 
-  if (process.env.NETWORK == "dev") return true;
+  if (
+    (httpsRequired && url.protocol !== "https:") ||
+    url.protocol !== "http:"
+  ) {
+    return false
+  }
 
-  return !(
-    url.hostname == "localhost" ||
-    url.hostname == "127.0.0.1" ||
-    url.protocol != "https:"
-  );
+  return !(url.hostname == "localhost" || url.hostname == "127.0.0.1")
 }
-

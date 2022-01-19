@@ -311,7 +311,7 @@ const Value = styled.p({
 
 const TransactionBox = styled.div({
   padding: "1.5rem",
-  margin: "1rem 0 0 0",
+  margin: "2rem 0",
   borderRadius: ".5rem",
   overflowY: "auto",
   maxHeight: "27.5rem",

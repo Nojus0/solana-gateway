@@ -63,11 +63,8 @@ const Home: NextPage = () => {
               <Marker />
             </SectionHead>
             <Paragraph>
-              Solana gateway lets you integrate the solana blockchain into your
-              application with ease, currently the only blockchain events we
-              support is transfers to your temporary deposit addresses generated
-              by solana gateway. But we plan to support more events in the
-              future. We notify you about these events by using a webhook.
+              Get notified in real time when you recieve a payment to one of
+              your temporary address.
             </Paragraph>
           </Section>
           <Underline />
@@ -90,8 +87,7 @@ const Home: NextPage = () => {
               <Marker />
             </SectionHead>
             <Paragraph>
-              Low down time. Designed to withstand outages, so no data gets
-              lost.
+              Low downtime, designed to withstand outages so no transfer gets lost.
             </Paragraph>
           </Section>
           <Underline />

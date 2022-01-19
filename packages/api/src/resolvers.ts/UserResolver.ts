@@ -9,7 +9,7 @@ import {
 } from "shared"
 import base58 from "bs58"
 import { IContext } from "../interfaces"
-import { APIContext } from "../graphql/middleware"
+import { APIContext } from "../graphql/middlewares/apiMiddleware"
 import bcrypt from "bcryptjs"
 import { CookieOptions } from "express"
 import validator from "validator"
@@ -153,7 +153,8 @@ const UserResolver = {
       }
     },
     addWebhook: async (_, params, { user }: APIContext) => {
-      if (!isUrlValid(params.newUrl)) throw new Error("Invalid host")
+      if (!isUrlValid(params.newUrl, user.network != "dev"))
+        throw new Error("Invalid host")
 
       try {
         if (user.webhooks.length >= user.maxWebhooks) {
