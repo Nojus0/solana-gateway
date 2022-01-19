@@ -71,7 +71,7 @@ export const Underline = styled.div(
     height,
     margin,
     background: color,
-    borderRadius: "9rem"
+    borderRadius: "100rem"
   })
 )
 

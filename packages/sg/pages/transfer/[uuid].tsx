@@ -182,8 +182,7 @@ const Uuid: NextPage = () => {
             <Button
               onClick={() => history.back()}
               variant="outline"
-              padding=".6rem 1.25rem"
-              fontSize=".9rem"
+              padding=".5rem 1.25rem"
             >
               Back
             </Button>

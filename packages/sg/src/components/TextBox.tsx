@@ -15,6 +15,8 @@ const TextBox = styled.input(
     padding,
     margin,
     borderRadius: ".5rem",
+    fontWeight: 400,
+    fontSize: "1.05rem",
     backgroundColor: "transparent",
     border: variant == "normal" ? `.15rem solid ${color}`: `.15rem solid #DD0000`,
     color: "black"
@@ -29,7 +31,7 @@ export const TextBoxLabel = styled.p(
     fontSize,
     margin,
     color: "black",
-    fontWeight: 400
+    fontWeight: 500
   })
 )
 

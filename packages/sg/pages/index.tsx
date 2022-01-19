@@ -7,7 +7,7 @@ import Link from "next/link"
 import defaultVariant from "../src/animations/defaultVariant"
 import Button, { TextButton } from "../src/components/Button"
 import Container from "../src/components/Container"
-import NormalHeader from "../src/components/NormalHeader"
+import NormalHeader, { Underline } from "../src/components/NormalHeader"
 import { Text } from "../src/components/Text"
 import useMediaQuery from "../src/components/useMediaQuery"
 import Arrow from "../src/svg/Arrow"
@@ -53,7 +53,9 @@ const Home: NextPage = () => {
             </Link>
           </ButtonContainer>
         </MainView>
+        <Underline />
         <SectionHeader>Solana Gateway Features</SectionHeader>
+        <Underline />
         <AboutContainer>
           <Section>
             <SectionHead>
@@ -68,6 +70,8 @@ const Home: NextPage = () => {
               future. We notify you about these events by using a webhook.
             </Paragraph>
           </Section>
+          <Underline />
+
           <Section>
             <SectionHead>
               <Header>Transfer Explorer</Header>
@@ -78,6 +82,8 @@ const Home: NextPage = () => {
               associated with a transfer.
             </Paragraph>
           </Section>
+          <Underline />
+
           <Section>
             <SectionHead>
               <Header>High availability</Header>
@@ -88,6 +94,7 @@ const Home: NextPage = () => {
               lost.
             </Paragraph>
           </Section>
+          <Underline />
         </AboutContainer>
       </Container>
     </motion.div>
@@ -122,7 +129,7 @@ const Section = styled.div({
   display: "flex",
   flexDirection: "column",
   width: "100%",
-  padding: "3.5rem 0",
+  padding: "3.5rem 0"
 })
 
 const SectionHeader = styled.h2({
