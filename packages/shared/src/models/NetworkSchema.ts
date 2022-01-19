@@ -17,6 +17,7 @@ export interface Network {
   lastBlock: number
   fee: number
   createdAt: number
+  feeAddress: string
 }
 
 export type NetworkDocument = Network & Document
@@ -26,6 +27,10 @@ const NetworkSchema = new dynamoose.Schema({
     hashKey: true,
     type: String,
     required: true
+  },
+  feeAddress: {
+    required: true,
+    type: String
   },
   sk: {
     rangeKey: true,

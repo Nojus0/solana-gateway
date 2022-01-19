@@ -7,7 +7,6 @@ import { createHandler } from "./createHandler"
   const envs = [
     "REDIS_URI",
     "NET",
-    "FEE_RECIEVER_WALLET",
     "MAX_POLLS_PER_INTERVAL",
     "POLL_INTERVAL",
     "RETRY_DELAY",

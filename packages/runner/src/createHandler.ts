@@ -120,7 +120,7 @@ export const createHandler = ({
           TXN.add(
             SystemProgram.transfer({
               fromPubkey: reciever.publicKey,
-              toPubkey: new PublicKey(process.env.FEE_RECIEVER_WALLET),
+              toPubkey: new PublicKey(network.feeAddress),
               lamports: TAKE_FEE
             })
           )
@@ -167,14 +167,14 @@ export const createHandler = ({
     },
     onBlockMaxRetriesExceeded: badBlock => {
       Model.create({
-        pk: `NET#${process.env.NET}`,
+        pk: `NET#${network.name}`,
         sk: `ERROR#${badBlock}#${Date.now()}`,
-        message: `Bad block ${badBlock} on network ${process.env.NET}`
+        message: `Bad block ${badBlock} on network ${network.name}`
       })
     },
     onPollFinished: last => {
       Model.update({
-        pk: `NET#${process.env.NET}`,
+        pk: `NET#${network.name}`,
         sk: "DETAILS",
         lastBlock: last
       })
