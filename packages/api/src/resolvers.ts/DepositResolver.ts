@@ -13,8 +13,8 @@ export const depositTypeDefs = gql`
   }
 `
 
-export const max_ms_expires = 3600000
-export const min_ms_expires = 300000
+export const max_ms_expires = 1000 * 60 * 15
+export const min_ms_expires = 1000 * 60 * 5
 
 const DepositResolver = {
   Query: {},
@@ -27,13 +27,13 @@ const DepositResolver = {
 
       if (params.lifetime_ms < min_ms_expires) {
         throw new Error(
-          "The specified lifetime is too low, minimum lifetime 5 minutes/300000 ms "
+          `The specified lifetime is too low, minimum lifetime ${min_ms_expires} ms`
         )
       }
 
       if (params.lifetime_ms > max_ms_expires) {
         throw new Error(
-          "The specified lifetime is too high maximum is 1 hour/3600000 ms"
+          `The specified lifetime is too high maximum is ${max_ms_expires} ms`
         )
       }
 

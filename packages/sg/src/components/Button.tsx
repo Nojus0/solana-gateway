@@ -25,7 +25,7 @@ const Button = styled(motion.button)(
     },
     borderRadius: ".45rem",
     background: variant == "normal" ? "black" : "white",
-    border: variant == "outline" ? ".15rem solid black" : "none",
+    border: ".15rem solid black",
     cursor: "pointer",
     color: variant == "normal" ? "white" : "black",
     letterSpacing: "-0.01em"

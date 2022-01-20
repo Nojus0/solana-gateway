@@ -34,11 +34,14 @@ export const authSlice = createSlice({
     },
     setFast: (state, action: PayloadAction<boolean>) => {
       state.data.isFast = action.payload
+    },
+    setAddress: (state, action: PayloadAction<string>) => {
+      state.data.walletAddress = action.payload
     }
   }
 })
 
-export const { setUser, setLoggedOut, setWebhook, setFast } =
+export const { setUser, setLoggedOut, setWebhook, setFast, setAddress } =
   authSlice.actions
 
 export const selectAuth = (state: RootState) => state.authSlice

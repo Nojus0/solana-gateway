@@ -139,6 +139,7 @@ const Webhooks: NextPage = () => {
             <AnimatePresence>
               {add && (
                 <TransferCard
+                  width={isSmall ? "100%" : "30rem"}
                   title="Webhook"
                   fields={[
                     {
@@ -183,7 +184,8 @@ const Webhooks: NextPage = () => {
 }
 
 const TransferCard = styled(BasicRowCard)({
-  width: "100%"
+  width: "100%",
+  height: "13.5rem"
 })
 
 const Text = styled.p({

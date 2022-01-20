@@ -20,7 +20,11 @@ import {
   Wrapper
 } from "../src/layout/dashboard/styled"
 import useScrollBar from "../src/layout/dashboard/useScrollBar"
-import { setFast, useRequireAuth } from "../src/redux/slices/authSlice"
+import {
+  setAddress,
+  setFast,
+  useRequireAuth
+} from "../src/redux/slices/authSlice"
 import { selectAuth } from "../src/redux/store"
 import LinkIcon from "../src/svg/LinkIcon"
 import { $, GraphQLError } from "../src/zeus"
@@ -109,9 +113,47 @@ const SettingsCard: React.FC = () => {
   const [error, setError] = useState("")
   const dispatch = useDispatch()
   const [fast, setOptionFast] = useState(user.data.isFast)
+  const [pk, setPk] = useState(user.data.walletAddress || "")
+
+  async function updateWallet() {
+    setError("")
+
+    try {
+      const resp = await GqlInclude("mutation")(
+        {
+          setPublicKey: [
+            {
+              newPublicKey: $`newPublicKey`
+            },
+            true
+          ]
+        },
+        {
+          variables: {
+            newPublicKey: pk
+          }
+        }
+      )
+      if (resp.setPublicKey) {
+        dispatch(setAddress(resp.setPublicKey))
+      }
+    } catch (err) {
+      if (err instanceof GraphQLError && err.response?.errors) {
+        setError(err.response.errors.map((e: any) => e.message).join("\n"))
+      }
+
+      if (err instanceof TypeError) {
+        setError("Please check your internet connection")
+      }
+    }
+  }
+
+  async function save() {
+    if (user.data.isFast != fast) submitFast()
+    if (user.data.walletAddress != pk) updateWallet()
+  }
 
   async function submitFast() {
-    if (user.data.isFast == fast) return
     try {
       setError("")
 
@@ -142,7 +184,7 @@ const SettingsCard: React.FC = () => {
       }
     }
   }
-
+  console.log(user.data.walletAddress == pk)
   return (
     <KeysBox
       variants={fadeVariant}
@@ -183,12 +225,23 @@ const SettingsCard: React.FC = () => {
             Confirmed
           </ResendOption>
         </ResendBox>
+
+        <TextBoxLabel>Your {user.data.network}-net wallet</TextBoxLabel>
+        <TextBox
+          value={pk}
+          onChange={e => setPk(e.target.value)}
+          placeholder="Public Key"
+        />
+        {error && <ErrorText>{error}</ErrorText>}
         <ButtonRight>
           <Button
-            variant={user.data.isFast == fast ? "outline" : "normal"}
+            variant={
+              user.data.isFast != fast || user.data.walletAddress != pk
+                ? "normal"
+                : "outline"
+            }
             fontSize="1rem"
-            onClick={submitFast}
-            padding={user.data.isFast == fast ? ".4rem 1rem" : ".55rem 1.15rem"}
+            onClick={save}
             margin=".75rem 0"
           >
             Save
@@ -257,12 +310,7 @@ const KeyBoxEmpty: React.FC<IKeys> = p => {
         />
 
         <TextBoxLabel>Secret Key</TextBoxLabel>
-        <TextBox
-          disabled
-          value={p.secretKey}
-          padding=".6rem 1rem"
-          placeholder="Access key"
-        />
+        <TextBox disabled value={p.secretKey} placeholder="Access key" />
         {p.accessKey != PLACEHOLDER_KEY && (
           <InfoText>
             Please save the access key and secret key in a safe place. You wont
@@ -276,7 +324,6 @@ const KeyBoxEmpty: React.FC<IKeys> = p => {
             variant="outline"
             fontSize="1rem"
             onClick={p.onNew}
-            padding=".4rem 1rem"
             margin=".75rem 0"
           >
             New
