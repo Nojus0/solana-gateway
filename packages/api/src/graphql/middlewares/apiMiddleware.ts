@@ -52,7 +52,7 @@ const apiMiddleware: IMiddlewareFunction = async (
         redis: ctx.redis,
         category: "api",
         identifier: ctx.req.ip,
-        capacity: 15,
+        capacity: 30,
         rate: 1,
         consume: 1
       })

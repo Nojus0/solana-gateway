@@ -3,7 +3,7 @@ import common from "@rollup/plugin-commonjs"
 import babel from "@rollup/plugin-babel"
 import { terser } from "rollup-plugin-terser"
 import typescript from "@rollup/plugin-typescript"
-import json from "rollup-plugin-json"
+import json from "@rollup/plugin-json"
 import path from "path"
 const IS_PRODUCTION = !process.env.ROLLUP_WATCH
 console.log(__dirname)

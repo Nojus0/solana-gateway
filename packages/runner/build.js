@@ -6,3 +6,4 @@ require("esbuild").buildSync({
   entryPoints: ["./src/index.ts"],
   outfile: "./build/index.js"
 })
+console.log(`Finished building`)
