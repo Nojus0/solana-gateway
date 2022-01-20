@@ -64,7 +64,7 @@ const Home: NextPage = () => {
             </SectionHead>
             <Paragraph>
               Get notified in real time when you recieve a payment to one of
-              your temporary address.
+              your temporary addresses.
             </Paragraph>
           </Section>
           <Underline />
@@ -75,7 +75,7 @@ const Home: NextPage = () => {
               <Marker />
             </SectionHead>
             <Paragraph>
-              View your transfers in the transfer explorer. And see all the data
+              View your transfers in the transfer explorer, and see all the data
               associated with a transfer.
             </Paragraph>
           </Section>
@@ -83,11 +83,11 @@ const Home: NextPage = () => {
 
           <Section>
             <SectionHead>
-              <Header>High availability</Header>
+              <Header>Scalable</Header>
               <Marker />
             </SectionHead>
             <Paragraph>
-              Low downtime, designed to withstand outages so no transfer gets lost.
+              Low downtime, low latency, and highly scalable.
             </Paragraph>
           </Section>
           <Underline />
