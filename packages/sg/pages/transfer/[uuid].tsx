@@ -172,8 +172,7 @@ const Uuid: NextPage = () => {
                 initial="hidden"
                 exit="hidden"
                 onClick={setConfirmed}
-                padding=".6rem 1.25rem"
-                fontSize=".9rem"
+                padding=".5rem 1.25rem"
               >
                 Set Confirmed
               </Button>

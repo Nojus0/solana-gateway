@@ -1,21 +1,19 @@
 import {
   Connection,
+  Transaction as SolTransaction,
   Keypair,
   PublicKey,
   sendAndConfirmTransaction,
-  SystemProgram,
-  Transaction
+  SystemProgram
 } from "@solana/web3.js"
-import base58 from "bs58"
 import { Redis } from "ioredis"
 import { createPoller } from "./createPoller"
 import {
   Model,
   DepositRedisObject,
   Network,
-  Transaction as TransactionModel,
+  Transaction,
   UserDocument,
-  TransactionDocument,
   generateTransactionUUID
 } from "shared"
 import { Webhook } from "./createWebhookConfirmer"
@@ -108,7 +106,7 @@ export const createHandler = ({
         }
 
         console.log(`recieved a transaction `)
-        const TXN = new Transaction().add(
+        const TXN = new SolTransaction().add(
           SystemProgram.transfer({
             fromPubkey: reciever.publicKey,
             toPubkey: new PublicKey(owner.walletAddress),
@@ -136,9 +134,7 @@ export const createHandler = ({
         const createdAt = Date.now()
         const uuid = generateTransactionUUID()
 
-        const transaction = (await Model.create({
-          pk: `USER#${u}`,
-          sk: `NET#${network.name}#TXN#PENDING#${uuid}#${createdAt}`,
+        const transaction = {
           createdAt,
           uuid,
           senderPk: sender.publicKey.toBase58(),
@@ -147,14 +143,13 @@ export const createHandler = ({
           senderTo: reciever.publicKey.toBase58(),
           recieveLm: USER_GOT,
           recieveSig: SIGNATURE,
-          status: "PENDING",
           payload: d
-        } as TransactionModel)) as TransactionDocument
+        } as Transaction
 
         Webhook.send(owner, transaction)
       } catch (err: any) {
         console.log(err)
-        const error = await Model.create({
+        await Model.create({
           pk: `NET#${network.name}`,
           sk: `ERROR#${Date.now()}`,
           message:

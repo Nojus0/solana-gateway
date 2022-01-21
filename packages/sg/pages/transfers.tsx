@@ -157,9 +157,9 @@ const Transfers: NextPage = () => {
               if (isLast) {
                 return (
                   <Waypoint onEnter={reachedBottom} key={txn.uuid}>
-                    <WaypointWrapper>
+                    <WaypointWrapper width={isSmall ? "100%" : "30rem"}>
                       <BasicRowCard
-                        width={isSmall ? "100%" : "30rem"}
+                        width="100%"
                         key={txn.uuid}
                         fields={[
                           {
@@ -241,9 +241,13 @@ interface IDirection {
   direction?: "row" | "column"
 }
 
-const WaypointWrapper = styled.span({
-  width: "100%"
-})
+interface IWidth {
+  width?: string
+}
+
+const WaypointWrapper = styled.span(({ width = "30rem" }: IWidth) => ({
+  width
+}))
 
 const Browser = styled(motion.div)(
   ({ direction: flexDirection = "row" }: IDirection) => ({
