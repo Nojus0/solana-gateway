@@ -222,6 +222,17 @@ const Transaction: React.FC<ITransaction> = props => {
         <Value>{props.senderLm * 0.000000001}</Value>
       </Row>
       <Row>
+        <Title>sender sent to</Title>
+        <Value>{props.senderTo}</Value>
+        <Button
+          onClick={() => navigator.clipboard.writeText(props.senderTo)}
+          padding=".45rem 1rem"
+          variant="outline"
+        >
+          Copy
+        </Button>
+      </Row>
+      <Row>
         <Title>sender address</Title>
         <Value>{props.senderPk}</Value>
         <Button

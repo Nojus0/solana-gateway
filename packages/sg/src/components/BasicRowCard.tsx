@@ -17,18 +17,16 @@ interface IBasicRowCard extends HTMLMotionProps<"div"> {
   title: string
   fields: IField[]
   margin?: string
-  width?: string
 }
 
 const BasicRowCard: React.FC<IBasicRowCard> = ({
   title,
   fields,
   children,
-  width,
   ...rest
 }) => {
   return (
-    <Wrapper width={width}>
+    <Wrapper>
       <Box
         variants={fadeVariant}
         animate="visible"
@@ -84,19 +82,21 @@ interface IWidth {
   width?: string
 }
 
-const Wrapper = styled.div(({ width = "30rem" }: IWidth) => ({
-  width,
+const Wrapper = styled.div({
+  width: "100%",
+  "@media (min-width: 65rem)": {
+    width: "30rem"
+  },
   padding: "1rem"
-}))
+})
+
 const Box = styled(motion.div)(({ margin = "0" }: IMargin) => ({
   background: "#FFFFFF",
   borderRadius: ".75rem",
   margin,
   padding: "1.7rem",
-  // flexGrow: 1,
   wordBreak: "break-all",
   textOverflow: "ellipsis",
-  // overflow: "hidden",
   boxShadow: "0px 2px 4px rgba(138, 138, 138, 0.25)"
 }))
 

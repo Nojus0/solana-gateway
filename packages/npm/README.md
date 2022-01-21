@@ -4,27 +4,53 @@ Verify if the request is coming from solana gateway, and is not tampered with.
 
 ```ts
 app.post("/", express.text({ type: "application/json" }), (req, res) => {
-  console.log(req.body);
-  const valid = verify(
-    API_KEY,
-    SECRET,
-    req.body,
-    Array.isArray(req.headers["x-signature"])
-      ? req.headers["x-signature"][0]
-      : req.headers["x-signature"]
-  );
+  const payload: Payload = JSON.parse(req.body)
+  const sig = req.header("x-signature")
+  const isValid = verify(req.body, sk, sig)
 
-  if (!valid) {
-    return res.status(401);
+  if (!isValid) {
+    console.log(`invalid`)
+    return res.status(404).send()
   }
 
-
-  const payload: IPayload = JSON.parse(req.body);
-
-  // Proccess the transaction
-
   res.json({
-    processed: true,
-  });
-});
+    confirmed: true
+  })
+})
+
+app.get("/make", async (req, res) => {
+  try {
+    const { data } = await axios({
+      url: "http://localhost:4000/graphql",
+      method: "post",
+      headers: {
+        Authorization: `Bearer ${pk}`
+      },
+      data: {
+        query: `mutation createDepositAddress($data: String!, $lifetimeMs: Int!) {
+          createDepositAddress(data: $data, lifetime_ms: $lifetimeMs) {
+            publicKey
+          }
+        }`,
+        variables: {
+          data: `user=${req.query.user || "annoymous"}`,
+          lifetimeMs: 1000 * 60 * 15
+        }
+      }
+    })
+
+    const total =
+      0.01 / 0.000000001 + feeAmountForSendAmount(0.01 / 0.000000001, "dev")
+
+    return res.json({
+      address: data.data.createDepositAddress.publicKey,
+      amount: total * 0.000000001
+    })
+  } catch (err) {
+    res.json({
+      error: "Too many requests please try again later."
+    })
+  }
+})
+
 ```

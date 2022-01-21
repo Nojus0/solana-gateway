@@ -112,7 +112,6 @@ const Webhooks: NextPage = () => {
               {user?.data?.webhooks?.map(webhook => (
                 <TransferCard
                   key={webhook}
-                  width={isSmall ? "100%" : "30rem"}
                   title="Webhook"
                   fields={[
                     {
@@ -139,7 +138,6 @@ const Webhooks: NextPage = () => {
             <AnimatePresence>
               {add && (
                 <TransferCard
-                  width={isSmall ? "100%" : "30rem"}
                   title="Webhook"
                   fields={[
                     {

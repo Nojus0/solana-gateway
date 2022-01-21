@@ -157,9 +157,8 @@ const Transfers: NextPage = () => {
               if (isLast) {
                 return (
                   <Waypoint onEnter={reachedBottom} key={txn.uuid}>
-                    <WaypointWrapper width={isSmall ? "100%" : "30rem"}>
+                    <WaypointWrapper>
                       <BasicRowCard
-                        width="100%"
                         key={txn.uuid}
                         fields={[
                           {
@@ -177,17 +176,19 @@ const Transfers: NextPage = () => {
                         ]}
                         title="transfer"
                       >
-                        <ButtonRight>
+                        <RightDiv>
                           <Link passHref href={`/transfer/${txn.uuid}`}>
-                            <Button
-                              margin=" 0 0 .7rem 0"
-                              padding=".5rem 1rem"
-                              variant="outline"
-                            >
-                              More
-                            </Button>
+                            <A margin="1.15rem 0 0 0">
+                              <Button
+                                margin=" 0 0 .7rem 0"
+                                padding=".5rem 1rem"
+                                variant="outline"
+                              >
+                                More
+                              </Button>
+                            </A>
                           </Link>
-                        </ButtonRight>
+                        </RightDiv>
                       </BasicRowCard>
                     </WaypointWrapper>
                   </Waypoint>
@@ -197,7 +198,6 @@ const Transfers: NextPage = () => {
               return (
                 <BasicRowCard
                   key={txn.uuid}
-                  width={isSmall ? "100%" : "30rem"}
                   fields={[
                     {
                       label: "amount",
@@ -241,13 +241,12 @@ interface IDirection {
   direction?: "row" | "column"
 }
 
-interface IWidth {
-  width?: string
-}
-
-const WaypointWrapper = styled.span(({ width = "30rem" }: IWidth) => ({
-  width
-}))
+const WaypointWrapper = styled.span({
+  width: "100%",
+  "@media (min-width: 65rem)": {
+    width: "30rem"
+  }
+})
 
 const Browser = styled(motion.div)(
   ({ direction: flexDirection = "row" }: IDirection) => ({
