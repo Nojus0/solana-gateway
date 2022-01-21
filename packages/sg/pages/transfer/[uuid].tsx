@@ -1,4 +1,5 @@
 import styled from "@emotion/styled"
+import { AnimatePresence } from "framer-motion"
 import { NextPage } from "next"
 import Head from "next/head"
 import { useRouter } from "next/router"
@@ -164,19 +165,21 @@ const Uuid: NextPage = () => {
         <ListHeader selectedRoute="none">
           <SubTitleWrapper>
             <SubTitle>Transaction</SubTitle>
-            {txn?.status == "PENDING" && (
-              <Button
-                variant="outline"
-                variants={fadeVariant}
-                animate="visible"
-                initial="hidden"
-                exit="hidden"
-                onClick={setConfirmed}
-                padding=".5rem 1.25rem"
-              >
-                Set Confirmed
-              </Button>
-            )}
+            <AnimatePresence>
+              {txn?.status == "PENDING" && (
+                <Button
+                  variant="outline"
+                  variants={fadeVariant}
+                  animate="visible"
+                  initial="hidden"
+                  exit="hidden"
+                  onClick={setConfirmed}
+                  padding=".5rem 1.25rem"
+                >
+                  Set Confirmed
+                </Button>
+              )}
+            </AnimatePresence>
 
             <Button
               onClick={() => history.back()}

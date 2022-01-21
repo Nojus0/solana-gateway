@@ -1,7 +1,7 @@
 import { Model, Transaction, UserDocument } from "shared"
 import crypto from "crypto"
 import axios from "axios"
-import { Payload } from "solanagateway"
+import { Payload, sign } from "solanagateway"
 export class Webhook {
   static async send(user: UserDocument, txn: Transaction) {
     if (user.webhooks.length < 1) return
@@ -19,9 +19,8 @@ export class Webhook {
         payload: txn.payload,
         targetWebhook: webhook
       } as Payload)
-
-      const sig = sign(PAYLOAD, user.sk)
-      console.log(`sending to ${webhook} = ${sig} / ${PAYLOAD}`)
+      const sig = sign(PAYLOAD, user.secretKey)
+      console.log(`sending to ${webhook} = ${sig} = ${PAYLOAD}`)
       try {
         const { data } = await axios({
           url: webhook,
@@ -57,11 +56,4 @@ export class Webhook {
 
     await Model.create(txn)
   }
-}
-
-function sign(request: string, sk: string) {
-  return crypto
-    .createHash("sha256")
-    .update(Buffer.from(request + sk))
-    .digest("base64")
 }

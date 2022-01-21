@@ -48,7 +48,46 @@ export function verify(body: string, sk: string, signature: string) {
   return (
     crypto
       .createHash("sha256")
-      .update(Buffer.from(body + sk))
-      .digest("base64") === signature
+      .update(body + sk)
+      .digest("base64") == signature
   )
+}
+export function sign(body: string, sk: string) {
+  return crypto
+    .createHash("sha256")
+    .update(body + sk)
+    .digest("base64")
+}
+
+/**
+ * Calculates the sendAmount with the fee included.
+ * @param wantToSendLamports The amount of LAMPORTS you want to send.
+ * @param network The network youre one on.
+ * @returns returns the send amount with the fee included.
+ */
+export function withFee(
+  wantToSendLamports: number,
+  network: "dev" | "main" = "main"
+) {
+  const a =
+    wantToSendLamports +
+    wantToSendLamports * ((network == "main" ? 1 : 50) / 100) +
+    5000
+
+  return a
+}
+
+/**
+ * Calculates the fee for a transaction.
+ * @param wantToSendLamports The amount of LAMPORTS you want to send.
+ * @param network The network.
+ * @returns returns the fee amount in lamports;
+ */
+export function feeAmountForSendAmount(
+  wantToSendLamports: number,
+  network: "dev" | "main" = "main"
+) {
+  const a = wantToSendLamports * ((network == "main" ? 1 : 50) / 100) + 5000
+
+  return a
 }
