@@ -312,11 +312,11 @@ const KeyBoxEmpty: React.FC<IKeys> = p => {
         <TextBoxLabel>Secret Key</TextBoxLabel>
         <TextBox disabled value={p.secretKey} placeholder="Access key" />
         {p.accessKey != PLACEHOLDER_KEY && (
-          <InfoText>
+          <ErrorText>
             Please save the access key and secret key in a safe place. You wont
             be able to view these keys again! Though you can generate a new one
             every 1 hour.
-          </InfoText>
+          </ErrorText>
         )}
         {p.error && <ErrorText>{p.error}</ErrorText>}
         <ButtonRight>

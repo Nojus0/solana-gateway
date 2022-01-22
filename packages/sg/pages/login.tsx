@@ -156,7 +156,7 @@ const Login: NextPage = () => {
 
 export const ErrorText = styled.p({
   color: "#DD0000",
-  fontSize: ".85rem",
+  fontSize: "1.05rem",
   margin: ".25rem 0"
 })
 
