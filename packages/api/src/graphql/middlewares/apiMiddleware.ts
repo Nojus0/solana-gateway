@@ -47,24 +47,6 @@ const apiMiddleware: IMiddlewareFunction = async (
       )
     }
 
-    if (user.network == "dev") {
-      const { allowed, remaining } = await rateLimit({
-        redis: ctx.redis,
-        category: "api",
-        identifier: ctx.req.ip,
-        capacity: 30,
-        rate: 1,
-        consume: 1
-      })
-
-      ctx.res.setHeader("X-RateLimit-Remaining", remaining.toString())
-      ctx.res.setHeader("X-RateLimit-Req-Cost", "1")
-
-      if (!allowed) {
-        return ctx.res.status(429).send("Too many requests")
-      }
-    }
-
     return await resolve(
       root,
       args,
@@ -92,24 +74,6 @@ const apiMiddleware: IMiddlewareFunction = async (
     .exec()
 
   if (!user) throw new Error("Invalid api key.")
-
-  if (user.network == "dev") {
-    const { allowed, remaining } = await rateLimit({
-      redis: ctx.redis,
-      category: "api",
-      identifier: ctx.req.ip,
-      capacity: 30,
-      rate: 1,
-      consume: 1
-    })
-
-    ctx.res.setHeader("X-RateLimit-Remaining", remaining.toString())
-    ctx.res.setHeader("X-RateLimit-Req-Cost", "1")
-
-    if (!allowed) {
-      return ctx.res.status(429).send("Too many requests")
-    }
-  }
 
   return await resolve(
     root,

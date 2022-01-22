@@ -2,6 +2,7 @@ import { Keypair } from "@solana/web3.js"
 import { gql } from "apollo-server-core"
 import { DepositRedisObject } from "shared"
 import { APIContext } from "../graphql/middlewares/apiMiddleware"
+import { rateLimit } from "../rateLimit"
 
 export const depositTypeDefs = gql`
   extend type Mutation {
@@ -19,8 +20,44 @@ export const min_ms_expires = 1000 * 60 * 5
 const DepositResolver = {
   Query: {},
   Mutation: {
-    createDepositAddress: async (_, params, { redis, user }: APIContext) => {
+    createDepositAddress: async (
+      _,
+      params,
+      { redis, user, req, res }: APIContext
+    ) => {
       const GEN_DEPOSIT_WALLET = new Keypair()
+
+      if (user.network == "dev") {
+        const { remaining, allowed } = await rateLimit({
+          redis,
+          category: "gen",
+          identifier: req.ip,
+          capacity: 30,
+          consume: 1,
+          rate: 10,
+          time: Math.floor(Date.now() / 1000)
+        })
+
+        res.setHeader("X-RateLimit-Remaining", remaining.toString())
+        res.setHeader("X-RateLimit-Req-Cost", "1")
+
+        if (!allowed) return res.status(429).send("Too many requests")
+      } else {
+        const { allowed, remaining } = await rateLimit({
+          redis,
+          category: "gen",
+          identifier: req.ip,
+          capacity: user.rateLimitCapacity || 100,
+          consume: 1,
+          rate: user.rateLimitRate || 20,
+          time: Math.floor(Date.now() / 1000)
+        })
+
+        res.setHeader("X-RateLimit-Remaining", remaining.toString())
+        res.setHeader("X-RateLimit-Req-Cost", "1")
+
+        if (!allowed) return res.status(429).send("Too many requests")
+      }
 
       // * Cant do account:*publickey* because of buffer, possible but dirty *
       // * If problems arrise prefix it with some bytes or encoded string

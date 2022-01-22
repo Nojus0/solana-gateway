@@ -28,6 +28,9 @@ export interface Transaction {
   confirmedAt: number
   createdAt: number
   status: "PENDING" | "CONFIRMED"
+
+  // Expiry ! DEV NET ONLY !
+  expiresAt: number
 }
 
 export type TransactionDocument = Transaction & Document
@@ -93,6 +96,9 @@ const TransactionSchema = new dynamoose.Schema({
     type: String,
     required: true,
     default: "PENDING"
+  },
+  expiresAt: {
+    type: Number
   }
 })
 

@@ -114,6 +114,7 @@ importers:
     specifiers:
       '@algolia/client-search': ^4.9.1
       '@docusaurus/core': ^2.0.0-beta.13
+      '@docusaurus/plugin-google-gtag': ^2.0.0-beta.14
       '@docusaurus/preset-classic': ^2.0.0-beta.13
       '@mdx-js/react': ^1.6.21
       '@types/react': '>=16.8.0 <18.0.0'
@@ -126,6 +127,7 @@ importers:
     dependencies:
       '@algolia/client-search': 4.12.0
       '@docusaurus/core': 2.0.0-beta.14_8d10bf9ee9fd9a7bca0ae2439300edc5
+      '@docusaurus/plugin-google-gtag': 2.0.0-beta.14_766bb96b05b3de1d40ad0e45dd3a3abc
       '@docusaurus/preset-classic': 2.0.0-beta.14_25936188a4283985da798928901ce2bf
       '@mdx-js/react': 1.6.22_react@16.13.1
       clsx: 1.1.1

@@ -30,6 +30,8 @@ export interface User {
   acceptedTime: number
   acceptedVersion: number
   ip: string
+  rateLimitCapacity?: number
+  rateLimitRate?: number
 }
 
 export interface CurrentUser {
@@ -130,6 +132,12 @@ const UserSchema = new dynamoose.Schema({
   secretKey: {
     type: String
     // default: () => `sk_${base58.encode(crypto.randomBytes(16))}`
+  },
+  rateLimitCapacity: {
+    type: Number
+  },
+  rateLimitRate: {
+    type: Number
   }
 })
 

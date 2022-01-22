@@ -53,7 +53,8 @@ export class Webhook {
       txn.status = "PENDING"
       console.log(`pending ${txn.uuid}`)
     }
-
+    user.network == "dev" &&
+      (txn.expiresAt = Math.floor(Date.now() / 1000) + 60 * 15)
     await Model.create(txn)
   }
 }

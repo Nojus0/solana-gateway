@@ -82,8 +82,10 @@ export const createHandler = ({
         console.log(LEFT_BALANCE)
         console.log(`----`)
 
-        if (reciever.change < 0.005 / 0.000000001) {
-          redis.del(reciever.publicKey.toBase58())
+        if (reciever.change < 0.005 / 0.000000001 - 5000) {
+          // redis.del(reciever.publicKey.toBase58())
+          // ! SEND BACK !
+          // TODO : Send back to sender
           return
         }
 

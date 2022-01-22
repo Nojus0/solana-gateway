@@ -1,5 +1,4 @@
 import { IMiddlewareFunction } from "graphql-middleware"
-import { IJwtToken, Model, UserDocument, verifyToken } from "shared"
 import { IContext } from "../../interfaces"
 import { rateLimit } from "../../rateLimit"
 
