@@ -78,7 +78,6 @@ async function getTransactions(
 }
 
 const Transfers: NextPage = () => {
-  const router = useRouter()
   useRequireAuth()
   useScrollBar()
   const user = useSelector(selectAuth)

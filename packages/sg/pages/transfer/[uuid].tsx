@@ -159,7 +159,7 @@ const Uuid: NextPage = () => {
   return (
     <>
       <Head>
-        <title>Transfers - Solana Gateway</title>
+        <title>Transfer - Solana Gateway</title>
       </Head>
       <Wrapper>
         <ListHeader selectedRoute="none">

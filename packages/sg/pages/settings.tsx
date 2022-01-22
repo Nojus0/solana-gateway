@@ -73,7 +73,7 @@ const Settings: NextPage = props => {
   return (
     <>
       <Head>
-        <title>Transfers - Solana Gateway</title>
+        <title>Settings - Solana Gateway</title>
       </Head>
 
       <Wrapper>

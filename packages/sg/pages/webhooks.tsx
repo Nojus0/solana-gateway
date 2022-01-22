@@ -91,7 +91,7 @@ const Webhooks: NextPage = () => {
   return (
     <>
       <Head>
-        <title>Transfers - Solana Gateway</title>
+        <title>Webhooks - Solana Gateway</title>
       </Head>
       <Wrapper>
         <ListHeader selectedRoute="webhooks">
