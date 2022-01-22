@@ -31,7 +31,7 @@ const Signup: NextPage = props => {
   return (
     <>
       <Head>
-        <title>Signup - Solana Gateway</title>
+        <title>Solana Gateway - Signup</title>
       </Head>
       <Wrapper DoWrap={isSmall}>
         {isSmall ? <InteractSide /> : <FeatureSide />}

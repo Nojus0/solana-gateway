@@ -18,7 +18,11 @@ const Home: NextPage = () => {
   return (
     <motion.div initial="hidden" variants={defaultVariant} animate="visible">
       <Head>
-        <title>Home - Solana Gateway</title>
+        <title>Solana Gateway - Home</title>
+        <meta
+          name="description"
+          content="Solana Gateway start accepting solana today. Solana Gateway lets you accept solana payments easily, explore all your recieved transactions in the transaction explorer, and get notified when you recieve a new one. Sign up or Login."
+        />
       </Head>
       <Container margin="0 .75rem" max="60rem" min="1px" value="100%">
         <NormalHeader />

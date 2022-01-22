@@ -19,7 +19,6 @@
     "@emotion/react": "^11.7.1",
     "@emotion/styled": "^11.6.0",
     "@reduxjs/toolkit": "^1.7.1",
-    "shared": "workspace:*",
     "framer-motion": "^5.5.5",
     "graphql": "^15.5.0",
     "next": "12.0.7",
@@ -27,6 +26,7 @@
     "react-dom": "17.0.2",
     "react-redux": "^7.2.6",
     "react-waypoint": "^10.1.0",
+    "shared": "workspace:*",
     "urql": "^2.0.6",
     "validator": "^13.7.0"
   },

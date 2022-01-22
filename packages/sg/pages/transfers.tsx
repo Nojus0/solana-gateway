@@ -129,7 +129,7 @@ const Transfers: NextPage = () => {
   return (
     <>
       <Head>
-        <title>Transfers - Solana Gateway</title>
+        <title>Solana Gateway - Transfers</title>
       </Head>
       <Wrapper>
         <ListHeader selectedRoute="transfers" />
@@ -150,9 +150,11 @@ const Transfers: NextPage = () => {
                 <Spinner />
               </SpinnerWrapper>
             )}
+            
             {!loading && transactions.length === 0 && (
-              <NoTransfersText>You haven't recieved any transfers yet.</NoTransfersText>
+              <NoTransfersText>You haven&apos;t recieved any transfers yet.</NoTransfersText>
             )}
+
             {transactions.map((txn, i) => {
               const isLast = i === transactions.length - 1
 
@@ -248,7 +250,7 @@ const NoTransfersText = styled.p({
   fontSize: "1.25rem",
   width: "100%",
   textAlign: "center",
-  textShadow: "0px 1px 4px rgba(0, 0, 0, 0.25)"
+  textShadow: "0px 1px 2px rgba(0, 0, 0, 0.25)"
 })
 
 const WaypointWrapper = styled.span({
