@@ -33,7 +33,7 @@ export const createHandler = ({
   maxPollsPerInterval,
   maxRetries,
   pollInterval,
-  retryDelay
+  retryDelay,
 }: IHandler) => {
   const conn = new Connection(network.url)
 
@@ -190,10 +190,6 @@ export const createHandler = ({
       })
     },
     onHandleBlock: block => {
-      // NetworkModel.findOneAndUpdate(
-      //   { name: process.env.NETWORK },
-      //   { $push: { blocks: block } }
-      // ).exec();
     }
   })
 

@@ -1,24 +1,27 @@
 import { Model, Transaction, UserDocument } from "shared"
 import crypto from "crypto"
 import axios from "axios"
-import { Payload, sign } from "solanagateway"
+import { IEvent, sign } from "solanagateway"
 export class Webhook {
   static async send(user: UserDocument, txn: Transaction) {
     if (user.webhooks.length < 1) return
 
     async function sendOne(webhook: string): Promise<boolean> {
       const PAYLOAD = JSON.stringify({
-        senderPk: txn.senderPk,
-        senderLm: txn.senderLm,
-        senderSig: txn.senderSig,
-        senderTo: txn.senderTo,
-        recieveLm: txn.recieveLm,
-        recieveSig: txn.recieveSig,
-        uuid: txn.uuid,
-        createdAt: txn.createdAt,
-        payload: txn.payload,
-        targetWebhook: webhook
-      } as Payload)
+        type: "transfer:new",
+        payload: {
+          senderPk: txn.senderPk,
+          senderLm: txn.senderLm,
+          senderSig: txn.senderSig,
+          senderTo: txn.senderTo,
+          recieveLm: txn.recieveLm,
+          recieveSig: txn.recieveSig,
+          uuid: txn.uuid,
+          createdAt: txn.createdAt,
+          payload: txn.payload,
+          targetWebhook: webhook
+        }
+      } as IEvent)
       const sig = sign(PAYLOAD, user.secretKey)
       console.log(`sending to ${webhook} = ${sig} = ${PAYLOAD}`)
       try {
@@ -55,6 +58,7 @@ export class Webhook {
     }
     user.network == "dev" &&
       (txn.expiresAt = Math.floor(Date.now() / 1000) + 60 * 15)
+
     await Model.create(txn)
   }
 }

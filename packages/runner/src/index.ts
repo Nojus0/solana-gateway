@@ -10,6 +10,8 @@ import { createHandler } from "./createHandler"
     "MAX_POLLS_PER_INTERVAL",
     "POLL_INTERVAL",
     "RETRY_DELAY",
+    "MAX_RETRIES",
+    "WEBHOOK_TIMEOUT"
   ]
 
   envProcessor(envs)

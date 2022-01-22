@@ -1,6 +1,6 @@
 import crypto from "crypto"
 
-export interface Payload {
+export interface IPayload {
   /**
    * The UUID of the transaction
    */
@@ -42,6 +42,11 @@ export interface Payload {
    * The webhook url this payload is meant for.
    */
   targetWebhook: string
+}
+
+export interface IEvent {
+  type: "transfer:new"
+  payload: IPayload
 }
 
 export function verify(body: string, sk: string, signature: string) {
