@@ -18,7 +18,7 @@ const apiMiddleware: IMiddlewareFunction = async (
     category: "api",
     identifier: ctx.req.ip,
     capacity: 100,
-    rate: 1,
+    rate: 2,
     consume: 1
   })
 

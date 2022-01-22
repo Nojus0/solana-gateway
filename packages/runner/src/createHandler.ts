@@ -66,8 +66,30 @@ export const createHandler = ({
           sk: `NET#${network.name}`
         })) as UserDocument
 
+        if (reciever.change < 0.005 / 0.000000001 - 5000 && reciever.change > 10000) {
+          console.log(`ERROR = ${reciever.change} TOO LOW!`)
+          redis.del(reciever.publicKey.toBase58())
+
+          const errorTxn = new SolTransaction().add(
+            SystemProgram.transfer({
+              fromPubkey: reciever.publicKey,
+              toPubkey: new PublicKey(owner.walletAddress),
+              lamports: Math.floor(reciever.change - 5000)
+            })
+          )
+          
+          await sendAndConfirmTransaction(conn, errorTxn, [recieverKeyPair], {
+            commitment: "confirmed"
+          })
+
+          // ! SEND BACK !
+          return
+        }
+
+        const NET_FEE = owner.fee || network.fee
+
         const TAKE_FEE = Math.floor(
-          ((reciever.change - fee) / (100 + network.fee)) * network.fee
+          ((reciever.change - fee) / (100 + NET_FEE)) * NET_FEE
         )
         const USER_GOT = Math.floor(reciever.change - TAKE_FEE - fee)
         const LEFT_BALANCE = Math.round(reciever.change - USER_GOT - TAKE_FEE)
@@ -81,13 +103,6 @@ export const createHandler = ({
         console.log(USER_GOT)
         console.log(LEFT_BALANCE)
         console.log(`----`)
-
-        if (reciever.change < 0.005 / 0.000000001 - 5000) {
-          // redis.del(reciever.publicKey.toBase58())
-          // ! SEND BACK !
-          // TODO : Send back to sender
-          return
-        }
 
         if (LEFT_BALANCE != fee) {
           await Model.create({
@@ -116,15 +131,13 @@ export const createHandler = ({
           })
         )
 
-        if (owner.paysFee) {
-          TXN.add(
-            SystemProgram.transfer({
-              fromPubkey: reciever.publicKey,
-              toPubkey: new PublicKey(network.feeAddress),
-              lamports: TAKE_FEE
-            })
-          )
-        }
+        TXN.add(
+          SystemProgram.transfer({
+            fromPubkey: reciever.publicKey,
+            toPubkey: new PublicKey(network.feeAddress),
+            lamports: TAKE_FEE
+          })
+        )
 
         const SIGNATURE = await sendAndConfirmTransaction(
           conn,

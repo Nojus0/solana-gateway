@@ -21,7 +21,7 @@ export interface User {
   isFast: boolean
   recieved: number
   createdAt: number
-  paysFee: boolean
+  fee: number
   apiKey: string
   secretKey: string
   network: string
@@ -46,10 +46,10 @@ export interface CurrentUser {
 export type UserDocument = User & Document
 
 export const generateUserApiKey = () =>
-  `ak_${base58.encode(crypto.randomBytes(16))}`
+  `ak_${base58.encode(crypto.randomBytes(32))}`
 
 export const generateSecretKey = () =>
-  `sk_${base58.encode(crypto.randomBytes(16))}`
+  `sk_${base58.encode(crypto.randomBytes(64))}`
 
 const UserSchema = new dynamoose.Schema({
   pk: {
@@ -117,9 +117,8 @@ const UserSchema = new dynamoose.Schema({
     type: Number,
     default: Date.now()
   },
-  paysFee: {
-    type: Boolean,
-    default: true
+  fee: {
+    type: Number
   },
   apiKey: {
     index: {

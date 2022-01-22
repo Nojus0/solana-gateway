@@ -22,6 +22,8 @@ export const userTypeDefs = gql`
     isFast: Boolean!
     webhooks: [String!]!
     walletAddress: String
+    rateLimitRate: Int
+    rateLimitCapacity: Int
   }
 
   type BasicUser {
@@ -275,7 +277,6 @@ const UserResolver = {
     },
     keys: async (_, params, { user }: APIContext) => {
       const diff = Date.now() - user.lastRegen
-      console.log(diff)
       if (diff < 1000 * 60 * 60) {
         throw new Error("You can regenerate a new key only once an hour.")
       }

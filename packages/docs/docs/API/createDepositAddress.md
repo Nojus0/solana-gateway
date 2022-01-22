@@ -14,6 +14,6 @@ mutation createDepositAddress($data: String!, $lifetimeMs: Int!) {
 }
 ```
 
-`data` is limited to 256 bytes, this data will be sent to the webhook endpoint, when the deposit address recieves a transfer.
+`data` is limited to 256 bytes, this data will be sent to the all webhook endpoints as payload, when the address recieves the transfer.
 
-`lifetime_ms` the lifetime of the deposit address in milliseconds minimum 5 minutes and maximum of 1 hour. After it expires the only trace is left is the public key of the wallet if the wallet recieved a transaction if not no trace is left.
+`lifetime_ms` the lifetime of the deposit address in milliseconds minimum 5 minutes and maximum of 15 minutes. After it expires its deleted permanently.

@@ -28,33 +28,45 @@ const DepositResolver = {
       const GEN_DEPOSIT_WALLET = new Keypair()
 
       if (user.network == "dev") {
+        const capacity = 25
+        const rate = 2
+        const consume = 1
+
         const { remaining, allowed } = await rateLimit({
           redis,
-          category: "gen",
+          category: "gen-dev",
           identifier: req.ip,
-          capacity: 30,
-          consume: 1,
-          rate: 10,
+          capacity,
+          consume,
+          rate,
           time: Math.floor(Date.now() / 1000)
         })
 
         res.setHeader("X-RateLimit-Remaining", remaining.toString())
-        res.setHeader("X-RateLimit-Req-Cost", "1")
+        res.setHeader("X-RateLimit-Req-Cost", consume.toString())
+        res.setHeader("X-RateLimit-Req-Rate", rate.toString())
+        res.setHeader("X-RateLimit-Capacity", capacity.toString())
 
         if (!allowed) return res.status(429).send("Too many requests")
       } else {
+        const capacity = user.rateLimitCapacity || 100
+        const rate = user.rateLimitRate || 20
+        const consume = 1
+
         const { allowed, remaining } = await rateLimit({
           redis,
-          category: "gen",
+          category: "gen-main",
           identifier: req.ip,
-          capacity: user.rateLimitCapacity || 100,
-          consume: 1,
-          rate: user.rateLimitRate || 20,
+          capacity,
+          consume,
+          rate,
           time: Math.floor(Date.now() / 1000)
         })
 
         res.setHeader("X-RateLimit-Remaining", remaining.toString())
-        res.setHeader("X-RateLimit-Req-Cost", "1")
+        res.setHeader("X-RateLimit-Req-Cost", consume.toString())
+        res.setHeader("X-RateLimit-Req-Rate", rate.toString())
+        res.setHeader("X-RateLimit-Capacity", capacity.toString())
 
         if (!allowed) return res.status(429).send("Too many requests")
       }
