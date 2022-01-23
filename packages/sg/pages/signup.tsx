@@ -32,6 +32,10 @@ const Signup: NextPage = props => {
     <>
       <Head>
         <title>Solana Gateway - Signup</title>
+        <meta
+          name="description"
+          content="Solana Gateway Sign up or Registration sign up now and start accepting solana payments now. And explore the in the transfer explorer."
+        ></meta>
       </Head>
       <Wrapper DoWrap={isSmall}>
         {isSmall ? <InteractSide /> : <FeatureSide />}

@@ -122,7 +122,6 @@ const Transfers: NextPage = () => {
 
   function reachedBottom() {
     if (!isMore || loading || !next) return
-    console.log(`fetching more`)
     fetchTransactions()
   }
 

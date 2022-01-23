@@ -90,6 +90,10 @@ const Login: NextPage = () => {
     <>
       <Head>
         <title>Login - Solana Gateway</title>
+        <meta
+          name="description"
+          content="Solana Gateway Login Sign In, log in to your solana gateway account and view all your transfers and settings."
+        ></meta>
       </Head>
       <Container
         variants={defaultVariant}
