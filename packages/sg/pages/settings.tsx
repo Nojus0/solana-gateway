@@ -202,7 +202,7 @@ const SettingsCard: React.FC = () => {
           <TextBoxLabel margin="0 .5rem 0 0">resend confirmations</TextBoxLabel>
           <Link
             passHref
-            href="https://docs.solanagateway.com/docs/Account/FastMode"
+            href="https://docs.solanagateway.com/docs/account/confirmations"
           >
             <a>
               <LinkHref width="1.25rem" />
