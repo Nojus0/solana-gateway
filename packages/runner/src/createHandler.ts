@@ -36,6 +36,7 @@ export const createHandler = ({
   retryDelay,
 }: IHandler) => {
   const conn = new Connection(network.url)
+
   const poller = createPoller({
     conn,
     maxRetries,

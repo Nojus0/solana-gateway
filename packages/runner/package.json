@@ -23,8 +23,8 @@
     "lodash": "^4.17.21",
     "mongoose": "^6.0.13",
     "shared": "workspace:*",
-    "smart-buffer": "^4.2.0",
-    "solanagateway": "workspace:*"
+    "solanagateway": "workspace:*",
+    "smart-buffer": "^4.2.0"
   },
   "devDependencies": {
     "@types/bs58": "^4.0.1",

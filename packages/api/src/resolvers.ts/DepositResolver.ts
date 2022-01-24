@@ -27,28 +27,6 @@ const DepositResolver = {
     ) => {
       const GEN_DEPOSIT_WALLET = new Keypair()
 
-      const time = Date.now()
-      const walker = Number(await redis.get(`HC#${user.network}`)) || undefined
-      const getDiff = Date.now() - time
-      let TIME = Date.now()
-
-      TIME -= getDiff
-
-      if (!walker) {
-        return res.status(501).json({
-          error: "Blockchain walker is not running."
-        })
-      }
-      const diff = TIME - walker
-      
-      if (diff > 200) {
-        console.error(`BAD DIFF: ${diff}`)
-        await redis.del(`HC#${user.network}`)
-        return res.status(501).json({
-          error: "Blockchain walker is not running."
-        })
-      }
-
       if (user.network == "dev") {
         const capacity = 25
         const rate = 2
