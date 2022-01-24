@@ -88,9 +88,9 @@ export const createPoller = ({
   }
 
   async function handleBlock(slot: number) {
-    console.log(`[TASK] ${slot}`)
+    // console.log(`[TASK] ${slot}`)
     const block = await repeatBlock(slot)
-    console.log(`[FINISHED] ${slot}`)
+    // console.log(`[FINISHED] ${slot}`)
 
     if (!block) return
 
@@ -114,7 +114,7 @@ export const createPoller = ({
 
     lastProcessedBlock = lastProcessedBlock || latestBlock
 
-    console.log(`Latest block ${latestBlock} last block ${lastProcessedBlock}`)
+    // console.log(`Latest block ${latestBlock} last block ${lastProcessedBlock}`)
 
     const adder = lastProcessedBlock + 1 < latestBlock ? 1 : 0
 
@@ -140,7 +140,7 @@ export const createPoller = ({
 
     onPollFinished && onPollFinished(lastProcessedBlock)
 
-    console.log(`Finished Poll`)
+    // console.log(`Finished Poll`)
 
     setTimeout(poll, pollInterval)
   }

@@ -320,7 +320,7 @@ const FeatureTitle = styled("h2")({
 })
 
 const FeatureDescription = styled("p")({
-  fontSize: "1rem",
+  fontSize: "1.05rem",
   color: "black",
   fontWeight: 400,
   margin: 0

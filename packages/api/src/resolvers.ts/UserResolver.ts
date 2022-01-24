@@ -97,7 +97,7 @@ const UserResolver = {
         throw new Error("Password is too weak")
 
       const NETWORK = await Model.get({ pk: `NET#${network}`, sk: "DETAILS" })
-      if (!NETWORK) throw new Error("Network does not exists")
+      if (!NETWORK) throw new Error("Network not supported.")
 
       const SALT = await bcrypt.genSalt(5)
       const HASH = await bcrypt.hash(password, SALT)
