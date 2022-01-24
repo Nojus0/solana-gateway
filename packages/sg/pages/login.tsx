@@ -107,7 +107,7 @@ const Login: NextPage = () => {
         <NormalHeader />
 
         <Container max="35rem">
-          <TextCustom>Solana Gateway - Login</TextCustom>
+          <TextCustom>Log in to Solana Gateway</TextCustom>
 
           <TextBoxLabel>Email address</TextBoxLabel>
           <TextBox

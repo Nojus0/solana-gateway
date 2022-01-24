@@ -49,7 +49,7 @@ export const generateUserApiKey = () =>
   `ak_${base58.encode(crypto.randomBytes(32))}`
 
 export const generateSecretKey = () =>
-  `sk_${base58.encode(crypto.randomBytes(64))}`
+  `sk_${base58.encode(crypto.randomBytes(32))}`
 
 const UserSchema = new dynamoose.Schema({
   pk: {

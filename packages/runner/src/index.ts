@@ -18,14 +18,18 @@ import { createHandler } from "./createHandler"
 
   const redis = new Redis(process.env.REDIS_URI)
 
-  const NET_DETAILS = await Model.get({
+  const NET_DETAILS = (await Model.get({
     pk: `NET#${process.env.NET}`,
     sk: "DETAILS"
-  }) as NetworkDocument;
+  })) as NetworkDocument
 
   if (!NET_DETAILS) {
     throw new Error("Network not found.")
   }
+
+  setInterval(() => {
+    redis.set(`HC#${process.env.NET}`, Date.now())
+  }, 50)
 
   const handler = createHandler({
     network: NET_DETAILS,
