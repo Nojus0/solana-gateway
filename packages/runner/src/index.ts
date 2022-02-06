@@ -20,6 +20,9 @@ import {
 } from "shared"
 import { createPoller } from "./createPoller"
 import { Webhook } from "./createWebhookConfirmer"
+
+export let network: NetworkDocument
+
 ;(async () => {
   const envs = [
     "REDIS_URI",
@@ -35,7 +38,7 @@ import { Webhook } from "./createWebhookConfirmer"
 
   const redis = new Redis(process.env.REDIS_URI)
 
-  const network = (await Model.get({
+  network = (await Model.get({
     pk: `NET#${process.env.NET}`,
     sk: "DETAILS"
   })) as NetworkDocument
