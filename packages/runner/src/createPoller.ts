@@ -71,7 +71,7 @@ export const createPoller = ({
     try {
       return await conn.getBlock(slot, { commitment: "finalized" })
     } catch (err: any) {
-      if (retries >= maxRetries) {
+      if (retries > maxRetries) {
         onBlockMaxRetriesExceeded(slot)
         return null
       }
@@ -107,10 +107,38 @@ export const createPoller = ({
     })
   }
 
+  async function getLatestBlock(retries = 0): Promise<number> {
+    try {
+      return await conn.getSlot("finalized")
+    } catch (err) {
+      if (retries < maxRetries)
+        return new Promise(res =>
+          setTimeout(() => res(getLatestBlock(++retries)), retryDelay)
+        )
+      else throw new Error("[MANUAL] Failed to get latest block")
+    }
+  }
+
+  async function getBlocksRange(
+    start: number,
+    end: number,
+    retries = 0
+  ): Promise<number[]> {
+    try {
+      return await conn.getBlocks(start, end)
+    } catch (err) {
+      if (retries > maxRetries) throw new Error("[MANUAL] Failed to get blocks")
+
+      return new Promise(res =>
+        setTimeout(() => res(getBlocksRange(start, end, ++retries)), retryDelay)
+      )
+    }
+  }
+
   async function poll() {
     if (!isActive) return
 
-    latestBlock = await conn.getSlot("finalized")
+    latestBlock = await getLatestBlock()
 
     lastProcessedBlock = lastProcessedBlock || latestBlock
 
@@ -127,7 +155,7 @@ export const createPoller = ({
       latestBlock = lastProcessedBlock + maxPollsPerInterval
     }
 
-    const blocks_list = await conn.getBlocks(
+    const blocks_list = await getBlocksRange(
       lastProcessedBlock + adder,
       latestBlock
     )

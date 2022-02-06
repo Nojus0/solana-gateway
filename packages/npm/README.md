@@ -3,54 +3,76 @@
 Verify if the request is coming from solana gateway, and is not tampered with.
 
 ```ts
-app.post("/", express.text({ type: "application/json" }), (req, res) => {
-  const payload: Payload = JSON.parse(req.body)
-  const sig = req.header("x-signature")
-  const isValid = verify(req.body, sk, sig)
+import express from "express";
+import { verify, withFee, IEvent } from "solanagateway";
+import axios from "axios";
 
-  if (!isValid) {
-    console.log(`invalid`)
-    return res.status(404).send()
-  }
+const app = express();
 
-  res.json({
-    confirmed: true
-  })
-})
+const ak = "API_KEY";
+const sk = "SECRET_KEY";
 
-app.get("/make", async (req, res) => {
+app.get("/createtransaction", async (req, res) => {
+  if (!req.query.user) return res.json({ error: "user is required" });
+
   try {
-    const { data } = await axios({
-      url: "http://localhost:4000/graphql",
+    const { data, headers } = await axios({
       method: "post",
+      url: "https://api.solanagateway.com/graphql",
       headers: {
-        Authorization: `Bearer ${pk}`
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${ak}`,
       },
       data: {
         query: `mutation createDepositAddress($data: String!, $lifetimeMs: Int!) {
-          createDepositAddress(data: $data, lifetime_ms: $lifetimeMs) {
-            publicKey
-          }
-        }`,
+                    createDepositAddress(data: $data, lifetime_ms: $lifetimeMs) {
+                      publicKey
+                    }
+                  }`,
         variables: {
-          data: `user=${req.query.user || "annoymous"}`,
-          lifetimeMs: 1000 * 60 * 15
-        }
-      }
-    })
+          data: `user=${req.query.user}`,
+          lifetimeMs: 1000 * 60 * 15,
+        },
+      },
+    });
 
-    const total =
-      0.01 / 0.000000001 + feeAmountForSendAmount(0.01 / 0.000000001, "dev")
-
+    console.log(headers["x-ratelimit-remaining"]);
     return res.json({
-      address: data.data.createDepositAddress.publicKey,
-      amount: total * 0.000000001
-    })
+      publicKey: data.data.createDepositAddress.publicKey,
+      amount: withFee(0.01 / 0.000000001, "dev") * 0.000000001,
+    });
   } catch (err) {
-    res.json({
-      error: "Too many requests please try again later."
-    })
+    res.status(429).send("Too many requests");
   }
-})
+});
+
+app.post(
+  "/transaction",
+  express.text({ type: "application/json" }),
+  (req, res) => {
+    const isValid = verify(req.body, sk, req.header("x-signature") || "");
+    const event = JSON.parse(req.body) as IEvent;
+    console.log(`isValid = ${isValid}`);
+
+    if (event.type != "transfer:new") {
+      console.log(`Invalid type`);
+      return res.status(404).send();
+    }
+
+    if (!isValid) {
+      return res.status(404).send();
+    }
+
+    if (event.payload.recieveLm == 0.01 / 0.000000001) {
+      console.log(`SUCCESS`);
+    }
+    console.log(event);
+    res.json({
+      confirmed: true,
+    });
+  }
+);
+
+app.listen(4000, () => console.log(`Listening on port 4000`));
 
 ```
