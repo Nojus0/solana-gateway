@@ -51,3 +51,25 @@ func getBlock(block uint64) (BlockResponse, error) {
 
 	return parsed, nil
 }
+
+func getBlocks(start uint64, end uint64) (BlocksResponse, error) {
+	var body = []byte(fmt.Sprintf(`{"jsonrpc": "2.0","id":1,"method":"getBlocks","params":[%d,%d]}`, start, end))
+
+	res, err := http.Post(os.Getenv("URL"), "application/json", bytes.NewBuffer(body))
+
+	if err != nil {
+		return BlocksResponse{}, errors.New("REQ_ERROR")
+	}
+
+	defer res.Body.Close()
+
+	var bytes, _ = io.ReadAll(res.Body)
+
+	var parsed BlocksResponse
+
+	if err := json.Unmarshal(bytes, &parsed); err != nil {
+		return BlocksResponse{}, errors.New("DECODE_ERROR")
+	}
+
+	return parsed, nil
+}

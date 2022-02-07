@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
@@ -33,7 +34,7 @@ func main() {
 
 	// get an item with partition key set to "foo" and sort key set to "bar"
 
-	var resp, _ = dynamo.GetItem(context.TODO(), &dynamodb.GetItemInput{
+	var resp, getErr = dynamo.GetItem(context.TODO(), &dynamodb.GetItemInput{
 		TableName: aws.String("payments"),
 		Key: map[string]types.AttributeValue{
 			"pk": &types.AttributeValueMemberS{Value: "NET#" + net},
@@ -41,14 +42,18 @@ func main() {
 		},
 	})
 
-	network := Network{}
+	if getErr != nil {
+		log.Fatalf("Can't find network " + net)
+	}
 
-	if ur := attributevalue.UnmarshalMap(resp.Item, &network); ur != nil {
+	network := &Network{}
+
+	if ur := attributevalue.UnmarshalMap(resp.Item, network); ur != nil {
 		log.Fatalf("Unable to unmarshal network, " + ur.Error())
 	}
 
-	fmt.Println(network.LastBlock)
+	fmt.Println(network)
 
-	// NewWalker(dynamo).Start()
+	NewWalker(dynamo, network, time.Millisecond*1000).Start()
 
 }
