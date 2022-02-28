@@ -16,22 +16,8 @@ type BlockResponse struct {
 				} `json:"err"`
 				Fee               int64 `json:"fee"`
 				InnerInstructions []struct {
-					Index        int64 `json:"index"`
-					Instructions []struct {
-						Accounts []string `json:"accounts"`
-						Data     string   `json:"data"`
-						Parsed   struct {
-							Info struct {
-								Amount      string `json:"amount"`
-								Authority   string `json:"authority"`
-								Destination string `json:"destination"`
-								Source      string `json:"source"`
-							} `json:"info"`
-							Type string `json:"type"`
-						} `json:"parsed"`
-						Program   string `json:"program"`
-						ProgramID string `json:"programId"`
-					} `json:"instructions"`
+					Index        int64            `json:"index"`
+					Instructions []SplInstruction `json:"instructions"`
 				} `json:"innerInstructions"`
 				LogMessages       []string `json:"logMessages"`
 				PostBalances      []int64  `json:"postBalances"`
@@ -77,6 +63,22 @@ type BlockResponse struct {
 	} `json:"result"`
 }
 
+type SplInstruction struct {
+	Accounts []string `json:"accounts"`
+	Data     string   `json:"data"`
+	Parsed   struct {
+		Info struct {
+			Amount      string `json:"amount"`
+			Authority   string `json:"authority"`
+			Destination string `json:"destination"`
+			Source      string `json:"source"`
+		} `json:"info"`
+		Type string `json:"type"`
+	} `json:"parsed"`
+	Program   string `json:"program"`
+	ProgramID string `json:"programId"`
+}
+
 type Transaction struct {
 	Message struct {
 		AccountKeys []struct {
@@ -89,29 +91,47 @@ type Transaction struct {
 	} `json:"message"`
 	Signatures []string `json:"signatures"`
 }
-
 type Instruction struct {
-	Accounts []string `json:"accounts"`
-	Data     string   `json:"data"`
-	Parsed   struct {
-		Info struct {
-			ClockSysvar      string `json:"clockSysvar"`
-			Destination      string `json:"destination"`
-			Lamports         uint64 `json:"lamports"`
-			SlotHashesSysvar string `json:"slotHashesSysvar"`
-			Source           string `json:"source"`
-			Vote             struct {
-				Hash      string  `json:"hash"`
-				Slots     []int64 `json:"slots"`
-				Timestamp int64   `json:"timestamp"`
-			} `json:"vote"`
-			VoteAccount   string `json:"voteAccount"`
-			VoteAuthority string `json:"voteAuthority"`
-		} `json:"info"`
-		Type string `json:"type"`
-	} `json:"parsed"`
-	Program   string `json:"program"`
-	ProgramID string `json:"programId"`
+	Accounts  []string `json:"accounts"`
+	Data      string   `json:"data"`
+	Parsed    Parsed   `json:"parsed"`
+	Program   string   `json:"program"`
+	ProgramID string   `json:"programId"`
+}
+
+type Parsed struct {
+	Info struct {
+		ClockSysvar      string `json:"clockSysvar"`
+		Destination      string `json:"destination"`
+		Lamports         uint64 `json:"lamports"`
+		SlotHashesSysvar string `json:"slotHashesSysvar"`
+		Source           string `json:"source"`
+		Vote             struct {
+			Hash      string  `json:"hash"`
+			Slots     []int64 `json:"slots"`
+			Timestamp int64   `json:"timestamp"`
+		} `json:"vote"`
+		VoteAccount   string `json:"voteAccount"`
+		VoteAuthority string `json:"voteAuthority"`
+	} `json:"info"`
+	Type string `json:"type"`
+}
+type UnmarshalParsed struct {
+	Info struct {
+		ClockSysvar      string `json:"clockSysvar"`
+		Destination      string `json:"destination"`
+		Lamports         uint64 `json:"lamports"`
+		SlotHashesSysvar string `json:"slotHashesSysvar"`
+		Source           string `json:"source"`
+		Vote             struct {
+			Hash      string  `json:"hash"`
+			Slots     []int64 `json:"slots"`
+			Timestamp int64   `json:"timestamp"`
+		} `json:"vote"`
+		VoteAccount   string `json:"voteAccount"`
+		VoteAuthority string `json:"voteAuthority"`
+	} `json:"info"`
+	Type string `json:"type"`
 }
 
 type SlotResponse struct {

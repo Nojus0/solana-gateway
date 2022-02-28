@@ -15,10 +15,6 @@ import (
 )
 
 func main() {
-	if os.Getenv("URL") == "" {
-		log.Fatalf("Please set the URL environment variable")
-	}
-
 	var net = os.Getenv("NET")
 
 	if net == "" {

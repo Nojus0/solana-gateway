@@ -7,17 +7,15 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"os"
 )
 
-func getSlot() (uint64, error) {
+func getSlot(url string) (uint64, error) {
 	var body = []byte(`{"jsonrpc": "2.0","id": 1,"method": "getSlot","params": [{"commitment": "finalized"}]}`)
 
-	var res, res_error = http.Post(os.Getenv("URL"), "application/json", bytes.NewBuffer(body))
-
+	var res, err = http.Post(url, "application/json", bytes.NewBuffer(body))
 	defer res.Body.Close()
 
-	if res_error != nil {
+	if err != nil {
 		return 0, errors.New("REQ_ERROR")
 	}
 
@@ -32,30 +30,32 @@ func getSlot() (uint64, error) {
 	return response.Result, nil
 }
 
-func getBlock(block uint64) (BlockResponse, error) {
+func getBlock(url string, block uint64) (BlockResponse, error) {
 	var body = []byte(fmt.Sprintf(`{"jsonrpc": "2.0","id":1,"method":"getBlock","params":[%d, {"encoding": "jsonParsed","transactionDetails":"full","rewards":false}]}`, block))
 
-	var res, res_error = http.Post(os.Getenv("URL"), "application/json", bytes.NewBuffer(body))
+	var res, err = http.Post(url, "application/json", bytes.NewBuffer(body))
 	defer res.Body.Close()
 
-	if res_error != nil {
+	if err != nil {
 		return BlockResponse{}, errors.New("REQ_ERROR")
 	}
 
 	var bytes, _ = io.ReadAll(res.Body)
 
 	var parsed BlockResponse
-	if dError := json.Unmarshal(bytes, &parsed); dError != nil {
-		panic("Decode error: " + dError.Error())
+
+	fmt.Println(block)
+	if de := json.Unmarshal(bytes, &parsed); de != nil {
+		panic("Decode error: " + de.Error())
 	}
 
 	return parsed, nil
 }
 
-func getBlocks(start uint64, end uint64) (BlocksResponse, error) {
+func getBlocks(url string, start uint64, end uint64) (BlocksResponse, error) {
 	var body = []byte(fmt.Sprintf(`{"jsonrpc": "2.0","id":1,"method":"getBlocks","params":[%d,%d]}`, start, end))
 
-	res, err := http.Post(os.Getenv("URL"), "application/json", bytes.NewBuffer(body))
+	res, err := http.Post(url, "application/json", bytes.NewBuffer(body))
 
 	if err != nil {
 		return BlocksResponse{}, errors.New("REQ_ERROR")
@@ -72,4 +72,16 @@ func getBlocks(start uint64, end uint64) (BlocksResponse, error) {
 	}
 
 	return parsed, nil
+}
+func (b *Parsed) UnmarshalJSON(data []byte) error {
+
+	var v UnmarshalParsed
+
+	if err := json.Unmarshal(data, &v); err != nil {
+		return nil
+	}
+
+	*b = Parsed(v)
+
+	return nil
 }
