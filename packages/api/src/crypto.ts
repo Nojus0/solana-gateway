@@ -2,11 +2,10 @@ import base58 from "bs58"
 import crypto from "crypto"
 import { SmartBuffer } from "smart-buffer"
 
-const TOKEN_SECRET = base58.decode(process.env.TOKEN_SECRET)
+const TOKEN_SECRET = Buffer.from(process.env.TOKEN_SECRET)
 const IV_LEN = 16
 
 export function encryptToken(str: string) {
-
   const iv = crypto.randomBytes(IV_LEN)
 
   const SB = new SmartBuffer()
